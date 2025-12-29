@@ -380,6 +380,14 @@ CREATE POLICY "Users can delete own documents"
   ON documents FOR DELETE
   USING (user_id = auth.uid());
 
+-- Public read access for digital garden
+CREATE POLICY "Public can view published public documents"
+  ON documents FOR SELECT
+  USING (
+    visibility = 'public'
+    AND status = 'published'
+  );
+
 -- Updated_at trigger
 CREATE TRIGGER update_documents_updated_at
   BEFORE UPDATE ON documents
