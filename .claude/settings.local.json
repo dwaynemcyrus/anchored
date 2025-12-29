@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest add button input card label -y)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm run build:*)",
+      "Bash(chmod:*)",
+      "Bash(npm run dev)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsx:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
