@@ -185,6 +185,8 @@ export function useCreateProject() {
           owner_id: "",
           title: newProject.title,
           description: newProject.description || null,
+          start_date: newProject.start_date || null,
+          due_date: newProject.due_date || null,
           status: newProject.status || "active",
           sort_order: 0,
           created_at: new Date().toISOString(),

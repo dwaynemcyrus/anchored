@@ -10,6 +10,7 @@ interface TaskListProps {
   onTaskClick?: (task: TaskWithDetails) => void;
   showProject?: boolean;
   showTimer?: boolean;
+  showStatus?: boolean;
   groupByStatus?: boolean;
   emptyMessage?: string;
 }
@@ -29,6 +30,7 @@ export function TaskList({
   onTaskClick,
   showProject = false,
   showTimer = true,
+  showStatus = false,
   groupByStatus = false,
   emptyMessage = "No tasks",
 }: TaskListProps) {
@@ -51,6 +53,7 @@ export function TaskList({
             onClick={onTaskClick}
             showProject={showProject}
             showTimer={showTimer}
+            showStatus={showStatus}
           />
         ))}
       </div>
@@ -89,6 +92,7 @@ export function TaskList({
                   onClick={onTaskClick}
                   showProject={showProject}
                   showTimer={showTimer && task.status !== "done"}
+                  showStatus={showStatus}
                 />
               ))}
             </div>
