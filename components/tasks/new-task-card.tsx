@@ -69,10 +69,10 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
     setIsDestinationOpen(false);
   };
 
-  const statusForDestination = (next: Destination) => {
+  const taskLocationForDestination = (next: Destination) => {
     if (next.type === "inbox") return "inbox";
     if (next.type === "none") return "anytime";
-    return "anytime";
+    return "project";
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -92,7 +92,9 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
         title: trimmedTitle,
         notes: trimmedNotes ? trimmedNotes : null,
         project_id: destination.type === "project" ? destination.projectId : null,
-        status: statusForDestination(destination),
+        task_location: taskLocationForDestination(destination),
+        start_date: selectedStartDate ? selectedStartDate.toISOString() : null,
+        due_date: selectedDueDate ? selectedDueDate.toISOString() : null,
       });
       setTitle("");
       setNotes("");

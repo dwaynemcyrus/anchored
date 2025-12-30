@@ -8,6 +8,7 @@ import type {
   TaskInsert,
   TaskUpdate,
   TaskStatus,
+  TaskLocation,
   Project,
 } from "@/types/database";
 import { projectKeys } from "./use-projects";
@@ -21,6 +22,8 @@ export type TaskWithDetails = Task & {
 type TaskFilters = {
   projectId?: string;
   status?: TaskStatus | TaskStatus[];
+  taskLocation?: TaskLocation | TaskLocation[];
+  excludeStatus?: TaskStatus | TaskStatus[];
   dueIsNull?: boolean;
   dueFrom?: string;
   dueTo?: string;
@@ -65,6 +68,25 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
       query = query.in("status", filters.status);
     } else {
       query = query.eq("status", filters.status);
+    }
+  }
+
+  if (filters?.taskLocation) {
+    if (Array.isArray(filters.taskLocation)) {
+      query = query.in("task_location", filters.taskLocation);
+    } else {
+      query = query.eq("task_location", filters.taskLocation);
+    }
+  }
+
+  if (filters?.excludeStatus) {
+    if (Array.isArray(filters.excludeStatus)) {
+      const valueList = filters.excludeStatus
+        .map((status) => `"${status}"`)
+        .join(",");
+      query = query.not("status", "in", `(${valueList})`);
+    } else {
+      query = query.neq("status", filters.excludeStatus);
     }
   }
 
@@ -234,6 +256,8 @@ async function deleteTask(id: string): Promise<void> {
 export function useTasks(filters?: {
   projectId?: string;
   status?: TaskStatus | TaskStatus[];
+  taskLocation?: TaskLocation | TaskLocation[];
+  excludeStatus?: TaskStatus | TaskStatus[];
 }) {
   return useQuery({
     queryKey: taskKeys.list(filters || {}),
@@ -263,8 +287,9 @@ export function useScheduledTasks(options?: { from?: Date; to?: Date }) {
 
 export function useAnytimeTasks() {
   const filters: TaskFilters = {
-    status: "anytime",
+    taskLocation: "anytime",
     dueIsNull: true,
+    excludeStatus: ["done", "today"],
   };
 
   return useQuery({
@@ -284,32 +309,24 @@ export function useMoveTaskToTomorrow() {
     ...updateTask,
     mutate: (task: TaskWithDetails | string) => {
       const taskId = typeof task === "string" ? task : task.id;
-      const anytimeStatus =
-        typeof task === "string"
-          ? undefined
-          : task.status === "today"
-            ? "anytime"
-            : undefined;
+      const moveToAnytime =
+        typeof task === "string" ? false : task.status === "today";
 
       updateTask.mutate({
         id: taskId,
         due_date: getTomorrowDueDate(),
-        ...(anytimeStatus ? { status: anytimeStatus } : {}),
+        ...(moveToAnytime ? { task_location: "anytime" } : {}),
       });
     },
     mutateAsync: async (task: TaskWithDetails | string) => {
       const taskId = typeof task === "string" ? task : task.id;
-      const anytimeStatus =
-        typeof task === "string"
-          ? undefined
-          : task.status === "today"
-            ? "anytime"
-            : undefined;
+      const moveToAnytime =
+        typeof task === "string" ? false : task.status === "today";
 
       return updateTask.mutateAsync({
         id: taskId,
         due_date: getTomorrowDueDate(),
-        ...(anytimeStatus ? { status: anytimeStatus } : {}),
+        ...(moveToAnytime ? { task_location: "anytime" } : {}),
       });
     },
   };
@@ -441,7 +458,7 @@ export function useToggleTaskComplete() {
 
 // Convenience hook for inbox tasks
 export function useInboxTasks() {
-  return useTasks({ status: "inbox" });
+  return useTasks({ taskLocation: "inbox", excludeStatus: ["today", "done"] });
 }
 
 // Quick status change (for moving tasks between inbox/today/anytime)
@@ -518,6 +535,64 @@ export function useUpdateTaskStatus() {
   });
 }
 
+// Quick task location change (for moving tasks between inbox/anytime/project)
+export function useUpdateTaskLocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      task_location,
+    }: {
+      id: string;
+      task_location: TaskLocation;
+    }) => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ task_location })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    },
+    onMutate: async ({ id, task_location }) => {
+      await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+
+      const previousData = queryClient.getQueriesData({
+        queryKey: taskKeys.lists(),
+      });
+
+      queryClient.setQueriesData(
+        { queryKey: taskKeys.lists() },
+        (old: TaskWithDetails[] | undefined) => {
+          if (!old) return old;
+          return old.map((task) =>
+            task.id === id ? { ...task, task_location } : task
+          );
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      context?.previousData?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
 // Assign task to project
 export function useAssignTaskToProject() {
   const queryClient = useQueryClient();
@@ -531,10 +606,11 @@ export function useAssignTaskToProject() {
       projectId: string | null;
     }) => {
       const supabase = createClient();
+      const task_location = projectId ? "project" : "inbox";
 
       const { data, error } = await supabase
         .from("tasks")
-        .update({ project_id: projectId })
+        .update({ project_id: projectId, task_location })
         .eq("id", taskId)
         .select()
         .single();
@@ -546,6 +622,7 @@ export function useAssignTaskToProject() {
       return data;
     },
     onMutate: async ({ taskId, projectId }) => {
+      const task_location = projectId ? "project" : "inbox";
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
       const previousData = queryClient.getQueriesData({
@@ -557,7 +634,9 @@ export function useAssignTaskToProject() {
         (old: TaskWithDetails[] | undefined) => {
           if (!old) return old;
           return old.map((task) =>
-            task.id === taskId ? { ...task, project_id: projectId } : task
+            task.id === taskId
+              ? { ...task, project_id: projectId, task_location }
+              : task
           );
         }
       );

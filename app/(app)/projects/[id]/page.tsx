@@ -122,13 +122,14 @@ export default function ProjectDetailPage({
   };
 
   const handleTaskSubmit = async (values: TaskFormValues) => {
+    const taskLocation = values.project_id ? "project" : values.task_location;
     if (editingTask) {
       await updateTask.mutateAsync({
         id: editingTask.id,
         title: values.title,
         notes: values.notes || null,
         project_id: values.project_id,
-        status: values.status,
+        task_location: taskLocation,
         start_date: values.start_date?.toISOString() || null,
         due_date: values.due_date?.toISOString() || null,
       });
@@ -137,7 +138,7 @@ export default function ProjectDetailPage({
         title: values.title,
         notes: values.notes || null,
         project_id: id,
-        status: values.status,
+        task_location: "project",
         start_date: values.start_date?.toISOString() || null,
         due_date: values.due_date?.toISOString() || null,
       });
@@ -248,6 +249,7 @@ export default function ProjectDetailPage({
         <QuickAddInline
           defaultProjectId={id}
           defaultStatus="today"
+          defaultLocation="project"
           placeholder="Quick add task to this project..."
         />
 
@@ -306,7 +308,7 @@ export default function ProjectDetailPage({
           <TaskForm
             task={editingTask || undefined}
             defaultProjectId={id}
-            defaultStatus="today"
+            defaultLocation="project"
             onSubmit={handleTaskSubmit}
             onCancel={() => {
               setIsTaskDialogOpen(false);

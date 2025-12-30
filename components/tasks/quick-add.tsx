@@ -14,11 +14,12 @@ import {
 } from "@/lib/utils/task-parser";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
 import { useProjects } from "@/lib/hooks/use-projects";
-import type { TaskStatus } from "@/types/database";
+import type { TaskLocation, TaskStatus } from "@/types/database";
 
 interface QuickAddProps {
   defaultProjectId?: string | null;
   defaultStatus?: TaskStatus;
+  defaultLocation?: TaskLocation;
   placeholder?: string;
   className?: string;
   onSuccess?: () => void;
@@ -34,6 +35,7 @@ interface Suggestion {
 export function QuickAdd({
   defaultProjectId = null,
   defaultStatus = "inbox",
+  defaultLocation = "inbox",
   placeholder = "Add a task... (# for project, @ for status)",
   className,
   onSuccess,
@@ -137,7 +139,12 @@ export function QuickAdd({
   const handleSubmit = async () => {
     if (!input.trim() || createTask.isPending) return;
 
-    const parsed = parseTaskInput(input, projectList, defaultStatus);
+    const parsed = parseTaskInput(
+      input,
+      projectList,
+      defaultStatus,
+      defaultLocation
+    );
 
     // Use default project if no project was specified
     const finalProjectId = parsed.project_id || defaultProjectId;
@@ -148,6 +155,7 @@ export function QuickAdd({
       await createTask.mutateAsync({
         title: parsed.title,
         status: parsed.status,
+        task_location: parsed.task_location,
         due_date: parsed.due_date,
         project_id: finalProjectId,
       });
@@ -271,6 +279,7 @@ export function QuickAdd({
 export function QuickAddInline({
   defaultProjectId = null,
   defaultStatus = "inbox",
+  defaultLocation = "inbox",
   placeholder = "Add a task...",
   className,
   onSuccess,
@@ -290,7 +299,12 @@ export function QuickAddInline({
   const handleSubmit = async () => {
     if (!input.trim() || createTask.isPending) return;
 
-    const parsed = parseTaskInput(input, projectList, defaultStatus);
+    const parsed = parseTaskInput(
+      input,
+      projectList,
+      defaultStatus,
+      defaultLocation
+    );
     const finalProjectId = parsed.project_id || defaultProjectId;
 
     if (!parsed.title) return;
@@ -299,6 +313,7 @@ export function QuickAddInline({
       await createTask.mutateAsync({
         title: parsed.title,
         status: parsed.status,
+        task_location: parsed.task_location,
         due_date: parsed.due_date,
         project_id: finalProjectId,
       });

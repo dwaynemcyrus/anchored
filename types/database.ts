@@ -60,6 +60,7 @@ export type Database = {
           project_id: string | null;
           title: string;
           notes: string | null;
+          task_location: "inbox" | "anytime" | "project";
           status: "inbox" | "today" | "anytime" | "done";
           start_date: string | null;
           due_date: string | null;
@@ -74,6 +75,7 @@ export type Database = {
           project_id?: string | null;
           title: string;
           notes?: string | null;
+          task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
           start_date?: string | null;
           due_date?: string | null;
@@ -88,6 +90,7 @@ export type Database = {
           project_id?: string | null;
           title?: string;
           notes?: string | null;
+          task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
           start_date?: string | null;
           due_date?: string | null;
@@ -270,6 +273,7 @@ export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 export type TaskStatus = Task["status"];
+export type TaskLocation = Task["task_location"];
 
 export type TimeEntry = Database["public"]["Tables"]["time_entries"]["Row"];
 export type TimeEntryInsert = Database["public"]["Tables"]["time_entries"]["Insert"];

@@ -93,12 +93,13 @@ export function TaskDetailDrawer({ taskId, onClose }: TaskDetailDrawerProps) {
 
   const handleTaskSubmit = async (values: TaskFormValues) => {
     if (task) {
+      const taskLocation = values.project_id ? "project" : values.task_location;
       await updateTask.mutateAsync({
         id: task.id,
         title: values.title,
         notes: values.notes || null,
         project_id: values.project_id,
-        status: values.status,
+        task_location: taskLocation,
         start_date: values.start_date?.toISOString() || null,
         due_date: values.due_date?.toISOString() || null,
       });

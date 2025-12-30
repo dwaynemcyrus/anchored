@@ -23,6 +23,7 @@ import {
   useMoveTaskToTomorrow,
   useTasks,
   useUpdateTaskStatus,
+  useUpdateTaskLocation,
   useDeleteTask,
   type TaskWithDetails,
 } from "@/lib/hooks/use-tasks";
@@ -64,6 +65,7 @@ export default function ReviewPage() {
   const updateReview = useUpdateReviewSession();
 
   const updateTaskStatus = useUpdateTaskStatus();
+  const updateTaskLocation = useUpdateTaskLocation();
   const deleteTask = useDeleteTask();
   const moveToTomorrow = useMoveTaskToTomorrow();
 
@@ -187,7 +189,7 @@ export default function ReviewPage() {
   };
 
   const handleMoveToAnytime = (task: TaskWithDetails) => {
-    updateTaskStatus.mutate({ id: task.id, status: "anytime" });
+    updateTaskLocation.mutate({ id: task.id, task_location: "anytime" });
   };
 
   const handleDelete = (task: TaskWithDetails) => {

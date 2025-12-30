@@ -92,40 +92,47 @@ export default function TestPage() {
     {
       title: "Review homepage mockups",
       status: "today" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
       due_date: new Date().toISOString(),
     },
     {
       title: "Update navigation component",
       status: "today" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
     },
     {
       title: "Write unit tests for API",
       status: "today" as const,
+      task_location: "project" as const,
       project_id: projectIds[1],
     },
     // Anytime tasks
     {
       title: "Design contact form",
       status: "anytime" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
       due_date: addDays(new Date(), 3).toISOString(),
     },
     {
       title: "Implement dark mode",
       status: "anytime" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
     },
     // Inbox tasks (no project)
     {
       title: "Research competitor pricing",
       status: "inbox" as const,
+      task_location: "inbox" as const,
       project_id: null,
     },
     {
       title: "Schedule team meeting",
       status: "inbox" as const,
+      task_location: "inbox" as const,
       project_id: null,
       due_date: addDays(new Date(), 1).toISOString(),
     },
@@ -133,6 +140,7 @@ export default function TestPage() {
     {
       title: "Submit quarterly report",
       status: "today" as const,
+      task_location: "project" as const,
       project_id: projectIds[1],
       due_date: subDays(new Date(), 2).toISOString(),
     },
@@ -140,11 +148,13 @@ export default function TestPage() {
     {
       title: "Setup project repository",
       status: "done" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
     },
     {
       title: "Initial wireframes",
       status: "done" as const,
+      task_location: "project" as const,
       project_id: projectIds[0],
     },
   ];
@@ -251,6 +261,7 @@ export default function TestPage() {
           const result = await createTask.mutateAsync({
             title: "Test Task " + Date.now(),
             status: "inbox",
+            task_location: "inbox",
           });
           if (!result.id) throw new Error("No ID returned");
           return result.id;
@@ -367,12 +378,12 @@ export default function TestPage() {
       check: () => (tasks?.length || 0) > 0,
     },
     {
-      id: "task-status",
+      id: "task-location",
       category: "Tasks",
-      description: "Tasks have status: inbox, today, anytime, done",
+      description: "Tasks have task_location: inbox, anytime, project",
       check: () => {
-        const statuses = new Set(tasks?.map((t) => t.status) || []);
-        return statuses.has("inbox") || statuses.has("today") || statuses.has("anytime") || statuses.has("done");
+        const locations = new Set(tasks?.map((t) => t.task_location) || []);
+        return locations.has("inbox") || locations.has("anytime") || locations.has("project");
       },
     },
     {
@@ -410,7 +421,7 @@ export default function TestPage() {
       check: () => {
         const today = parseTaskInput("Task @today", [], "inbox");
         const anytime = parseTaskInput("Task @anytime", [], "inbox");
-        return today.status === "today" && anytime.status === "anytime";
+        return today.status === "today" && anytime.task_location === "anytime";
       },
     },
     {

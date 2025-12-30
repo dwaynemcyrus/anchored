@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,13 +31,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import type { Task, Project, TaskStatus } from "@/types/database";
+import type { Task, Project, TaskLocation } from "@/types/database";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   notes: z.string().max(5000, "Notes are too long").optional(),
   project_id: z.string().nullable().optional(),
-  status: z.enum(["inbox", "today", "anytime"] as const),
+  task_location: z.enum(["inbox", "anytime", "project"] as const),
   start_date: z.date().nullable().optional(),
   due_date: z.date().nullable().optional(),
 });
@@ -47,7 +48,7 @@ interface TaskFormProps {
   task?: Task;
   projects?: Pick<Project, "id" | "title">[];
   defaultProjectId?: string | null;
-  defaultStatus?: TaskStatus;
+  defaultLocation?: TaskLocation;
   onSubmit: (values: TaskFormValues) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -57,7 +58,7 @@ export function TaskForm({
   task,
   projects = [],
   defaultProjectId,
-  defaultStatus = "inbox",
+  defaultLocation = "inbox",
   onSubmit,
   onCancel,
   isLoading = false,
@@ -68,11 +69,23 @@ export function TaskForm({
       title: task?.title || "",
       notes: task?.notes || "",
       project_id: task?.project_id || defaultProjectId || null,
-      status: (task?.status && task.status !== "done" ? task.status : defaultStatus) as "inbox" | "today" | "anytime",
+      task_location:
+        task?.task_location ||
+        (task?.project_id || defaultProjectId ? "project" : defaultLocation),
       start_date: task?.start_date ? new Date(task.start_date) : null,
       due_date: task?.due_date ? new Date(task.due_date) : null,
     },
   });
+
+  const currentProjectId = form.watch("project_id");
+
+  useEffect(() => {
+    if (currentProjectId) {
+      form.setValue("task_location", "project");
+    } else if (form.getValues("task_location") === "project") {
+      form.setValue("task_location", defaultLocation);
+    }
+  }, [currentProjectId, defaultLocation, form]);
 
   const handleSubmit = (values: TaskFormValues) => {
     onSubmit({
@@ -156,24 +169,26 @@ export function TaskForm({
 
           <FormField
             control={form.control}
-            name="status"
+            name="task_location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>Location</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isLoading}
+                  value={currentProjectId ? "project" : field.value}
+                  disabled={isLoading || Boolean(currentProjectId)}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="inbox">Inbox</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="anytime">Anytime</SelectItem>
+                    {currentProjectId && (
+                      <SelectItem value="project">Project</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

@@ -56,6 +56,8 @@ CREATE TABLE tasks (
   project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   notes TEXT,
+  task_location TEXT NOT NULL DEFAULT 'inbox'
+    CHECK (task_location IN ('inbox', 'anytime', 'project')),
   status TEXT NOT NULL DEFAULT 'inbox'
     CHECK (status IN ('inbox', 'today', 'anytime', 'done')),
   start_date DATE,

@@ -47,6 +47,7 @@ export async function POST() {
           project_id: project.id,
           title: "Set up Supabase project",
           notes: "Configure database, auth, and RLS policies",
+          task_location: "project",
           status: "done",
         },
         {
@@ -54,6 +55,7 @@ export async function POST() {
           project_id: project.id,
           title: "Build task management UI",
           notes: "Create task list, forms, and status changes",
+          task_location: "project",
           status: "today",
         },
       ])

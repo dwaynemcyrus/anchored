@@ -6,7 +6,7 @@
  * Examples from Phase 1 brief:
  * - "Call dentist tomorrow" → title: "Call dentist", due_date: tomorrow, status: "today"
  * - "Buy milk #errands" → title: "Buy milk", project matched
- * - "Review docs @anytime" → title: "Review docs", status: "anytime"
+ * - "Review docs @anytime" → title: "Review docs", task_location: "anytime"
  */
 
 import { parseTaskInput, getProjectSuggestions, extractCurrentTag } from "./task-parser";
@@ -61,11 +61,12 @@ const result3 = parseTaskInput("Review docs @anytime", mockProjects);
 console.log("  Result:", {
   title: result3.title,
   status: result3.status,
+  task_location: result3.task_location,
 });
-console.log("  Expected: title='Review docs', status='anytime'");
+console.log("  Expected: title='Review docs', task_location='anytime'");
 console.log(
   "  PASS:",
-  result3.title === "Review docs" && result3.status === "anytime"
+  result3.title === "Review docs" && result3.task_location === "anytime"
 );
 console.log();
 
@@ -96,16 +97,17 @@ const result5 = parseTaskInput("Just a simple task", mockProjects);
 console.log("  Result:", {
   title: result5.title,
   status: result5.status,
+  task_location: result5.task_location,
   project_id: result5.project_id,
   due_date: result5.due_date,
 });
 console.log(
-  "  Expected: title='Just a simple task', status='inbox' (default)"
+  "  Expected: title='Just a simple task', task_location='inbox' (default)"
 );
 console.log(
   "  PASS:",
   result5.title === "Just a simple task" &&
-    result5.status === "inbox" &&
+    result5.task_location === "inbox" &&
     result5.project_id === null
 );
 console.log();

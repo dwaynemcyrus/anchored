@@ -1,10 +1,11 @@
 import { addDays, startOfDay } from "date-fns";
-import type { TaskStatus } from "@/types/database";
+import type { TaskLocation, TaskStatus } from "@/types/database";
 
 export interface ParsedTask {
   title: string;
   due_date: string | null;
   status: TaskStatus;
+  task_location: TaskLocation;
   project_id: string | null;
   projectMatch: string | null; // The matched project name for display
 }
@@ -19,30 +20,39 @@ export interface Project {
  *
  * Supported patterns:
  * - "tomorrow" or "today" → sets due_date and status
- * - "@anytime", "@today", "@inbox" → sets status
+ * - "@anytime", "@inbox" → sets task_location, "@today" → sets status
  * - "#project-name" → looks up project by title (fuzzy match)
  * - Everything else becomes the task title
  *
  * Examples:
  * - "Call dentist tomorrow" → { title: "Call dentist", due_date: tomorrow, status: "today" }
  * - "Buy milk #errands" → { title: "Buy milk", project_id: matched_id }
- * - "Review docs @anytime" → { title: "Review docs", status: "anytime" }
+ * - "Review docs @anytime" → { title: "Review docs", task_location: "anytime" }
  */
 export function parseTaskInput(
   input: string,
   projects: Project[] = [],
-  defaultStatus: TaskStatus = "inbox"
+  defaultStatus: TaskStatus = "inbox",
+  defaultLocation: TaskLocation = "inbox"
 ): ParsedTask {
   let title = input.trim();
   let due_date: string | null = null;
   let status: TaskStatus = defaultStatus;
+  let task_location: TaskLocation = defaultLocation;
   let project_id: string | null = null;
   let projectMatch: string | null = null;
 
-  // Extract status (@today, @anytime, @inbox)
+  // Extract status/location tags (@today, @anytime, @inbox)
   const statusMatch = title.match(/@(today|anytime|inbox)\b/i);
   if (statusMatch) {
-    status = statusMatch[1].toLowerCase() as TaskStatus;
+    const tag = statusMatch[1].toLowerCase();
+    if (tag === "today") {
+      status = "today";
+    } else if (tag === "anytime") {
+      task_location = "anytime";
+    } else if (tag === "inbox") {
+      task_location = "inbox";
+    }
     title = title.replace(statusMatch[0], "").trim();
   }
 
@@ -54,6 +64,7 @@ export function parseTaskInput(
     if (matchedProject) {
       project_id = matchedProject.id;
       projectMatch = matchedProject.title;
+      task_location = "project";
     }
     title = title.replace(projectTagMatch[0], "").trim();
   }
@@ -86,6 +97,7 @@ export function parseTaskInput(
     title,
     due_date,
     status,
+    task_location,
     project_id,
     projectMatch,
   };
@@ -179,7 +191,7 @@ export function extractCurrentTag(
 /**
  * Status options for suggestions
  */
-export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
+export const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "today", label: "Today" },
   { value: "anytime", label: "Anytime" },
   { value: "inbox", label: "Inbox" },
@@ -190,7 +202,7 @@ export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
  */
 export function getStatusSuggestions(
   searchTerm: string
-): { value: TaskStatus; label: string }[] {
+): { value: string; label: string }[] {
   if (!searchTerm) return STATUS_OPTIONS;
 
   const normalizedSearch = searchTerm.toLowerCase();

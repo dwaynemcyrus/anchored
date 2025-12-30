@@ -40,7 +40,7 @@ export default function AnytimePage() {
       </div>
 
       <QuickAdd
-        defaultStatus="anytime"
+        defaultLocation="anytime"
         placeholder="Add an anytime task... (# for project, @ for status)"
       />
 

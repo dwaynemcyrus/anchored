@@ -25,6 +25,7 @@ import {
 import {
   useInboxTasks,
   useUpdateTaskStatus,
+  useUpdateTaskLocation,
   useAssignTaskToProject,
   useDeleteTask,
   useBulkUpdateTaskStatus,
@@ -44,6 +45,7 @@ export default function InboxPage() {
 
   // Mutations
   const updateTaskStatus = useUpdateTaskStatus();
+  const updateTaskLocation = useUpdateTaskLocation();
   const assignTaskToProject = useAssignTaskToProject();
   const deleteTask = useDeleteTask();
   const bulkUpdateStatus = useBulkUpdateTaskStatus();
@@ -58,7 +60,7 @@ export default function InboxPage() {
   };
 
   const handleMoveToAnytime = (task: TaskWithDetails) => {
-    updateTaskStatus.mutate({ id: task.id, status: "anytime" });
+    updateTaskLocation.mutate({ id: task.id, task_location: "anytime" });
   };
 
   const handleAssignProject = (task: TaskWithDetails, projectId: string | null) => {
@@ -108,6 +110,7 @@ export default function InboxPage() {
 
   const isAnyProcessing =
     updateTaskStatus.isPending ||
+    updateTaskLocation.isPending ||
     assignTaskToProject.isPending ||
     deleteTask.isPending ||
     bulkUpdateStatus.isPending ||
@@ -139,7 +142,7 @@ export default function InboxPage() {
 
       {/* Quick Add */}
       <QuickAdd
-        defaultStatus="inbox"
+        defaultLocation="inbox"
         placeholder="Capture a task... (# for project, @ for status)"
       />
 
