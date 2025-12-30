@@ -1,0 +1,371 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  background: #0f0f0f;
+  color: #f2f2f2;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #8f8f8f;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+}
+
+.textarea {
+  resize: none;
+}
+
+.optionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.optionButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: #b5b5b5;
+  cursor: pointer;
+}
+
+.optionButton:focus {
+  outline: none;
+}
+
+.error {
+  font-size: 12px;
+  color: #f2b8b8;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #1f1f1f;
+  padding-top: 12px;
+}
+
+.destination {
+  position: relative;
+}
+
+.footerLink {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: #b5b5b5;
+  cursor: pointer;
+}
+
+.footerLink:focus {
+  outline: none;
+}
+
+.destinationMenuOverlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 3;
+}
+
+.destinationMenu {
+  width: min(360px, 92%);
+  min-height: 380px;
+  background: #2b2f34;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  padding: 18px 16px 16px;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.destinationMenuHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.destinationMenuTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.destinationMenuClose {
+  position: absolute;
+  right: 2px;
+  top: 0;
+  background: transparent;
+  color: #b5b5b5;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 11px;
+}
+
+.destinationMenuClose:focus {
+  outline: none;
+}
+
+.destinationMenuList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.destinationMenuDivider {
+  height: 1px;
+  background: #ffffff;
+  margin: 2px 2px;
+}
+
+.destinationItem {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  font-size: 12px;
+  color: #f2f2f2;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.destinationItem:focus {
+  outline: none;
+}
+
+.destinationItemSelected {
+  color: #eaf0ff;
+}
+
+.saveButton {
+  background: #f2f2f2;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.whenOverlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 4;
+}
+
+.whenPanel {
+  width: min(360px, 92%);
+  min-height: 420px;
+  background: #2b2f34;
+  border-radius: 24px;
+  padding: 18px 16px 20px;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.whenHeader {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+}
+
+.whenTitle {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.whenNavButton,
+.whenClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: #23272c;
+  color: #f2f2f2;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.whenNavButton:focus,
+.whenClose:focus {
+  outline: none;
+}
+
+.whenQuickList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.whenQuickItem {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: #f2f2f2;
+  cursor: pointer;
+}
+
+.whenCalendar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #1f2327;
+  border-radius: 16px;
+  padding: 8px;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.whenCalendarScroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 180px;
+  background: #1f2327;
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.whenCalendarWidget {
+  width: 100%;
+  --cell-size: 28px;
+}
+
+.whenCalendarMonths {
+  width: 100%;
+}
+
+.whenCalendarMonthsScroll {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.whenCalendarMonth {
+  width: 100%;
+}
+
+.whenCalendarCaption {
+  margin-bottom: 6px;
+}
+
+.whenCalendarCaptionLabel {
+  font-size: 12px;
+  color: #e1e4e8;
+}
+
+.whenCalendarWeekday {
+  font-size: 11px;
+  color: #e6e9ee;
+}
+
+.whenCalendarWeek {
+  margin-top: 6px;
+}
+
+.whenCalendarDay {
+  font-size: 12px;
+  color: #f5f7fa;
+}
+
+.whenCalendarWidget :global(.rdp) {
+  background: transparent;
+}
+
+.whenCalendarWidget :global(.rdp-week) {
+  gap: 6px;
+}
+
+.whenCalendarWidget :global(.rdp-weekdays) {
+  display: table-row;
+}
+
+.whenCalendarWidget :global(.rdp-day_button) {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  padding: 0;
+  border-radius: 8px;
+  color: #f5f7fa;
+}
+
+.whenCalendarNavHidden {
+  display: none;
+}
+
+.whenCalendarExpand {
+  position: absolute;
+  right: 18px;
+  bottom: 72px;
+  background: transparent;
+  border: none;
+  color: #b5b5b5;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.whenCalendarWidget :global(.rdp-day_selected .rdp-day_button),
+.whenCalendarWidget :global([data-selected-single="true"]) {
+  background: #4c7dff;
+  color: #ffffff;
+  border-radius: 10px;
+}
+.whenToggle {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #9aa0a6;
+}
+
+.whenToggleActive {
+  color: #f2f2f2;
+}
+
+.whenToggleInactive {
+  color: #9aa0a6;
+}

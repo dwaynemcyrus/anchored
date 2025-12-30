@@ -1,0 +1,117 @@
+.quickMenuButton {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1200;
+  background: #000;
+  color: #f2f2f2;
+  border: none;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quickMenuButton:focus {
+  outline: none;
+}
+
+.modalRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modalContainer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.menuModalContainer {
+  align-items: flex-end;
+  padding: 24px;
+}
+
+.actionModalContainer {
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.modal {
+  width: min(420px, 100%);
+  background: #000;
+  color: #f2f2f2;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.modalHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modalTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  color: #b5b5b5;
+  cursor: pointer;
+}
+
+.closeButton:focus {
+  outline: none;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menuItem {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.menuItem:focus {
+  outline: none;
+}
+
+.menuTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.menuSubtext {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #b5b5b5;
+}
