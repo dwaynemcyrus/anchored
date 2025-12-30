@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Switch } from "@/components/ui/switch";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
 import { useProjects } from "@/lib/hooks/use-projects";
 import styles from "./new-task-card.module.css";
@@ -25,6 +25,7 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
   const [isWhenCalendarView, setIsWhenCalendarView] = useState(false);
   const [whenMode, setWhenMode] = useState<"start" | "due">("start");
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>();
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>();
   const [destination, setDestination] = useState<Destination>({
     type: "inbox",
     label: "Inbox",
@@ -144,6 +145,30 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
           </button>
         ))}
       </div>
+      {(selectedStartDate || selectedDueDate) && (
+        <div className={styles.whenSummary}>
+          <button
+            type="button"
+            className={styles.whenSummaryButton}
+            onClick={() => {
+              setWhenMode("start");
+              setIsWhenOpen(true);
+            }}
+          >
+            Start: {selectedStartDate ? format(selectedStartDate, "MMM d") : "None"}
+          </button>
+          <button
+            type="button"
+            className={styles.whenSummaryButton}
+            onClick={() => {
+              setWhenMode("due");
+              setIsWhenOpen(true);
+            }}
+          >
+            Due: {selectedDueDate ? format(selectedDueDate, "MMM d") : "None"}
+          </button>
+        </div>
+      )}
 
       {error && <p className={styles.error}>{error}</p>}
 
@@ -282,8 +307,17 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
             >
               <Calendar
                 mode="single"
-                selected={selectedStartDate}
-                onSelect={(date) => setSelectedStartDate(date ?? undefined)}
+                selected={whenMode === "start" ? selectedStartDate : selectedDueDate}
+                onSelect={(date) => {
+                  if (whenMode === "start") {
+                    setSelectedStartDate(date ?? undefined);
+                  } else {
+                    setSelectedDueDate(date ?? undefined);
+                  }
+                  if (date && isWhenCalendarView) {
+                    setIsWhenCalendarView(false);
+                  }
+                }}
                 numberOfMonths={isWhenCalendarView ? 12 : 1}
                 showOutsideDays={!isWhenCalendarView}
                 className={styles.whenCalendarWidget}
@@ -313,31 +347,59 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
               </button>
             )}
 
+            <div className={styles.whenModalSummary}>
+              {selectedStartDate ? (
+                <span className={styles.whenModalSummaryItem}>
+                  Start: {format(selectedStartDate, "MMM d")}
+                </span>
+              ) : (
+                <span className={styles.whenModalSummaryItem}>Start: None</span>
+              )}
+              {selectedDueDate ? (
+                <span className={styles.whenModalSummaryItem}>
+                  Due: {format(selectedDueDate, "MMM d")}
+                </span>
+              ) : (
+                <span className={styles.whenModalSummaryItem}>Due: None</span>
+              )}
+            </div>
+
             <div className={styles.whenToggle}>
-              <span
+              <button
+                type="button"
                 className={
                   whenMode === "start"
-                    ? styles.whenToggleActive
-                    : styles.whenToggleInactive
+                    ? styles.whenToggleChipActive
+                    : styles.whenToggleChip
                 }
+                onClick={() => setWhenMode("start")}
               >
                 Start date
-              </span>
-              <Switch
-                checked={whenMode === "due"}
-                onCheckedChange={(checked) =>
-                  setWhenMode(checked ? "due" : "start")
-                }
-              />
-              <span
+              </button>
+              <button
+                type="button"
                 className={
                   whenMode === "due"
-                    ? styles.whenToggleActive
-                    : styles.whenToggleInactive
+                    ? styles.whenToggleChipActive
+                    : styles.whenToggleChip
                 }
+                onClick={() => setWhenMode("due")}
               >
                 Due date
-              </span>
+              </button>
+            </div>
+
+            <div className={styles.whenModalActions}>
+              <button
+                type="button"
+                className={styles.whenModalSave}
+                onClick={() => {
+                  setIsWhenOpen(false);
+                  setIsWhenCalendarView(false);
+                }}
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>

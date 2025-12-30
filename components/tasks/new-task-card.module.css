@@ -42,6 +42,30 @@
   gap: 8px;
 }
 
+.whenSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #b5b5b5;
+}
+
+.whenSummaryItem {
+  background: #1f2327;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.whenSummaryButton {
+  background: #1f2327;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #b5b5b5;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .optionButton {
   background: transparent;
   border: none;
@@ -255,14 +279,18 @@
   background: #1f2327;
   border-radius: 16px;
   padding: 8px;
-  max-height: 180px;
+  max-height: 264px;
   overflow: hidden;
+}
+
+.whenCalendar > :global(div) {
+  background-color: transparent;
 }
 
 .whenCalendarScroll {
   flex: 1;
   overflow-y: auto;
-  max-height: 180px;
+  max-height: 264px;
   background: #1f2327;
   border-radius: 16px;
   padding: 8px;
@@ -270,7 +298,12 @@
 
 .whenCalendarWidget {
   width: 100%;
-  --cell-size: 28px;
+  --cell-size: 34px;
+  background-color: transparent;
+}
+
+.whenCalendarWidget :global(.rdp-root) {
+  background-color: transparent;
 }
 
 .whenCalendarMonths {
@@ -286,6 +319,7 @@
 
 .whenCalendarMonth {
   width: 100%;
+  background-color: transparent;
 }
 
 .whenCalendarCaption {
@@ -352,20 +386,62 @@
   color: #ffffff;
   border-radius: 10px;
 }
+
+.whenModalSummary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #b5b5b5;
+}
+
+.whenModalSummaryItem {
+  background: #1f2327;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
 .whenToggle {
   margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+.whenToggleChip {
+  background: #1f2327;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9aa0a6;
+  border-radius: 999px;
+  padding: 6px 12px;
   font-size: 12px;
-  color: #9aa0a6;
+  cursor: pointer;
 }
 
-.whenToggleActive {
+.whenToggleChipActive {
+  background: #353a40;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f2f2f2;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
-.whenToggleInactive {
-  color: #9aa0a6;
+.whenModalActions {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+}
+
+.whenModalSave {
+  background: #f2f2f2;
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
