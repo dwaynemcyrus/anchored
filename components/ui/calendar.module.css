@@ -1,0 +1,152 @@
+.calendar {
+  background: var(--background);
+  padding: 12px;
+}
+
+.root {
+  width: fit-content;
+}
+
+.months {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.navButton {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chevron {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.captionLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dropdowns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dropdownRoot {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.dropdown {
+  opacity: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.weekdays {
+  display: table-row;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  padding: 4px 0;
+}
+
+.week {
+  display: table-row;
+}
+
+.weekNumberHeader,
+.weekNumber {
+  width: 32px;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.weekNumberCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+}
+
+.day {
+  width: 32px;
+  height: 32px;
+  text-align: center;
+}
+
+.dayButton {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--foreground);
+}
+
+.dayButton[data-selected-single="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.rangeStart,
+.rangeEnd {
+  background: var(--accent);
+}
+
+.rangeMiddle {
+  background: transparent;
+}
+
+.today {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.outside {
+  color: var(--muted-foreground);
+}
+
+.disabled {
+  opacity: 0.5;
+}
+
+.hidden {
+  visibility: hidden;
+}

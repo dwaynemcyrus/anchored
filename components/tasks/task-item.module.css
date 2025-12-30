@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  padding: 12px;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.containerCompact {
+  padding: 8px;
+}
+
+.containerClickable {
+  cursor: pointer;
+}
+
+.containerClickable:hover {
+  background: var(--accent);
+}
+
+.containerCompleted {
+  opacity: 0.6;
+}
+
+.checkboxWrap {
+  flex-shrink: 0;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+}
+
+.checkboxCompact {
+  width: 16px;
+  height: 16px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titleCompact {
+  font-size: 14px;
+}
+
+.titleCompleted {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+
+.statusBadge {
+  flex-shrink: 0;
+}
+
+.metaRow {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.metaText {
+  font-size: 12px;
+}
+
+.metaMuted {
+  color: var(--muted-foreground);
+}
+
+.metaOverdue {
+  color: var(--destructive);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  width: 32px;
+  height: 32px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.actionButtonCompact {
+  width: 28px;
+  height: 28px;
+}
+
+.container:hover .actionButton {
+  opacity: 1;
+}
+
+.deleteItem {
+  color: var(--destructive);
+}

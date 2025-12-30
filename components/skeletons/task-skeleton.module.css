@@ -1,0 +1,97 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 12px;
+}
+
+.cardCompact {
+  padding: 8px;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.checkboxCompact {
+  width: 16px;
+  height: 16px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  height: 16px;
+  width: 66%;
+}
+
+.titleCompact {
+  width: 75%;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metaShort {
+  height: 12px;
+  width: 80px;
+}
+
+.metaShorter {
+  height: 12px;
+  width: 64px;
+}
+
+.action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.actionCompact {
+  width: 28px;
+  height: 28px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionTitleLarge {
+  width: 96px;
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.sectionTitleMedium {
+  width: 80px;
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.sectionTitleSmall {
+  width: 64px;
+  height: 16px;
+  margin-bottom: 12px;
+}

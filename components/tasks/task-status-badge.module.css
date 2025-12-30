@@ -1,0 +1,19 @@
+.inbox {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.today {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.anytime {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.done {
+  background: #dcfce7;
+  color: #15803d;
+}

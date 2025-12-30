@@ -1,0 +1,3 @@
+ [projects."/Users/cyrus/Code/anchored"]
+  trust_level = "trusted"
+  network_access = "enabled"

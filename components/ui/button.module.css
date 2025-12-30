@@ -1,0 +1,112 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.buttonDefault {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.buttonDefault:hover {
+  background: color-mix(in srgb, var(--primary) 90%, #000);
+}
+
+.buttonDestructive {
+  background: var(--destructive);
+  color: #fff;
+}
+
+.buttonDestructive:hover {
+  background: color-mix(in srgb, var(--destructive) 90%, #000);
+}
+
+.buttonOutline {
+  background: var(--background);
+  color: var(--foreground);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.buttonOutline:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.buttonSecondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.buttonSecondary:hover {
+  background: color-mix(in srgb, var(--secondary) 80%, #000);
+}
+
+.buttonGhost {
+  background: transparent;
+  color: var(--foreground);
+}
+
+.buttonGhost:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.buttonLink {
+  background: transparent;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.buttonSizeDefault {
+  height: 36px;
+  padding: 8px 16px;
+}
+
+.buttonSizeSm {
+  height: 32px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  gap: 6px;
+}
+
+.buttonSizeLg {
+  height: 40px;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.buttonSizeIcon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.buttonSizeIconSm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.buttonSizeIconLg {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}

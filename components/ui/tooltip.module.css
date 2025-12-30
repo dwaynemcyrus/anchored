@@ -1,0 +1,16 @@
+.content {
+  background: var(--foreground);
+  color: var(--background);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  width: fit-content;
+  z-index: 50;
+}
+
+.arrow {
+  width: 10px;
+  height: 10px;
+  background: var(--foreground);
+  fill: var(--foreground);
+}

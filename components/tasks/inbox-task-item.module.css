@@ -1,0 +1,112 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  padding: 16px;
+}
+
+.containerProcessing {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  height: 32px;
+  padding: 0 12px;
+}
+
+.actionButtonMuted {
+  height: 32px;
+  padding: 0 12px;
+  color: var(--muted-foreground);
+}
+
+.iconButton {
+  height: 32px;
+  width: 32px;
+}
+
+.deleteButton {
+  color: var(--destructive);
+}
+
+.dropdownMenu {
+  width: 192px;
+}
+
+.dropdownItem {
+  width: 100%;
+}
+
+.dropdownItemActive {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.compactContainer {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compactContent {
+  min-width: 0;
+}
+
+.compactActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.compactButton {
+  height: 28px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.compactSuccess {
+  color: #15803d;
+}
+
+.compactDestructive {
+  color: var(--destructive);
+}

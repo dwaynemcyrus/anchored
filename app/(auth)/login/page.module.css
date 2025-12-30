@@ -1,0 +1,34 @@
+.centeredHeader {
+  text-align: center;
+}
+
+.centeredContent {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.linkButton {
+  margin-top: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.error {
+  font-size: 14px;
+  color: var(--destructive);
+}
+
+.fullWidth {
+  width: 100%;
+}
