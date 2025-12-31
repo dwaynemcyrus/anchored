@@ -46,7 +46,7 @@ export function QuickMenu() {
         className={styles.quickMenuButton}
         onClick={() => setIsMenuOpen((open) => !open)}
       >
-        Quick Menu
+        Capture
       </button>
 
       {isMenuOpen && (

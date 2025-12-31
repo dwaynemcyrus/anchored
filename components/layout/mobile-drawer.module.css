@@ -1,0 +1,74 @@
+.floatingButtonWrapper {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  z-index: 60;
+  transform: translateY(-50%);
+}
+
+.floatingButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 36px;
+  border-radius: 0;
+  border: 1px solid #000;
+  background: #000;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.floatingButton:focus-visible {
+  outline: 2px solid var(--sidebar-ring);
+  outline-offset: 2px;
+}
+
+.floatingIcon {
+  background: currentColor;
+  width: 2px;
+  height: 18px;
+}
+
+.floatingIcon span {
+  display: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 40;
+}
+
+.overlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 16rem;
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  transform: translateX(-100%);
+  transition: transform 220ms ease;
+  z-index: 50;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+}
+
+@media (min-width: 1024px) {
+  .floatingButtonWrapper,
+  .overlay,
+  .drawer {
+    display: none;
+  }
+}

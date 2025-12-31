@@ -2,11 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
-import { Header } from "./header";
-import { MobileNav } from "./mobile-nav";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { FloatingMenuButton } from "./floating-menu-button";
 import { useSidebarStore } from "@/lib/stores/sidebar-store";
 import { ErrorBoundary } from "@/components/error-boundary";
+import styles from "./mobile-drawer.module.css";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -24,27 +23,33 @@ export function AppShell({ children, userEmail }: AppShellProps) {
         <Sidebar userEmail={userEmail} />
       </aside>
 
-      {/* Mobile/Tablet sidebar sheet */}
-      <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-        <SheetContent side="left" className="w-64 p-0">
-          <Sidebar userEmail={userEmail} onNavigate={close} />
-        </SheetContent>
-      </Sheet>
+      {/* Mobile/Tablet sidebar drawer */}
+      <div
+        className={`${styles.overlay} ${isOpen ? styles.overlayOpen : ""}`}
+        onClick={close}
+        aria-hidden="true"
+      />
+      <div
+        className={`${styles.drawer} ${isOpen ? styles.drawerOpen : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!isOpen}
+      >
+        <Sidebar userEmail={userEmail} onNavigate={close} />
+      </div>
 
       {/* Main content area */}
       <div className="lg:pl-64">
-        <Header />
+        <FloatingMenuButton />
 
         {/* Page content */}
-        <main className="min-h-[calc(100vh-3.5rem)] pb-20 lg:pb-0">
+        <main className="min-h-[calc(100vh-3.5rem)] pb-6 lg:pb-0">
           <div className="container py-6">
             <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
           </div>
         </main>
       </div>
 
-      {/* Mobile bottom navigation */}
-      <MobileNav />
     </div>
   );
 }
