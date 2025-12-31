@@ -39,7 +39,6 @@ Expanding Anchored with:
 | Preview | react-markdown + remark/rehype | Live preview rendering |
 | Wiki-links | Custom remark plugin | Reuse from Phase 2 |
 | Shortcuts | Hotkeys (⌘S, ⌘K, etc.) | Native-feeling UX |
-| Styling | Pure CSS | CSS modules or global styles, no Tailwind |
 
 ### Editor Options
 
@@ -184,7 +183,6 @@ import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorView } from '@codemirror/view';
 import { WikiLinkCompletion } from './wiki-link-completion';
-import styles from './markdown-editor.module.css';
 
 interface MarkdownEditorProps {
   value: string;
@@ -202,7 +200,7 @@ export function MarkdownEditor({
   className
 }: MarkdownEditorProps) {
   const [isFocused, setIsFocused] = useState(false);
-
+  
   // Keyboard shortcuts
   const keymap = EditorView.domEventHandlers({
     keydown: (event, view) => {
@@ -215,9 +213,9 @@ export function MarkdownEditor({
       return false;
     }
   });
-
+  
   return (
-    <div className={`${styles.editorWrapper} ${className || ''}`}>
+    <div className={cn('relative', className)}>
       <CodeMirror
         value={value}
         onChange={onChange}
@@ -228,7 +226,7 @@ export function MarkdownEditor({
           EditorView.lineWrapping,
           EditorView.theme({
             '&': { height: '100%' },
-            '.cm-content': {
+            '.cm-content': { 
               fontFamily: 'var(--font-mono)',
               fontSize: '14px',
               lineHeight: '1.6'
@@ -247,14 +245,6 @@ export function MarkdownEditor({
       />
     </div>
   );
-}
-```
-
-```css
-/* components/editor/markdown-editor.module.css */
-
-.editorWrapper {
-  position: relative;
 }
 ```
 
@@ -323,7 +313,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { remarkWikiLinks } from '@/lib/remark-wiki-links';
 import { remarkCallouts } from '@/lib/remark-callouts';
-import styles from './markdown-preview.module.css';
 
 interface MarkdownPreviewProps {
   content: string;
@@ -331,13 +320,13 @@ interface MarkdownPreviewProps {
   className?: string;
 }
 
-export function MarkdownPreview({
-  content,
+export function MarkdownPreview({ 
+  content, 
   linkIndex,
-  className
+  className 
 }: MarkdownPreviewProps) {
   return (
-    <div className={`${styles.prose} ${className || ''}`}>
+    <div className={cn('prose prose-neutral max-w-none', className)}>
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
@@ -349,9 +338,9 @@ export function MarkdownPreview({
           a: ({ href, children, ...props }) => {
             const isInternal = href?.startsWith('/');
             return (
-              <a
-                href={href}
-                className={isInternal ? styles.wikiLink : styles.externalLink}
+              <a 
+                href={href} 
+                className={isInternal ? 'wiki-link' : 'external-link'}
                 {...props}
               >
                 {children}
@@ -362,8 +351,8 @@ export function MarkdownPreview({
           span: ({ className, children, ...props }) => {
             if (className === 'wiki-link-broken') {
               return (
-                <span
-                  className={styles.wikiLinkBroken}
+                <span 
+                  className="text-red-500 underline decoration-dotted cursor-help"
                   title="Page not found"
                   {...props}
                 >
@@ -382,38 +371,6 @@ export function MarkdownPreview({
 }
 ```
 
-```css
-/* components/editor/markdown-preview.module.css */
-
-.prose {
-  max-width: none;
-  color: var(--color-text);
-  line-height: 1.75;
-}
-
-.prose h1, .prose h2, .prose h3 {
-  font-weight: 600;
-  margin-top: 2em;
-  margin-bottom: 0.5em;
-}
-
-.wikiLink {
-  color: var(--color-link);
-  text-decoration-style: dotted;
-}
-
-.externalLink {
-  color: var(--color-link);
-}
-
-.wikiLinkBroken {
-  color: var(--color-error);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  cursor: help;
-}
-```
-
 ### 4.4 Split Editor/Preview Layout
 
 ```typescript
@@ -426,7 +383,6 @@ import { MarkdownEditor } from './markdown-editor';
 import { MarkdownPreview } from './markdown-preview';
 import { useLinkIndex } from '@/lib/hooks/use-link-index';
 import { useDebounce } from '@/lib/hooks/use-debounce';
-import styles from './document-editor.module.css';
 
 type ViewMode = 'edit' | 'preview' | 'split';
 
@@ -440,10 +396,10 @@ export function DocumentEditor({ initialContent, onSave }: DocumentEditorProps) 
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
+  
   const { data: linkIndex } = useLinkIndex();
   const debouncedContent = useDebounce(content, 500);
-
+  
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     try {
@@ -453,45 +409,48 @@ export function DocumentEditor({ initialContent, onSave }: DocumentEditorProps) 
       setIsSaving(false);
     }
   }, [content, onSave]);
-
+  
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarLeft}>
+      <div className="flex items-center justify-between px-4 py-2 border-b">
+        <div className="flex items-center gap-2">
           <ViewModeToggle value={viewMode} onChange={setViewMode} />
         </div>
-        <div className={styles.toolbarRight}>
+        <div className="flex items-center gap-4">
           {lastSaved && (
-            <span className={styles.savedText}>
+            <span className="text-sm text-gray-500">
               Saved {formatRelativeTime(lastSaved)}
             </span>
           )}
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={styles.saveButton}
+            className="px-3 py-1 bg-blue-600 text-white rounded"
           >
             {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
-
+      
       {/* Editor/Preview Area */}
-      <div className={styles.editorArea}>
+      <div className="flex-1 flex overflow-hidden">
         {(viewMode === 'edit' || viewMode === 'split') && (
-          <div className={`${styles.pane} ${viewMode === 'split' ? styles.paneBorder : ''}`}>
+          <div className={cn(
+            'flex-1 overflow-auto',
+            viewMode === 'split' && 'border-r'
+          )}>
             <MarkdownEditor
               value={content}
               onChange={setContent}
               onSave={handleSave}
-              className={styles.editor}
+              className="h-full p-4"
             />
           </div>
         )}
-
+        
         {(viewMode === 'preview' || viewMode === 'split') && (
-          <div className={`${styles.pane} ${styles.previewPane}`}>
+          <div className="flex-1 overflow-auto p-4">
             <MarkdownPreview
               content={debouncedContent}
               linkIndex={linkIndex ?? new Map()}
@@ -501,79 +460,6 @@ export function DocumentEditor({ initialContent, onSave }: DocumentEditorProps) 
       </div>
     </div>
   );
-}
-```
-
-```css
-/* components/editor/document-editor.module.css */
-
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.toolbarLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.toolbarRight {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.savedText {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.saveButton {
-  padding: 0.25rem 0.75rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.saveButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.editorArea {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.pane {
-  flex: 1;
-  overflow: auto;
-}
-
-.paneBorder {
-  border-right: 1px solid var(--color-border);
-}
-
-.previewPane {
-  padding: 1rem;
-}
-
-.editor {
-  height: 100%;
-  padding: 1rem;
 }
 ```
 
@@ -588,49 +474,28 @@ export function DocumentEditor({ initialContent, onSave }: DocumentEditorProps) 
 
 import { createClient } from '@/lib/supabase/server';
 import { DocumentList } from '@/components/vault/document-list';
-import styles from './vault.module.css';
 
 export default async function VaultPage() {
   const supabase = createClient();
-
+  
   const { data: documents } = await supabase
     .from('documents')
     .select('id, title, slug, collection, status, visibility, updated_at')
     .order('updated_at', { ascending: false });
-
+  
   // Group by collection
   const grouped = groupByCollection(documents ?? []);
-
+  
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Vault</h1>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Vault</h1>
         <NewDocumentButton />
       </div>
-
+      
       <DocumentList documents={grouped} />
     </div>
   );
-}
-```
-
-```css
-/* app/(app)/vault/vault.module.css */
-
-.page {
-  padding: 1.5rem;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: 700;
 }
 ```
 
@@ -643,7 +508,6 @@ import { createClient } from '@/lib/supabase/server';
 import { DocumentEditor } from '@/components/editor/document-editor';
 import { DocumentSidebar } from '@/components/vault/document-sidebar';
 import { notFound } from 'next/navigation';
-import styles from './document-page.module.css';
 
 interface Props {
   params: { id: string };
@@ -651,21 +515,21 @@ interface Props {
 
 export default async function DocumentPage({ params }: Props) {
   const supabase = createClient();
-
+  
   const { data: document } = await supabase
     .from('documents')
     .select('*')
     .eq('id', params.id)
     .single();
-
+  
   if (!document) {
     notFound();
   }
-
+  
   return (
-    <div className={styles.layout}>
+    <div className="flex h-full">
       {/* Main editor area */}
-      <div className={styles.main}>
+      <div className="flex-1">
         <DocumentEditor
           initialContent={document.body_md ?? ''}
           onSave={async (content) => {
@@ -674,24 +538,11 @@ export default async function DocumentPage({ params }: Props) {
           }}
         />
       </div>
-
+      
       {/* Metadata sidebar */}
       <DocumentSidebar document={document} />
     </div>
   );
-}
-```
-
-```css
-/* app/(app)/vault/[id]/document-page.module.css */
-
-.layout {
-  display: flex;
-  height: 100%;
-}
-
-.main {
-  flex: 1;
 }
 ```
 
@@ -705,7 +556,6 @@ export default async function DocumentPage({ params }: Props) {
 import { useState } from 'react';
 import { Document } from '@/types/database';
 import { updateDocument } from '@/lib/actions/documents';
-import styles from './document-sidebar.module.css';
 
 interface DocumentSidebarProps {
   document: Document;
@@ -713,30 +563,33 @@ interface DocumentSidebarProps {
 
 export function DocumentSidebar({ document }: DocumentSidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
-
+  
   return (
-    <aside className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}>
-      <div className={styles.content}>
+    <aside className={cn(
+      'border-l bg-gray-50 transition-all',
+      isOpen ? 'w-80' : 'w-0'
+    )}>
+      <div className="p-4 space-y-6">
         {/* Title */}
         <Field label="Title">
           <input
             type="text"
             defaultValue={document.title}
             onBlur={(e) => updateDocument(document.id, { title: e.target.value })}
-            className={styles.input}
+            className="w-full px-2 py-1 border rounded"
           />
         </Field>
-
+        
         {/* Slug */}
         <Field label="Slug">
           <input
             type="text"
             defaultValue={document.slug ?? ''}
             onBlur={(e) => updateDocument(document.id, { slug: e.target.value })}
-            className={`${styles.input} ${styles.mono}`}
+            className="w-full px-2 py-1 border rounded font-mono text-sm"
           />
         </Field>
-
+        
         {/* Collection */}
         <Field label="Collection">
           <CollectionSelect
@@ -744,7 +597,7 @@ export function DocumentSidebar({ document }: DocumentSidebarProps) {
             onChange={(collection) => updateDocument(document.id, { collection })}
           />
         </Field>
-
+        
         {/* Status */}
         <Field label="Status">
           <StatusSelect
@@ -752,7 +605,7 @@ export function DocumentSidebar({ document }: DocumentSidebarProps) {
             onChange={(status) => updateDocument(document.id, { status })}
           />
         </Field>
-
+        
         {/* Visibility */}
         <Field label="Visibility">
           <VisibilitySelect
@@ -760,52 +613,52 @@ export function DocumentSidebar({ document }: DocumentSidebarProps) {
             onChange={(visibility) => updateDocument(document.id, { visibility })}
           />
         </Field>
-
+        
         {/* Canonical URL */}
         <Field label="Canonical URL">
           <input
             type="text"
             defaultValue={document.canonical ?? ''}
             onBlur={(e) => updateDocument(document.id, { canonical: e.target.value })}
-            className={`${styles.input} ${styles.mono}`}
+            className="w-full px-2 py-1 border rounded font-mono text-sm"
             placeholder="/library/principles/my-doc"
           />
         </Field>
-
+        
         {/* Summary */}
         <Field label="Summary">
           <textarea
             defaultValue={document.summary ?? ''}
             onBlur={(e) => updateDocument(document.id, { summary: e.target.value })}
-            className={styles.textarea}
+            className="w-full px-2 py-1 border rounded text-sm"
             rows={3}
             placeholder="Brief description for previews..."
           />
         </Field>
-
+        
         {/* Dates */}
-        <div className={styles.dates}>
+        <div className="text-sm text-gray-500 space-y-1">
           <p>Created: {formatDate(document.created_at)}</p>
           <p>Updated: {formatDate(document.updated_at)}</p>
           {document.published_at && (
             <p>Published: {formatDate(document.published_at)}</p>
           )}
         </div>
-
+        
         {/* Actions */}
-        <div className={styles.actions}>
+        <div className="pt-4 border-t space-y-2">
           {document.status === 'draft' && (
             <button
               onClick={() => publishDocument(document.id)}
-              className={styles.publishButton}
+              className="w-full px-3 py-2 bg-green-600 text-white rounded"
             >
               Publish
             </button>
           )}
-
+          
           <button
             onClick={() => deleteDocument(document.id)}
-            className={styles.deleteButton}
+            className="w-full px-3 py-2 text-red-600 border border-red-200 rounded"
           >
             Delete
           </button>
@@ -813,89 +666,6 @@ export function DocumentSidebar({ document }: DocumentSidebarProps) {
       </div>
     </aside>
   );
-}
-```
-
-```css
-/* components/vault/document-sidebar.module.css */
-
-.sidebar {
-  border-left: 1px solid var(--color-border);
-  background: var(--color-bg-muted);
-  transition: width 0.2s ease;
-}
-
-.open {
-  width: 20rem;
-}
-
-.closed {
-  width: 0;
-  overflow: hidden;
-}
-
-.content {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.input {
-  width: 100%;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  font-size: 0.875rem;
-}
-
-.mono {
-  font-family: var(--font-mono);
-}
-
-.textarea {
-  width: 100%;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  font-size: 0.875rem;
-  resize: vertical;
-}
-
-.dates {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.actions {
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.publishButton {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-success);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.deleteButton {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  color: var(--color-error);
-  background: transparent;
-  border: 1px solid var(--color-error-muted);
-  border-radius: 4px;
-  cursor: pointer;
 }
 ```
 
@@ -942,12 +712,11 @@ import { createClient } from '@/lib/supabase/server';
 import { JournalEditor } from '@/components/journal/journal-editor';
 import { JournalCalendar } from '@/components/journal/journal-calendar';
 import { getTodayDate } from '@/lib/utils/dates';
-import styles from './journal.module.css';
 
 export default async function JournalPage() {
   const supabase = createClient();
   const today = getTodayDate();
-
+  
   // Get or create today's journal
   let { data: journal } = await supabase
     .from('journals')
@@ -955,7 +724,7 @@ export default async function JournalPage() {
     .eq('entry_date', today)
     .eq('journal_type', 'daily')
     .single();
-
+  
   if (!journal) {
     const { data: newJournal } = await supabase
       .from('journals')
@@ -966,44 +735,31 @@ export default async function JournalPage() {
       })
       .select()
       .single();
-
+    
     journal = newJournal;
   }
-
+  
   // Get prompts
   const { data: prompts } = await supabase
     .from('journal_prompts')
     .select('*')
     .eq('active', true)
     .order('sort_order');
-
+  
   return (
-    <div className={styles.layout}>
+    <div className="flex h-full">
       {/* Calendar sidebar */}
       <JournalCalendar selectedDate={today} />
-
+      
       {/* Editor */}
-      <div className={styles.main}>
-        <JournalEditor
-          journal={journal!}
+      <div className="flex-1">
+        <JournalEditor 
+          journal={journal!} 
           prompts={prompts ?? []}
         />
       </div>
     </div>
   );
-}
-```
-
-```css
-/* app/(app)/journal/journal.module.css */
-
-.layout {
-  display: flex;
-  height: 100%;
-}
-
-.main {
-  flex: 1;
 }
 ```
 
@@ -1020,7 +776,6 @@ import { JournalPrompts } from './journal-prompts';
 import { JournalMetabar } from './journal-metabar';
 import { extractTasksFromMarkdown, syncJournalTasks } from '@/lib/journal-tasks';
 import { useDebounce } from '@/lib/hooks/use-debounce';
-import styles from './journal-editor.module.css';
 
 interface JournalEditorProps {
   journal: Journal;
@@ -1033,22 +788,22 @@ export function JournalEditor({ journal, prompts }: JournalEditorProps) {
   const [energy, setEnergy] = useState(journal.energy);
   const [isSaving, setIsSaving] = useState(false);
   const [foundTasks, setFoundTasks] = useState<ExtractedTask[]>([]);
-
+  
   const debouncedContent = useDebounce(content, 1000);
-
+  
   // Auto-save on debounced content change
   useEffect(() => {
     if (debouncedContent !== journal.body_md) {
       saveJournal();
     }
   }, [debouncedContent]);
-
+  
   // Extract tasks when content changes
   useEffect(() => {
     const tasks = extractTasksFromMarkdown(content);
     setFoundTasks(tasks);
   }, [content]);
-
+  
   const saveJournal = useCallback(async () => {
     setIsSaving(true);
     try {
@@ -1058,116 +813,67 @@ export function JournalEditor({ journal, prompts }: JournalEditorProps) {
         energy,
         word_count: countWords(content)
       });
-
+      
       // Sync tasks
       await syncJournalTasks(journal.id, content);
     } finally {
       setIsSaving(false);
     }
   }, [journal.id, content, mood, energy]);
-
+  
   const insertPrompt = useCallback((promptText: string) => {
     const formatted = `\n\n## ${promptText}\n\n`;
     setContent(prev => prev + formatted);
   }, []);
-
+  
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className={styles.header}>
+      <div className="flex items-center justify-between px-4 py-3 border-b">
         <div>
-          <h1 className={styles.title}>
+          <h1 className="text-lg font-semibold">
             {formatDate(journal.entry_date, 'EEEE, MMMM d, yyyy')}
           </h1>
-          <p className={styles.wordCount}>
+          <p className="text-sm text-gray-500">
             {countWords(content)} words
           </p>
         </div>
-
-        <div className={styles.headerRight}>
+        
+        <div className="flex items-center gap-4">
           {/* Mood/Energy selectors */}
           <MoodSelector value={mood} onChange={setMood} />
           <EnergySelector value={energy} onChange={setEnergy} />
-
+          
           {/* Save indicator */}
-          <span className={styles.saveStatus}>
+          <span className="text-sm text-gray-500">
             {isSaving ? 'Saving...' : 'Saved'}
           </span>
         </div>
       </div>
-
+      
       {/* Prompts bar */}
       <JournalPrompts prompts={prompts} onInsert={insertPrompt} />
-
+      
       {/* Editor */}
-      <div className={styles.editorWrapper}>
+      <div className="flex-1 overflow-auto">
         <MarkdownEditor
           value={content}
           onChange={setContent}
           onSave={saveJournal}
           placeholder="Start writing..."
-          className={styles.editor}
+          className="h-full p-4"
         />
       </div>
-
+      
       {/* Task extraction notice */}
       {foundTasks.length > 0 && (
-        <TaskExtractionBar
-          tasks={foundTasks}
+        <TaskExtractionBar 
+          tasks={foundTasks} 
           journalId={journal.id}
         />
       )}
     </div>
   );
-}
-```
-
-```css
-/* components/journal/journal-editor.module.css */
-
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.title {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.wordCount {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.saveStatus {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.editorWrapper {
-  flex: 1;
-  overflow: auto;
-}
-
-.editor {
-  height: 100%;
-  padding: 1rem;
 }
 ```
 
@@ -1178,9 +884,6 @@ export function JournalEditor({ journal, prompts }: JournalEditorProps) {
 
 'use client';
 
-import { useState } from 'react';
-import styles from './journal-prompts.module.css';
-
 interface JournalPromptsProps {
   prompts: JournalPrompt[];
   onInsert: (prompt: string) => void;
@@ -1188,33 +891,33 @@ interface JournalPromptsProps {
 
 export function JournalPrompts({ prompts, onInsert }: JournalPromptsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-
+  
   // Group by category
   const grouped = groupBy(prompts, 'category');
-
+  
   return (
-    <div className={styles.container}>
+    <div className="border-b">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={styles.toggleButton}
+        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 w-full"
       >
-        <SparklesIcon className={styles.icon} />
+        <SparklesIcon className="w-4 h-4" />
         Prompts
-        <ChevronIcon className={`${styles.chevron} ${isExpanded ? styles.expanded : ''}`} />
+        <ChevronIcon className={cn('w-4 h-4 ml-auto', isExpanded && 'rotate-180')} />
       </button>
-
+      
       {isExpanded && (
-        <div className={styles.promptsGrid}>
+        <div className="px-4 pb-3 grid grid-cols-2 gap-2">
           {Object.entries(grouped).map(([category, categoryPrompts]) => (
             <div key={category}>
-              <p className={styles.categoryLabel}>
+              <p className="text-xs font-medium text-gray-400 uppercase mb-1">
                 {category}
               </p>
               {categoryPrompts.map((prompt) => (
                 <button
                   key={prompt.id}
                   onClick={() => onInsert(prompt.prompt_text)}
-                  className={styles.promptButton}
+                  className="block w-full text-left text-sm py-1 px-2 rounded hover:bg-gray-100"
                 >
                   {prompt.prompt_text}
                 </button>
@@ -1225,78 +928,6 @@ export function JournalPrompts({ prompts, onInsert }: JournalPromptsProps) {
       )}
     </div>
   );
-}
-```
-
-```css
-/* components/journal/journal-prompts.module.css */
-
-.container {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.toggleButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.toggleButton:hover {
-  background: var(--color-bg-hover);
-}
-
-.icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.chevron {
-  width: 1rem;
-  height: 1rem;
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.expanded {
-  transform: rotate(180deg);
-}
-
-.promptsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  padding: 0 1rem 0.75rem;
-}
-
-.categoryLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.promptButton {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font-size: 0.875rem;
-  padding: 0.25rem 0.5rem;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.promptButton:hover {
-  background: var(--color-bg-hover);
 }
 ```
 
@@ -1387,9 +1018,6 @@ export async function syncJournalTasks(
 
 'use client';
 
-import { useState } from 'react';
-import styles from './task-extraction-bar.module.css';
-
 interface TaskExtractionBarProps {
   tasks: ExtractedTask[];
   journalId: string;
@@ -1397,16 +1025,16 @@ interface TaskExtractionBarProps {
 
 export function TaskExtractionBar({ tasks, journalId }: TaskExtractionBarProps) {
   const [isCreating, setIsCreating] = useState(false);
-
+  
   // Filter to only new (not yet linked) tasks
   const { data: existingLinks } = useJournalTaskLinks(journalId);
-
-  const newTasks = tasks.filter(task =>
+  
+  const newTasks = tasks.filter(task => 
     !existingLinks?.some(link => link.line_number === task.lineNumber)
   );
-
+  
   if (newTasks.length === 0) return null;
-
+  
   const handleCreateTasks = async () => {
     setIsCreating(true);
     try {
@@ -1419,7 +1047,7 @@ export function TaskExtractionBar({ tasks, journalId }: TaskExtractionBarProps) 
           source_id: journalId,
           source_excerpt: task.originalLine
         });
-
+        
         // Create link
         await createJournalTaskLink({
           journal_id: journalId,
@@ -1432,54 +1060,21 @@ export function TaskExtractionBar({ tasks, journalId }: TaskExtractionBarProps) 
       setIsCreating(false);
     }
   };
-
+  
   return (
-    <div className={styles.bar}>
-      <span className={styles.message}>
+    <div className="flex items-center justify-between px-4 py-2 bg-blue-50 border-t">
+      <span className="text-sm text-blue-700">
         Found {newTasks.length} new task{newTasks.length > 1 ? 's' : ''}
       </span>
       <button
         onClick={handleCreateTasks}
         disabled={isCreating}
-        className={styles.addButton}
+        className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
       >
         {isCreating ? 'Adding...' : 'Add to Today'}
       </button>
     </div>
   );
-}
-```
-
-```css
-/* components/journal/task-extraction-bar.module.css */
-
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  background: var(--color-info-bg);
-  border-top: 1px solid var(--color-border);
-}
-
-.message {
-  font-size: 0.875rem;
-  color: var(--color-info);
-}
-
-.addButton {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.addButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 ```
 
@@ -1543,17 +1138,16 @@ export async function completeTask(taskId: string) {
 'use client';
 
 import { useState } from 'react';
-import styles from './publish-site-button.module.css';
 
 export function PublishSiteButton() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [lastPublished, setLastPublished] = useState<Date | null>(null);
-
+  
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
       const response = await fetch('/api/publish', { method: 'POST' });
-
+      
       if (response.ok) {
         setLastPublished(new Date());
       } else {
@@ -1566,62 +1160,25 @@ export function PublishSiteButton() {
       setIsPublishing(false);
     }
   };
-
+  
   return (
-    <div className={styles.container}>
+    <div className="flex items-center gap-3">
       <button
         onClick={handlePublish}
         disabled={isPublishing}
-        className={styles.button}
+        className="px-4 py-2 bg-green-600 text-white rounded flex items-center gap-2"
       >
-        <GlobeIcon className={styles.icon} />
+        <GlobeIcon className="w-4 h-4" />
         {isPublishing ? 'Publishing...' : 'Publish Site'}
       </button>
-
+      
       {lastPublished && (
-        <span className={styles.timestamp}>
+        <span className="text-sm text-gray-500">
           Last published {formatRelativeTime(lastPublished)}
         </span>
       )}
     </div>
   );
-}
-```
-
-```css
-/* components/vault/publish-site-button.module.css */
-
-.container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-success);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.timestamp {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
 }
 ```
 
@@ -1949,3 +1506,4 @@ After Week 10, you should be able to:
 9. Complete tasks and see journal checkboxes update
 
 The writing experience should feel fluid and connected — your personal publishing system.
+#documentation
