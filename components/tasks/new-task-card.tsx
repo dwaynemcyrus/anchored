@@ -10,6 +10,8 @@ import styles from "./new-task-card.module.css";
 interface NewTaskCardProps {
   onSaved?: () => void;
   focusOnMount?: boolean;
+  focusOnSave?: boolean;
+  footerLeft?: React.ReactNode;
 }
 
 type Destination =
@@ -17,9 +19,13 @@ type Destination =
   | { type: "none"; label: "No Project" }
   | { type: "project"; label: string; projectId: string };
 
-export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps) {
+export function NewTaskCard({
+  onSaved,
+  focusOnMount = false,
+  focusOnSave = false,
+  footerLeft,
+}: NewTaskCardProps) {
   const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isWhenOpen, setIsWhenOpen] = useState(false);
   const [isWhenCalendarView, setIsWhenCalendarView] = useState(false);
@@ -34,7 +40,8 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
   const createTask = useCreateTask();
   const { data: projects = [] } = useProjects();
   const destinationRef = useRef<HTMLDivElement | null>(null);
-  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const isSaving = createTask.isPending;
 
@@ -78,7 +85,6 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedTitle = title.trim();
-    const trimmedNotes = notes.trim();
 
     if (!trimmedTitle) {
       setError("Title is required.");
@@ -90,14 +96,16 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
     try {
       await createTask.mutateAsync({
         title: trimmedTitle,
-        notes: trimmedNotes ? trimmedNotes : null,
+        notes: null,
         project_id: destination.type === "project" ? destination.projectId : null,
         task_location: taskLocationForDestination(destination),
         start_date: selectedStartDate ? selectedStartDate.toISOString() : null,
         due_date: selectedDueDate ? selectedDueDate.toISOString() : null,
       });
       setTitle("");
-      setNotes("");
+      if (focusOnSave) {
+        titleInputRef.current?.focus();
+      }
       onSaved?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save action.");
@@ -105,48 +113,26 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.fieldGroup}>
-        <input
+        <textarea
           ref={titleInputRef}
           className={styles.input}
-          placeholder="Title"
-          aria-label="Title"
+          placeholder="What's on your mind?"
+          aria-label="Capture"
+          rows={2}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          disabled={isSaving}
-        />
-        <textarea
-          className={styles.textarea}
-          placeholder="Notes"
-          aria-label="Notes"
-          rows={3}
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              formRef.current?.requestSubmit();
+            }
+          }}
           disabled={isSaving}
         />
       </div>
 
-      <div className={styles.optionsRow}>
-        <button
-          type="button"
-          className={styles.optionButton}
-          disabled={isSaving}
-          onClick={() => setIsWhenOpen(true)}
-        >
-          When
-        </button>
-        {["Tags", "Checklist", "Priority"].map((label) => (
-          <button
-            key={label}
-            type="button"
-            className={styles.optionButton}
-            disabled={isSaving}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
       {(selectedStartDate || selectedDueDate) && (
         <div className={styles.whenSummary}>
           <button
@@ -175,75 +161,83 @@ export function NewTaskCard({ onSaved, focusOnMount = false }: NewTaskCardProps)
       {error && <p className={styles.error}>{error}</p>}
 
       <div className={styles.footer}>
-        <div className={styles.destination} ref={destinationRef}>
-          <button
-            type="button"
-            className={styles.footerLink}
-            onClick={() => setIsDestinationOpen((open) => !open)}
-            disabled={isSaving}
-          >
-            {destination.label}
-          </button>
-          {isDestinationOpen && (
-            <div
-              className={styles.destinationMenuOverlay}
-              onClick={() => setIsDestinationOpen(false)}
+        {footerLeft ?? (
+          <div className={styles.destination} ref={destinationRef}>
+            <button
+              type="button"
+              className={styles.footerLink}
+              onClick={() => setIsDestinationOpen((open) => !open)}
+              disabled={isSaving}
             >
+              {destination.label}
+            </button>
+            {isDestinationOpen && (
               <div
-                className={styles.destinationMenu}
-                onClick={(event) => event.stopPropagation()}
+                className={styles.destinationMenuOverlay}
+                onClick={() => setIsDestinationOpen(false)}
               >
-                <div className={styles.destinationMenuHeader}>
-                  <span className={styles.destinationMenuTitle}>Move</span>
-                  <button
-                    type="button"
-                    className={styles.destinationMenuClose}
-                    onClick={() => setIsDestinationOpen(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-                <div className={styles.destinationMenuList}>
-                  <button
-                    type="button"
-                    className={`${styles.destinationItem} ${destination.type === "inbox" ? styles.destinationItemSelected : ""}`}
-                    onClick={() =>
-                      handleSelectDestination({ type: "inbox", label: "Inbox" })
-                    }
-                  >
-                    Inbox
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.destinationItem} ${destination.type === "none" ? styles.destinationItemSelected : ""}`}
-                    onClick={() =>
-                      handleSelectDestination({ type: "none", label: "Anytime" })
-                    }
-                  >
-                    Anytime
-                  </button>
-                  <div className={styles.destinationMenuDivider} />
-                  {availableProjects.map((project) => (
+                <div
+                  className={styles.destinationMenu}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className={styles.destinationMenuHeader}>
+                    <span className={styles.destinationMenuTitle}>Move</span>
                     <button
-                      key={project.id}
                       type="button"
-                      className={`${styles.destinationItem} ${destination.type === "project" && destination.projectId === project.id ? styles.destinationItemSelected : ""}`}
+                      className={styles.destinationMenuClose}
+                      onClick={() => setIsDestinationOpen(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className={styles.destinationMenuList}>
+                    <button
+                      type="button"
+                      className={`${styles.destinationItem} ${destination.type === "inbox" ? styles.destinationItemSelected : ""}`}
                       onClick={() =>
                         handleSelectDestination({
-                          type: "project",
-                          label: project.title,
-                          projectId: project.id,
+                          type: "inbox",
+                          label: "Inbox",
                         })
                       }
                     >
-                      {project.title}
+                      Inbox
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      className={`${styles.destinationItem} ${destination.type === "none" ? styles.destinationItemSelected : ""}`}
+                      onClick={() =>
+                        handleSelectDestination({
+                          type: "none",
+                          label: "Anytime",
+                        })
+                      }
+                    >
+                      Anytime
+                    </button>
+                    <div className={styles.destinationMenuDivider} />
+                    {availableProjects.map((project) => (
+                      <button
+                        key={project.id}
+                        type="button"
+                        className={`${styles.destinationItem} ${destination.type === "project" && destination.projectId === project.id ? styles.destinationItemSelected : ""}`}
+                        onClick={() =>
+                          handleSelectDestination({
+                            type: "project",
+                            label: project.title,
+                            projectId: project.id,
+                          })
+                        }
+                      >
+                        {project.title}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         <button type="submit" className={styles.saveButton} disabled={isSaving}>
           {isSaving ? "Saving..." : "Save"}
         </button>

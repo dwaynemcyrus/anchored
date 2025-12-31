@@ -8,3 +8,4 @@ Things to consider:
 * add ESC-to-close menu'sas a keyboard shortcut
 * Grocery/shopping and/or to buy (fu money) list in main menu
 * put the timer/date somewhere
+* Wire the capture keyboard shortcut

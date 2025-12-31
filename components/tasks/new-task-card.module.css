@@ -19,7 +19,7 @@
   border: none;
   border-radius: 8px;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .input::placeholder,
@@ -88,8 +88,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #1f1f1f;
-  padding-top: 12px;
+  border-top: none;
+  padding-top: 0;
 }
 
 .destination {
