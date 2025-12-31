@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NewTaskCard } from "@/components/tasks/new-task-card";
 import styles from "./quick-menu.module.css";
 
 export function QuickMenu() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNewActionOpen, setIsNewActionOpen] = useState(false);
 
@@ -25,6 +27,11 @@ export function QuickMenu() {
   const handleOpenNewAction = () => {
     setIsMenuOpen(false);
     setIsNewActionOpen(true);
+  };
+
+  const handleOpenNewProject = () => {
+    setIsMenuOpen(false);
+    router.push("/projects/new");
   };
 
   const handleCloseAll = () => {
@@ -78,7 +85,11 @@ export function QuickMenu() {
                     Quickly add an action to your inbox.
                   </div>
                 </button>
-                <button type="button" className={styles.menuItem}>
+                <button
+                  type="button"
+                  className={styles.menuItem}
+                  onClick={handleOpenNewProject}
+                >
                   <div className={styles.menuTitle}>New Project</div>
                   <div className={styles.menuSubtext}>
                     Define a clear SMART goal, then break it down.

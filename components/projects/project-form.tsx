@@ -92,10 +92,10 @@ export function ProjectForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Project Details</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Optional description"
+                  placeholder="Project details"
                   className="resize-none"
                   rows={3}
                   {...field}
