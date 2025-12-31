@@ -16,7 +16,7 @@ interface NewTaskCardProps {
 
 type Destination =
   | { type: "inbox"; label: "Inbox" }
-  | { type: "none"; label: "No Project" }
+  | { type: "none"; label: "Anytime" }
   | { type: "project"; label: string; projectId: string };
 
 export function NewTaskCard({
