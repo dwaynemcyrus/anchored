@@ -16,3 +16,9 @@ Things to consider:
 * Where does a now secondary action og when it is removed, if next and next is at 3 cap what then?
 - [ ] Command now needs to add a second 
 - [ ] onces theres two system needs to ask to replace prim or sec
+- [ ] swap from next places into secondary now if there's a primary, if no primary it promotes to "do now"
+- [ ] Swapping or removing always confirms stopping the timer before continuing
+- [ ] Remove now from review list
+- [ ] when primary now is complete promote the secondary to first
+timezone selector needed for time tra stuff and tracker data
+- [ ] set the today time to only count from midnight or a predefined time in the settings that marks the end of the day islamically

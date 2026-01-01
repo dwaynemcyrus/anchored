@@ -24,6 +24,8 @@ export interface TimeEntry {
   started_at: string;
   ended_at: string | null;
   duration_seconds: number | null;
+  accumulated_seconds: number;
+  paused_at: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -45,6 +47,8 @@ async function fetchActiveTimer(): Promise<ActiveTimer | null> {
       id,
       task_id,
       started_at,
+      accumulated_seconds,
+      paused_at,
       task:tasks(
         id,
         title,
@@ -77,6 +81,8 @@ async function fetchActiveTimer(): Promise<ActiveTimer | null> {
     taskTitle: task.title,
     projectTitle: task.project?.title || null,
     startedAt: new Date(data.started_at),
+    accumulatedSeconds: data.accumulated_seconds || 0,
+    isPaused: Boolean(data.paused_at),
   };
 }
 
@@ -95,14 +101,18 @@ async function startTimer(taskId: string): Promise<TimeEntry> {
   // First, stop any existing timer
   const { data: existing } = await supabase
     .from("time_entries")
-    .select("id, started_at")
+    .select("id, started_at, accumulated_seconds, paused_at")
     .is("ended_at", null)
     .single();
 
   if (existing) {
-    const duration = Math.floor(
-      (Date.now() - new Date(existing.started_at).getTime()) / 1000
-    );
+    const accumulated = existing.accumulated_seconds || 0;
+    const duration = existing.paused_at
+      ? accumulated
+      : accumulated +
+        Math.floor(
+          (Date.now() - new Date(existing.started_at).getTime()) / 1000
+        );
     await supabase
       .from("time_entries")
       .update({
@@ -136,7 +146,7 @@ async function stopTimer(): Promise<TimeEntry | null> {
 
   const { data: existing } = await supabase
     .from("time_entries")
-    .select("id, started_at")
+    .select("id, started_at, accumulated_seconds, paused_at")
     .is("ended_at", null)
     .single();
 
@@ -144,15 +154,88 @@ async function stopTimer(): Promise<TimeEntry | null> {
     return null;
   }
 
-  const duration = Math.floor(
-    (Date.now() - new Date(existing.started_at).getTime()) / 1000
-  );
+  const accumulated = existing.accumulated_seconds || 0;
+  const duration = existing.paused_at
+    ? accumulated
+    : accumulated +
+      Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000);
 
   const { data, error } = await supabase
     .from("time_entries")
     .update({
       ended_at: new Date().toISOString(),
       duration_seconds: duration,
+      paused_at: null,
+    })
+    .eq("id", existing.id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// Pause current timer
+async function pauseTimer(): Promise<TimeEntry | null> {
+  const supabase = createClient();
+
+  const { data: existing } = await supabase
+    .from("time_entries")
+    .select("id, started_at, accumulated_seconds, paused_at")
+    .is("ended_at", null)
+    .is("paused_at", null)
+    .single();
+
+  if (!existing) {
+    return null;
+  }
+
+  const accumulated = existing.accumulated_seconds || 0;
+  const additional = Math.floor(
+    (Date.now() - new Date(existing.started_at).getTime()) / 1000
+  );
+  const newAccumulated = accumulated + additional;
+
+  const { data, error } = await supabase
+    .from("time_entries")
+    .update({
+      accumulated_seconds: newAccumulated,
+      paused_at: new Date().toISOString(),
+    })
+    .eq("id", existing.id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// Resume paused timer
+async function resumeTimer(): Promise<TimeEntry | null> {
+  const supabase = createClient();
+
+  const { data: existing } = await supabase
+    .from("time_entries")
+    .select("id, paused_at")
+    .is("ended_at", null)
+    .not("paused_at", "is", null)
+    .single();
+
+  if (!existing) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("time_entries")
+    .update({
+      started_at: new Date().toISOString(),
+      paused_at: null,
     })
     .eq("id", existing.id)
     .select()
@@ -245,7 +328,11 @@ export function useActiveTimer() {
 
     if (query.data) {
       setActiveTimer(query.data);
-      startLocalTimer();
+      if (!query.data.isPaused) {
+        startLocalTimer();
+      } else {
+        stopLocalTimer();
+      }
     } else {
       setActiveTimer(null);
       stopLocalTimer();
@@ -279,9 +366,48 @@ export function useStartTimer() {
       // Invalidate and refetch
       await queryClient.invalidateQueries({ queryKey: timerKeys.active() });
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: timerKeys.entries() });
     },
     onError: () => {
       // Refetch to get correct state
+      queryClient.invalidateQueries({ queryKey: timerKeys.active() });
+    },
+  });
+}
+
+// Hook to pause timer
+export function usePauseTimer() {
+  const queryClient = useQueryClient();
+  const stopLocalTimer = useTimerStore((state) => state.stopLocalTimer);
+
+  return useMutation({
+    mutationFn: pauseTimer,
+    onMutate: async () => {
+      stopLocalTimer();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: timerKeys.active() });
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: timerKeys.entries() });
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: timerKeys.active() });
+    },
+  });
+}
+
+// Hook to resume timer
+export function useResumeTimer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resumeTimer,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: timerKeys.active() });
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: timerKeys.entries() });
+    },
+    onError: () => {
       queryClient.invalidateQueries({ queryKey: timerKeys.active() });
     },
   });
@@ -303,6 +429,7 @@ export function useStopTimer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: timerKeys.active() });
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: timerKeys.entries() });
     },
     onError: () => {
       // Refetch to get correct state
@@ -349,7 +476,10 @@ export function useTimerControls() {
   const elapsedSeconds = useTimerStore((state) => state.elapsedSeconds);
   const isLoading = useTimerStore((state) => state.isLoading);
   const startTimerMutation = useStartTimer();
+  const pauseTimerMutation = usePauseTimer();
+  const resumeTimerMutation = useResumeTimer();
   const stopTimerMutation = useStopTimer();
+  const isPaused = activeTimer?.isPaused ?? false;
 
   const handleStartTimer = useCallback(
     (taskId: string) => {
@@ -362,15 +492,27 @@ export function useTimerControls() {
     stopTimerMutation.mutate();
   }, [stopTimerMutation]);
 
+  const handlePauseTimer = useCallback(() => {
+    pauseTimerMutation.mutate();
+  }, [pauseTimerMutation]);
+
+  const handleResumeTimer = useCallback(() => {
+    resumeTimerMutation.mutate();
+  }, [resumeTimerMutation]);
+
   const handleToggleTimer = useCallback(
     (taskId: string) => {
       if (activeTimer?.taskId === taskId) {
-        handleStopTimer();
+        if (activeTimer.isPaused) {
+          handleResumeTimer();
+        } else {
+          handleStopTimer();
+        }
       } else {
         handleStartTimer(taskId);
       }
     },
-    [activeTimer, handleStartTimer, handleStopTimer]
+    [activeTimer, handleResumeTimer, handleStartTimer, handleStopTimer]
   );
 
   return {
@@ -378,11 +520,16 @@ export function useTimerControls() {
     elapsedSeconds,
     isLoading,
     isStarting: startTimerMutation.isPending,
+    isPausing: pauseTimerMutation.isPending,
+    isResuming: resumeTimerMutation.isPending,
     isStopping: stopTimerMutation.isPending,
     startTimer: handleStartTimer,
+    pauseTimer: handlePauseTimer,
+    resumeTimer: handleResumeTimer,
     stopTimer: handleStopTimer,
     toggleTimer: handleToggleTimer,
+    isPaused,
     isTimerRunningForTask: (taskId: string) =>
-      activeTimer?.taskId === taskId,
+      activeTimer?.taskId === taskId && !activeTimer.isPaused,
   };
 }

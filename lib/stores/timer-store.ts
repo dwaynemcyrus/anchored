@@ -6,6 +6,8 @@ export interface ActiveTimer {
   taskTitle: string;
   projectTitle?: string | null;
   startedAt: Date;
+  accumulatedSeconds: number;
+  isPaused: boolean;
 }
 
 interface TimerState {
@@ -42,10 +44,11 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
 
     if (timer) {
-      // Calculate elapsed seconds from start time
-      const elapsed = Math.floor(
-        (Date.now() - timer.startedAt.getTime()) / 1000
-      );
+      const baseSeconds = timer.accumulatedSeconds || 0;
+      const runningSeconds = timer.isPaused
+        ? 0
+        : Math.floor((Date.now() - timer.startedAt.getTime()) / 1000);
+      const elapsed = baseSeconds + runningSeconds;
       set({
         activeTimer: timer,
         elapsedSeconds: elapsed,

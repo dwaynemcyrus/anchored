@@ -61,6 +61,8 @@ CREATE TABLE tasks (
   status TEXT NOT NULL DEFAULT 'inbox'
     CHECK (status IN ('inbox', 'today', 'anytime', 'done')),
   is_now BOOLEAN NOT NULL DEFAULT false,
+  now_slot TEXT
+    CHECK (now_slot IN ('primary', 'secondary')),
   start_date DATE,
   due_date DATE,
   completed_at TIMESTAMPTZ,
@@ -75,6 +77,7 @@ CREATE INDEX idx_tasks_status ON tasks(owner_id, status);
 CREATE INDEX idx_tasks_project ON tasks(project_id);
 CREATE INDEX idx_tasks_due ON tasks(due_date) WHERE due_date IS NOT NULL;
 CREATE INDEX idx_tasks_is_now ON tasks(owner_id, is_now);
+CREATE INDEX idx_tasks_now_slot ON tasks(owner_id, now_slot);
 
 -- Enable RLS
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
@@ -108,6 +111,8 @@ CREATE TABLE time_entries (
   started_at TIMESTAMPTZ NOT NULL,
   ended_at TIMESTAMPTZ,
   duration_seconds INTEGER,
+  accumulated_seconds INTEGER NOT NULL DEFAULT 0,
+  paused_at TIMESTAMPTZ,
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );

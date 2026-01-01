@@ -29,6 +29,7 @@ type TaskFilters = {
   dueTo?: string;
   excludeDone?: boolean;
   isNow?: boolean;
+  nowSlot?: "primary" | "secondary" | Array<"primary" | "secondary">;
 };
 
 // Query keys
@@ -97,6 +98,14 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
 
   if (filters?.isNow !== undefined) {
     query = query.eq("is_now", filters.isNow);
+  }
+
+  if (filters?.nowSlot) {
+    if (Array.isArray(filters.nowSlot)) {
+      query = query.in("now_slot", filters.nowSlot);
+    } else {
+      query = query.eq("now_slot", filters.nowSlot);
+    }
   }
 
   if (filters?.dueIsNull) {
@@ -304,7 +313,7 @@ export function useAnytimeTasks() {
 }
 
 export function useNowTasks() {
-  const filters: TaskFilters = { isNow: true };
+  const filters: TaskFilters = { nowSlot: ["primary", "secondary"] };
 
   return useQuery({
     queryKey: taskKeys.list(filters),
@@ -495,10 +504,12 @@ export function useUpdateTaskStatus() {
       if (status === "done") {
         updates.completed_at = new Date().toISOString();
         updates.is_now = false;
+        updates.now_slot = null;
       } else {
         updates.completed_at = null;
         if (status !== "today") {
           updates.is_now = false;
+          updates.now_slot = null;
         }
       }
 
@@ -537,6 +548,10 @@ export function useUpdateTaskStatus() {
                     status === "done" || status !== "today"
                       ? false
                       : task.is_now,
+                  now_slot:
+                    status === "done" || status !== "today"
+                      ? null
+                      : task.now_slot ?? null,
                 }
               : task
           );
@@ -557,11 +572,17 @@ export function useUpdateTaskStatus() {
   });
 }
 
-export function useSetNowTask() {
+export function useSetNowSlot() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ taskId }: { taskId: string | null }) => {
+    mutationFn: async ({
+      taskId,
+      slot,
+    }: {
+      taskId: string | null;
+      slot: "primary" | "secondary";
+    }) => {
       const supabase = createClient();
 
       const {
@@ -574,9 +595,9 @@ export function useSetNowTask() {
 
       const { error: clearError } = await supabase
         .from("tasks")
-        .update({ is_now: false })
+        .update({ now_slot: null })
         .eq("owner_id", user.id)
-        .eq("is_now", true);
+        .eq("now_slot", slot);
 
       if (clearError) {
         throw new Error(clearError.message);
@@ -588,7 +609,7 @@ export function useSetNowTask() {
 
       const { data, error } = await supabase
         .from("tasks")
-        .update({ is_now: true, status: "today" })
+        .update({ now_slot: slot, status: "today" })
         .eq("id", taskId)
         .select()
         .single();
@@ -599,7 +620,7 @@ export function useSetNowTask() {
 
       return data;
     },
-    onMutate: async ({ taskId }) => {
+    onMutate: async ({ taskId, slot }) => {
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
       const previousData = queryClient.getQueriesData({
@@ -612,12 +633,141 @@ export function useSetNowTask() {
           if (!old) return old;
           return old.map((task) => ({
             ...task,
-            is_now: taskId ? task.id === taskId : false,
+            now_slot:
+              taskId && task.id === taskId
+                ? slot
+                : task.now_slot === slot
+                  ? null
+                  : task.now_slot ?? null,
             status:
               taskId && task.id === taskId && task.status !== "today"
                 ? "today"
                 : task.status,
           }));
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      context?.previousData?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+export function useSwapNowSlots() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      primaryId,
+      secondaryId,
+    }: {
+      primaryId: string | null;
+      secondaryId: string | null;
+    }) => {
+      const supabase = createClient();
+
+      if (!primaryId && !secondaryId) {
+        return null;
+      }
+
+      if (primaryId) {
+        const { error: clearPrimaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: null })
+          .eq("id", primaryId);
+
+        if (clearPrimaryError) {
+          throw new Error(clearPrimaryError.message);
+        }
+      }
+
+      if (secondaryId) {
+        const { error: clearSecondaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: null })
+          .eq("id", secondaryId);
+
+        if (clearSecondaryError) {
+          throw new Error(clearSecondaryError.message);
+        }
+      }
+
+      if (primaryId && secondaryId) {
+        const { error: setPrimaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: "primary", status: "today" })
+          .eq("id", secondaryId);
+
+        if (setPrimaryError) {
+          throw new Error(setPrimaryError.message);
+        }
+
+        const { error: setSecondaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: "secondary", status: "today" })
+          .eq("id", primaryId);
+
+        if (setSecondaryError) {
+          throw new Error(setSecondaryError.message);
+        }
+      } else if (secondaryId && !primaryId) {
+        const { error: setPrimaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: "primary", status: "today" })
+          .eq("id", secondaryId);
+
+        if (setPrimaryError) {
+          throw new Error(setPrimaryError.message);
+        }
+      } else if (primaryId && !secondaryId) {
+        const { error: setPrimaryError } = await supabase
+          .from("tasks")
+          .update({ now_slot: "primary", status: "today" })
+          .eq("id", primaryId);
+
+        if (setPrimaryError) {
+          throw new Error(setPrimaryError.message);
+        }
+      }
+
+      return true;
+    },
+    onMutate: async ({ primaryId, secondaryId }) => {
+      await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+
+      const previousData = queryClient.getQueriesData({
+        queryKey: taskKeys.lists(),
+      });
+
+      queryClient.setQueriesData(
+        { queryKey: taskKeys.lists() },
+        (old: TaskWithDetails[] | undefined) => {
+          if (!old) return old;
+          return old.map((task) => {
+            if (primaryId && task.id === primaryId) {
+              return {
+                ...task,
+                now_slot: secondaryId ? "secondary" : null,
+                status: "today",
+              };
+            }
+            if (secondaryId && task.id === secondaryId) {
+              return {
+                ...task,
+                now_slot: "primary",
+                status: "today",
+              };
+            }
+            return task;
+          });
         }
       );
 

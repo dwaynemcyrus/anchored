@@ -63,6 +63,7 @@ export type Database = {
           task_location: "inbox" | "anytime" | "project";
           status: "inbox" | "today" | "anytime" | "done";
           is_now: boolean;
+          now_slot: "primary" | "secondary" | null;
           start_date: string | null;
           due_date: string | null;
           completed_at: string | null;
@@ -79,6 +80,7 @@ export type Database = {
           task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
           is_now?: boolean;
+          now_slot?: "primary" | "secondary" | null;
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;
@@ -95,6 +97,7 @@ export type Database = {
           task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
           is_now?: boolean;
+          now_slot?: "primary" | "secondary" | null;
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;
@@ -119,6 +122,8 @@ export type Database = {
           started_at: string;
           ended_at: string | null;
           duration_seconds: number | null;
+          accumulated_seconds: number;
+          paused_at: string | null;
           notes: string | null;
           created_at: string;
         };
@@ -129,6 +134,8 @@ export type Database = {
           started_at: string;
           ended_at?: string | null;
           duration_seconds?: number | null;
+          accumulated_seconds?: number;
+          paused_at?: string | null;
           notes?: string | null;
           created_at?: string;
         };
@@ -139,6 +146,8 @@ export type Database = {
           started_at?: string;
           ended_at?: string | null;
           duration_seconds?: number | null;
+          accumulated_seconds?: number;
+          paused_at?: string | null;
           notes?: string | null;
           created_at?: string;
         };

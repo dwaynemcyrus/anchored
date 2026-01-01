@@ -1,56 +1,179 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   useInboxTasks,
   useNowTasks,
   useTasks,
-  useSetNowTask,
+  useSetNowSlot,
+  useSwapNowSlots,
+  useUpdateTask,
   useUpdateTaskStatus,
 } from "@/lib/hooks/use-tasks";
 import { useLatestDocument } from "@/lib/hooks/use-documents";
 import {
   useActiveTimer,
   useTimerControls,
-  useStartTimer,
+  useTimeEntriesByDate,
 } from "@/lib/hooks/use-timer";
-import { formatTimerDisplay } from "@/lib/utils/formatting";
+import { formatDuration, formatTimerDisplay } from "@/lib/utils/formatting";
 
 export default function TodayPage() {
+  const [showSwapDialog, setShowSwapDialog] = useState(false);
+  const [showReleaseDialog, setShowReleaseDialog] = useState(false);
+  const [releaseTaskId, setReleaseTaskId] = useState<string | null>(null);
+  const [showTimerDialog, setShowTimerDialog] = useState(false);
+
   const dateLabel = format(new Date(), "EEE · d MMM");
+  const todayDate = useMemo(() => new Date(), []);
   const { data: todayTasks, isLoading: todayLoading } = useTasks({
     status: "today",
   });
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: nowTasks, isLoading: nowLoading } = useNowTasks();
   const { data: latestDoc, isLoading: docLoading } = useLatestDocument();
+  const { data: dayEntries, isLoading: entriesLoading } =
+    useTimeEntriesByDate(todayDate);
   const { isTimerLoading } = useActiveTimer();
-  const { activeTimer, elapsedSeconds, stopTimer, isStopping } =
-    useTimerControls();
-  const startTimer = useStartTimer();
-  const setNowTask = useSetNowTask();
+  const {
+    activeTimer,
+    elapsedSeconds,
+    stopTimer,
+    pauseTimer,
+    resumeTimer,
+    startTimer,
+    isStopping,
+    isPausing,
+    isResuming,
+    isStarting: isStartingTimer,
+  } = useTimerControls();
+  const setNowSlot = useSetNowSlot();
+  const swapNowSlots = useSwapNowSlots();
+  const updateTask = useUpdateTask();
   const updateTaskStatus = useUpdateTaskStatus();
 
-  const nowTask = nowTasks?.[0] ?? null;
+  const nowPrimary =
+    nowTasks?.find((task) => task.now_slot === "primary") ?? null;
+  const nowSecondary =
+    nowTasks?.find((task) => task.now_slot === "secondary") ?? null;
   const inboxCount = inboxTasks?.length || 0;
   const nextTasks =
-    todayTasks?.filter((task) => task.id !== nowTask?.id) || [];
+    todayTasks?.filter(
+      (task) => task.id !== nowPrimary?.id && task.id !== nowSecondary?.id
+    ) || [];
   const nowTime = formatTimerDisplay(elapsedSeconds);
   const isEnding = updateTaskStatus.isPending;
-  const isStarting = startTimer.isPending || setNowTask.isPending;
+  const isStarting = isStartingTimer || isResuming || setNowSlot.isPending;
+  const isPrimaryRunning =
+    activeTimer?.taskId === nowPrimary?.id && !activeTimer?.isPaused;
+  const isPrimaryPaused =
+    activeTimer?.taskId === nowPrimary?.id && activeTimer?.isPaused;
+
+  const timeByTaskId = useMemo(() => {
+    const now = Date.now();
+    const entries = dayEntries || [];
+    const timeMap = new Map<string, number>();
+
+    for (const entry of entries) {
+      let seconds = entry.duration_seconds || 0;
+
+      if (!entry.ended_at) {
+        if (activeTimer?.taskId === entry.task_id) {
+          seconds = elapsedSeconds;
+        } else if (entry.paused_at) {
+          seconds = entry.accumulated_seconds || 0;
+        } else {
+          const runningSeconds = Math.floor(
+            (now - new Date(entry.started_at).getTime()) / 1000
+          );
+          seconds = (entry.accumulated_seconds || 0) + runningSeconds;
+        }
+      }
+
+      if (seconds > 0) {
+        timeMap.set(entry.task_id, (timeMap.get(entry.task_id) || 0) + seconds);
+      }
+    }
+
+    if (activeTimer && !timeMap.has(activeTimer.taskId)) {
+      timeMap.set(activeTimer.taskId, elapsedSeconds);
+    }
+
+    return timeMap;
+  }, [activeTimer, dayEntries, elapsedSeconds]);
+
+  useEffect(() => {
+    if (!nowPrimary && showTimerDialog) {
+      setShowTimerDialog(false);
+    }
+  }, [nowPrimary, showTimerDialog]);
 
   const handleEndNow = () => {
-    if (!nowTask) return;
+    if (!nowPrimary) return;
     stopTimer();
-    updateTaskStatus.mutate({ id: nowTask.id, status: "done" });
+    updateTaskStatus.mutate({ id: nowPrimary.id, status: "done" });
   };
 
   const handleStartNow = () => {
-    if (!nowTask) return;
-    setNowTask.mutate({ taskId: nowTask.id });
-    startTimer.mutate(nowTask.id);
+    if (!nowPrimary) return;
+    if (isPrimaryPaused) {
+      resumeTimer();
+      return;
+    }
+    startTimer(nowPrimary.id);
+  };
+
+  const handlePauseNow = () => {
+    if (!nowPrimary) return;
+    pauseTimer();
+  };
+
+  const handleSwapNow = () => {
+    if (!nowSecondary) return;
+    setShowSwapDialog(true);
+  };
+
+  const handleConfirmSwap = () => {
+    if (!nowSecondary) return;
+    stopTimer();
+    swapNowSlots.mutate({
+      primaryId: nowPrimary?.id ?? null,
+      secondaryId: nowSecondary.id,
+    });
+    setShowSwapDialog(false);
+  };
+
+  const handleRemoveSecondary = () => {
+    if (!nowSecondary) return;
+    setReleaseTaskId(nowSecondary.id);
+    setShowReleaseDialog(true);
+  };
+
+  const handleRemovePrimary = () => {
+    if (!nowPrimary) return;
+    setReleaseTaskId(nowPrimary.id);
+    setShowReleaseDialog(true);
   };
 
   return (
@@ -75,57 +198,106 @@ export default function TodayPage() {
           <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
             Loading active task...
           </div>
-        ) : nowTask ? (
-          <div className="rounded-lg border bg-card p-4 space-y-3">
-            <div className="space-y-1">
-              <div className="text-lg font-medium">
-                {nowTask.title}
-              </div>
-              {nowTask.project?.title && (
-                <div className="text-sm text-muted-foreground">
-                  {nowTask.project.title}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="font-mono text-lg tabular-nums">
-                {activeTimer?.taskId === nowTask.id
-                  ? `${nowTime} active`
-                  : "Not running"}
-              </div>
-              <div className="flex items-center gap-2">
-                {activeTimer?.taskId === nowTask.id ? (
-                  <Button
-                    variant="outline"
-                    onClick={stopTimer}
-                    disabled={isStopping}
-                  >
-                    Pause
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={handleStartNow}
-                    disabled={isStarting}
-                  >
-                    Start
-                  </Button>
-                )}
-                <Button
-                  onClick={handleEndNow}
-                  disabled={isStopping || isEnding || isStarting}
-                >
-                  End
-                </Button>
-              </div>
-            </div>
-          </div>
         ) : (
-          <div className="rounded-lg border border-dashed p-4 space-y-2">
-            <p className="text-sm font-medium">Nothing is claimed.</p>
-            <p className="text-sm text-muted-foreground">
-              Decide what you will command next (below).
-            </p>
+          <div className="space-y-4">
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Primary
+            </div>
+            {nowPrimary ? (
+              <div className="space-y-2">
+                <div className="text-sm">• {nowPrimary.title}</div>
+                <div className="flex items-center gap-2">
+                  {isPrimaryRunning ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePauseNow}
+                      disabled={isPausing}
+                    >
+                      Pause
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTimerDialog(true)}
+                    >
+                      Focus
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={handleEndNow}
+                    disabled={isStopping || isEnding || isStarting}
+                  >
+                    Complete
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemovePrimary}
+                    disabled={updateTaskStatus.isPending || updateTask.isPending}
+                  >
+                    Remove
+                  </Button>
+                </div>
+                {(isPrimaryRunning || isPrimaryPaused) && (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowTimerDialog(true)}
+                  >
+                    {nowTime} {isPrimaryPaused ? "paused" : "active"}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-4 space-y-2">
+                <p className="text-sm font-medium">Nothing is claimed.</p>
+                <p className="text-sm text-muted-foreground">
+                  Decide what you will command next (below).
+                </p>
+              </div>
+            )}
+
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Secondary
+            </div>
+            {nowPrimary ? (
+              nowSecondary ? (
+                <div className="space-y-2">
+                  <div className="text-sm">• {nowSecondary.title}</div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSwapNow}
+                      disabled={swapNowSlots.isPending}
+                    >
+                      Swap
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveSecondary}
+                      disabled={
+                        updateTaskStatus.isPending || updateTask.isPending
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : nextTasks.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No secondary tasks.
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Choose a task from Next to set as secondary.
+                </div>
+              )
+            ) : null}
           </div>
         )}
       </section>
@@ -146,8 +318,23 @@ export default function TodayPage() {
         ) : (
           <div className="space-y-2">
             {nextTasks.map((task) => (
-              <div key={task.id} className="text-sm">
-                • {task.title}
+              <div key={task.id} className="flex items-center justify-between gap-3">
+                <div className="text-sm">• {task.title}</div>
+                {!nowSecondary && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setNowSlot.mutate({
+                        taskId: task.id,
+                        slot: nowPrimary ? "secondary" : "primary",
+                      })
+                    }
+                    disabled={setNowSlot.isPending}
+                  >
+                    Promote to Now
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -194,6 +381,173 @@ export default function TodayPage() {
           </div>
         )}
       </section>
+
+      <Dialog open={showSwapDialog} onOpenChange={setShowSwapDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm swap?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Swapping the primary task will stop and log any focus time first.
+          </p>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={handleConfirmSwap}
+              disabled={swapNowSlots.isPending || isStopping}
+            >
+              Stop and Swap
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showTimerDialog} onOpenChange={setShowTimerDialog}>
+        <DialogContent className="h-[100dvh] w-[100dvw] max-w-none translate-x-0 translate-y-0 rounded-none border-0 p-6 top-0 left-0 sm:max-w-none overflow-y-auto">
+          <div className="space-y-6">
+            <DialogHeader className="text-left">
+              <DialogTitle>Focus</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Today&apos;s focus and time tracked.
+              </p>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {nowPrimary ? (
+                <>
+                  <div className="text-sm">• {nowPrimary.title}</div>
+                  <div className="font-mono text-lg tabular-nums">
+                    {nowTime} {isPrimaryPaused ? "paused" : ""}
+                  </div>
+                  <DialogFooter className="justify-start sm:justify-start">
+                    <Button
+                      variant="outline"
+                      onClick={handleStartNow}
+                      disabled={isPrimaryRunning || isStarting}
+                    >
+                      Play
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handlePauseNow}
+                      disabled={!isPrimaryRunning || isPausing}
+                    >
+                      Pause
+                    </Button>
+                    <Button onClick={stopTimer} disabled={isStopping}>
+                      Stop
+                    </Button>
+                  </DialogFooter>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No primary task selected.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+                Today
+              </div>
+              <div className="h-px bg-border" />
+              {todayLoading || entriesLoading ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading today&apos;s tasks...
+                </div>
+              ) : todayTasks && todayTasks.length > 0 ? (
+                <div className="space-y-3">
+                  {todayTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between gap-4 text-sm"
+                    >
+                      <div className="min-w-0 truncate">• {task.title}</div>
+                      <div className="font-mono tabular-nums text-muted-foreground">
+                        {formatDuration(timeByTaskId.get(task.id) || 0)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  No tasks in Today.
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showReleaseDialog}
+        onOpenChange={(open) => {
+          setShowReleaseDialog(open);
+          if (!open) {
+            setReleaseTaskId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogClose className="absolute right-4 top-4 h-auto border-0 p-0 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground">
+            Close
+          </DialogClose>
+          <DialogHeader>
+            <DialogTitle>Why are you releasing this?</DialogTitle>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() => {
+                if (!releaseTaskId) return;
+                updateTask.mutate({
+                  id: releaseTaskId,
+                  now_slot: null,
+                  status: "today",
+                });
+                setShowReleaseDialog(false);
+              }}
+              className="flex w-full items-center justify-between"
+            >
+              <span>I still intend to do this soon</span>
+              <span>{"->"} NEXT</span>
+            </Button>
+            <Button
+              onClick={() => {
+                if (!releaseTaskId) return;
+                updateTask.mutate({
+                  id: releaseTaskId,
+                  now_slot: null,
+                  status: "anytime",
+                  task_location: "anytime",
+                });
+                setShowReleaseDialog(false);
+              }}
+              className="flex w-full items-center justify-between"
+            >
+              <span>This isn't for this season</span>
+              <span>{"->"} LATER</span>
+            </Button>
+            <Button
+              onClick={() => {
+                if (!releaseTaskId) return;
+                updateTask.mutate({
+                  id: releaseTaskId,
+                  now_slot: null,
+                  status: "inbox",
+                  task_location: "inbox",
+                });
+                setShowReleaseDialog(false);
+              }}
+              className="flex w-full items-center justify-between"
+            >
+              <span>This was premature / unclear</span>
+              <span>{"->"} INBOX</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

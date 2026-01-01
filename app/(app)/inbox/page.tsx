@@ -8,7 +8,7 @@ import {
   useUpdateTaskStatus,
   useUpdateTaskLocation,
   useDeleteTask,
-  useSetNowTask,
+  useSetNowSlot,
 } from "@/lib/hooks/use-tasks";
 import styles from "./inbox.module.css";
 
@@ -24,13 +24,13 @@ export default function InboxPage() {
   const updateTaskStatus = useUpdateTaskStatus();
   const updateTaskLocation = useUpdateTaskLocation();
   const deleteTask = useDeleteTask();
-  const setNowTask = useSetNowTask();
+  const setNowSlot = useSetNowSlot();
 
   const isAnyProcessing =
     updateTaskStatus.isPending ||
     updateTaskLocation.isPending ||
     deleteTask.isPending ||
-    setNowTask.isPending;
+    setNowSlot.isPending;
 
   const orderedTasks = useMemo(
     () => (tasks ? [...tasks].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : []),
@@ -83,7 +83,7 @@ export default function InboxPage() {
 
   const handleCommandNow = () => {
     if (!currentTask) return;
-    setNowTask.mutate({ taskId: currentTask.id });
+    setNowSlot.mutate({ taskId: currentTask.id, slot: "primary" });
     setMode("default");
   };
 
