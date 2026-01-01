@@ -160,6 +160,80 @@ export type Database = {
           }
         ];
       };
+      time_entry_segments: {
+        Row: {
+          id: string;
+          time_entry_id: string;
+          owner_id: string;
+          task_id: string;
+          started_at: string;
+          ended_at: string | null;
+          duration_seconds: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          time_entry_id: string;
+          owner_id: string;
+          task_id: string;
+          started_at: string;
+          ended_at?: string | null;
+          duration_seconds?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          time_entry_id?: string;
+          owner_id?: string;
+          task_id?: string;
+          started_at?: string;
+          ended_at?: string | null;
+          duration_seconds?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_segments_time_entry_id_fkey";
+            columns: ["time_entry_id"];
+            referencedRelation: "time_entries";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      time_entry_daily_totals: {
+        Row: {
+          id: string;
+          owner_id: string;
+          task_id: string;
+          entry_date: string;
+          total_seconds: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          task_id: string;
+          entry_date: string;
+          total_seconds?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          task_id?: string;
+          entry_date?: string;
+          total_seconds?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_daily_totals_task_id_fkey";
+            columns: ["task_id"];
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       habits: {
         Row: {
           id: string;

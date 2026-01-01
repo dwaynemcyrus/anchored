@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
+import { addDays, format, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -35,7 +35,7 @@ import { useLatestDocument } from "@/lib/hooks/use-documents";
 import {
   useActiveTimer,
   useTimerControls,
-  useTimeEntriesByDate,
+  useDailyTotalsByDate,
 } from "@/lib/hooks/use-timer";
 import { formatDuration, formatTimerDisplay } from "@/lib/utils/formatting";
 
@@ -53,8 +53,8 @@ export default function TodayPage() {
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: nowTasks, isLoading: nowLoading } = useNowTasks();
   const { data: latestDoc, isLoading: docLoading } = useLatestDocument();
-  const { data: dayEntries, isLoading: entriesLoading } =
-    useTimeEntriesByDate(todayDate);
+  const { data: dailyTotals, isLoading: entriesLoading } =
+    useDailyTotalsByDate(todayDate);
   const { isTimerLoading } = useActiveTimer();
   const {
     activeTimer,
@@ -92,36 +92,29 @@ export default function TodayPage() {
 
   const timeByTaskId = useMemo(() => {
     const now = Date.now();
-    const entries = dayEntries || [];
+    const dayStart = startOfDay(todayDate).getTime();
+    const totals = dailyTotals || [];
     const timeMap = new Map<string, number>();
 
-    for (const entry of entries) {
-      let seconds = entry.duration_seconds || 0;
-
-      if (!entry.ended_at) {
-        if (activeTimer?.taskId === entry.task_id) {
-          seconds = elapsedSeconds;
-        } else if (entry.paused_at) {
-          seconds = entry.accumulated_seconds || 0;
-        } else {
-          const runningSeconds = Math.floor(
-            (now - new Date(entry.started_at).getTime()) / 1000
-          );
-          seconds = (entry.accumulated_seconds || 0) + runningSeconds;
-        }
-      }
-
-      if (seconds > 0) {
-        timeMap.set(entry.task_id, (timeMap.get(entry.task_id) || 0) + seconds);
-      }
+    for (const total of totals) {
+      timeMap.set(total.task_id, total.total_seconds);
     }
 
-    if (activeTimer && !timeMap.has(activeTimer.taskId)) {
-      timeMap.set(activeTimer.taskId, elapsedSeconds);
+    if (activeTimer && !activeTimer.isPaused) {
+      const startedAtMs = activeTimer.startedAt.getTime();
+      const overlapStart = Math.max(startedAtMs, dayStart);
+      const overlapSeconds = Math.max(
+        0,
+        Math.floor((now - overlapStart) / 1000)
+      );
+      const runningSeconds =
+        startedAtMs >= dayStart ? elapsedSeconds : overlapSeconds;
+      const previous = timeMap.get(activeTimer.taskId) || 0;
+      timeMap.set(activeTimer.taskId, previous + runningSeconds);
     }
 
     return timeMap;
-  }, [activeTimer, dayEntries, elapsedSeconds]);
+  }, [dailyTotals, todayDate, elapsedSeconds, activeTimer]);
 
   useEffect(() => {
     if (!nowPrimary && showTimerDialog) {
@@ -417,28 +410,54 @@ export default function TodayPage() {
             <div className="space-y-4">
               {nowPrimary ? (
                 <>
-                  <div className="text-sm">• {nowPrimary.title}</div>
-                  <div className="font-mono text-lg tabular-nums">
-                    {nowTime} {isPrimaryPaused ? "paused" : ""}
+                  <div className="text-sm text-muted-foreground">
+                    {nowPrimary.title}
                   </div>
-                  <DialogFooter className="justify-start sm:justify-start">
-                    <Button
-                      variant="outline"
-                      onClick={handleStartNow}
-                      disabled={isPrimaryRunning || isStarting}
-                    >
-                      Play
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handlePauseNow}
-                      disabled={!isPrimaryRunning || isPausing}
-                    >
-                      Pause
-                    </Button>
-                    <Button onClick={stopTimer} disabled={isStopping}>
-                      Stop
-                    </Button>
+                  <div className="text-center py-8">
+                    <div className="font-mono text-5xl tabular-nums">
+                      {nowTime}
+                    </div>
+                    {isPrimaryPaused && (
+                      <div className="text-sm text-muted-foreground mt-2">
+                        Paused
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter className="justify-center sm:justify-center gap-2">
+                    {!isPrimaryRunning && !isPrimaryPaused && (
+                      <Button
+                        onClick={handleStartNow}
+                        disabled={isStarting}
+                      >
+                        Start
+                      </Button>
+                    )}
+                    {isPrimaryRunning && (
+                      <Button
+                        variant="outline"
+                        onClick={handlePauseNow}
+                        disabled={isPausing}
+                      >
+                        Pause
+                      </Button>
+                    )}
+                    {isPrimaryPaused && (
+                      <>
+                        <Button
+                          onClick={handleStartNow}
+                          disabled={isStarting}
+                        >
+                          Continue
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={stopTimer}
+                          disabled={isStopping}
+                        >
+                          End
+                        </Button>
+                      </>
+                    )}
                   </DialogFooter>
                 </>
               ) : (

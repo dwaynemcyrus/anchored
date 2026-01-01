@@ -22,3 +22,47 @@ Things to consider:
 - [ ] when primary now is complete promote the secondary to first
 timezone selector needed for time tra stuff and tracker data
 - [ ] set the today time to only count from midnight or a predefined time in the settings that marks the end of the day islamically
+
+
+  Features Breakdown
+
+  Can Implement (Core - matches your "bare bones" goal):
+  | Feature                         | Feasibility | Notes                           |
+  |---------------------------------|-------------|---------------------------------|
+  | Large MM:SS display             | ✅ Easy     | Already have formatTimerDisplay |
+  | Single Start button (idle)      | ✅ Easy     | Just UI change                  |
+  | Single Pause button (running)   | ✅ Easy     | Backend exists                  |
+  | Continue + End buttons (paused) | ✅ Easy     | resumeTimer + stopTimer exist   |
+  | "Paused" status label           | ✅ Easy     | activeTimer.isPaused exists     |
+  | Task title above timer          | ✅ Easy     | activeTimer.taskTitle exists    |
+
+  Can Implement Later (Nice-to-have):
+  | Feature                | Feasibility | Notes                                |
+  |------------------------|-------------|--------------------------------------|
+  | Focus Record history   | ✅ Moderate | Data exists in time_entry_segments   |
+  | Timeline visualization | ⚠️ Moderate | Would need to build UI               |
+  | Focus Note             | ⚠️ Moderate | Would need notes field on time_entry |
+  | Task picker dropdown   | ✅ Easy     | You use "Now" slots instead          |
+
+  Skip (per your request):
+  - Circular progress ring (decorative only)
+  - Pomodoro mode
+  - Overview stats panel
+
+
+
+  ## Error Type
+Console Error
+
+## Error Message
+Failed to fetch segments: {}
+
+Next.js version: 16.1.1 (Turbopack)
+
+## Error Type
+Console Error
+
+## Error Message
+Failed to create resume segment: {}
+
+Next.js version: 16.1.1 (Turbopack)
