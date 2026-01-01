@@ -523,6 +523,38 @@ async function fetchDailyTotalsByDate(
   return data || [];
 }
 
+// Fetch recent completed time entries for Focus Record
+async function fetchRecentTimeEntries(limit = 50): Promise<TimeEntryWithTask[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("time_entries")
+    .select(`
+      id,
+      task_id,
+      started_at,
+      ended_at,
+      duration_seconds,
+      accumulated_seconds,
+      paused_at,
+      notes,
+      created_at,
+      task:tasks(id, title, project:projects(id, title))
+    `)
+    .not("ended_at", "is", null)
+    .order("started_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data || []).map((entry) => ({
+    ...entry,
+    task: entry.task as unknown as TimeEntryWithTask["task"],
+  }));
+}
+
 // Hooks
 
 // Hook to sync active timer with Zustand store
@@ -705,6 +737,14 @@ export function useDailyTotalsByDate(date: Date) {
   return useQuery({
     queryKey: ["timer", "daily", dateKey],
     queryFn: () => fetchDailyTotalsByDate(date),
+  });
+}
+
+// Hook to get recent completed time entries for Focus Record
+export function useRecentTimeEntries(limit = 50) {
+  return useQuery({
+    queryKey: ["timer", "recent", limit],
+    queryFn: () => fetchRecentTimeEntries(limit),
   });
 }
 

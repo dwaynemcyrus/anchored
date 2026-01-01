@@ -41,7 +41,7 @@ timezone selector needed for time tra stuff and tracker data
   |------------------------|-------------|--------------------------------------|
   | Focus Record history   | ✅ Moderate | Data exists in time_entry_segments   |
   | Timeline visualization | ⚠️ Moderate | Would need to build UI               |
-  | Focus Note             | ⚠️ Moderate | Would need notes field on time_entry |
+  | Focus Note             | ⚠️ Moderate | Would need notes field on time_entry | Do t
   | Task picker dropdown   | ✅ Easy     | You use "Now" slots instead          |
 
   Skip (per your request):
@@ -50,3 +50,6 @@ timezone selector needed for time tra stuff and tracker data
   - Overview stats panel
 
 - [ ] Add a log option for the focus to track random activities
+- [ ] add a logbook screen to view completed or cancelled tasks
+- [ ] Focus Note 
+- [x] Focus record to show start and end times limited to last 30 entries
