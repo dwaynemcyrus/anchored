@@ -23,6 +23,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useInboxTasks,
   useNowTasks,
   useTasks,
@@ -44,6 +53,7 @@ export default function TodayPage() {
   const [showReleaseDialog, setShowReleaseDialog] = useState(false);
   const [releaseTaskId, setReleaseTaskId] = useState<string | null>(null);
   const [showTimerDialog, setShowTimerDialog] = useState(false);
+  const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
 
   const dateLabel = format(new Date(), "EEE · d MMM");
   const todayDate = useMemo(() => new Date(), []);
@@ -90,6 +100,19 @@ export default function TodayPage() {
   const isPrimaryPaused =
     activeTimer?.taskId === nowPrimary?.id && activeTimer?.isPaused;
 
+  // Focus dialog: selected task (defaults to active timer's task, or nowPrimary, or first today task)
+  const effectiveFocusTaskId =
+    focusTaskId ||
+    activeTimer?.taskId ||
+    nowPrimary?.id ||
+    todayTasks?.[0]?.id ||
+    null;
+  const focusTask = todayTasks?.find((t) => t.id === effectiveFocusTaskId) || null;
+  const isFocusTaskRunning =
+    activeTimer?.taskId === effectiveFocusTaskId && !activeTimer?.isPaused;
+  const isFocusTaskPaused =
+    activeTimer?.taskId === effectiveFocusTaskId && activeTimer?.isPaused;
+
   const timeByTaskId = useMemo(() => {
     const now = Date.now();
     const dayStart = startOfDay(todayDate).getTime();
@@ -116,11 +139,12 @@ export default function TodayPage() {
     return timeMap;
   }, [dailyTotals, todayDate, elapsedSeconds, activeTimer]);
 
+  // Reset focusTaskId when dialog closes
   useEffect(() => {
-    if (!nowPrimary && showTimerDialog) {
-      setShowTimerDialog(false);
+    if (!showTimerDialog) {
+      setFocusTaskId(null);
     }
-  }, [nowPrimary, showTimerDialog]);
+  }, [showTimerDialog]);
 
   const handleEndNow = () => {
     if (!nowPrimary) return;
@@ -135,6 +159,24 @@ export default function TodayPage() {
       return;
     }
     startTimer(nowPrimary.id);
+  };
+
+  // Focus dialog handlers
+  const handleFocusStart = () => {
+    if (!effectiveFocusTaskId) return;
+    if (isFocusTaskPaused) {
+      resumeTimer();
+      return;
+    }
+    startTimer(effectiveFocusTaskId);
+  };
+
+  const handleFocusPause = () => {
+    pauseTimer();
+  };
+
+  const handleFocusEnd = () => {
+    stopTimer();
   };
 
   const handlePauseNow = () => {
@@ -250,6 +292,15 @@ export default function TodayPage() {
                 <p className="text-sm text-muted-foreground">
                   Decide what you will command next (below).
                 </p>
+                {todayTasks && todayTasks.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTimerDialog(true)}
+                  >
+                    Focus
+                  </Button>
+                )}
               </div>
             )}
 
@@ -408,50 +459,83 @@ export default function TodayPage() {
             </DialogHeader>
 
             <div className="space-y-4">
-              {nowPrimary ? (
+              {todayTasks && todayTasks.length > 0 ? (
                 <>
-                  <div className="text-sm text-muted-foreground">
-                    {nowPrimary.title}
-                  </div>
+                  <Select
+                    value={effectiveFocusTaskId || ""}
+                    onValueChange={(value) => setFocusTaskId(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a task..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nowPrimary && (
+                        <SelectGroup>
+                          <SelectLabel>Now · Primary</SelectLabel>
+                          <SelectItem value={nowPrimary.id}>
+                            {nowPrimary.title}
+                          </SelectItem>
+                        </SelectGroup>
+                      )}
+                      {nowSecondary && (
+                        <SelectGroup>
+                          <SelectLabel>Now · Secondary</SelectLabel>
+                          <SelectItem value={nowSecondary.id}>
+                            {nowSecondary.title}
+                          </SelectItem>
+                        </SelectGroup>
+                      )}
+                      {nextTasks.length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel>Next</SelectLabel>
+                          {nextTasks.map((task) => (
+                            <SelectItem key={task.id} value={task.id}>
+                              {task.title}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <div className="text-center py-8">
                     <div className="font-mono text-5xl tabular-nums">
                       {nowTime}
                     </div>
-                    {isPrimaryPaused && (
+                    {isFocusTaskPaused && (
                       <div className="text-sm text-muted-foreground mt-2">
                         Paused
                       </div>
                     )}
                   </div>
                   <DialogFooter className="justify-center sm:justify-center gap-2">
-                    {!isPrimaryRunning && !isPrimaryPaused && (
+                    {!isFocusTaskRunning && !isFocusTaskPaused && (
                       <Button
-                        onClick={handleStartNow}
-                        disabled={isStarting}
+                        onClick={handleFocusStart}
+                        disabled={isStarting || !effectiveFocusTaskId}
                       >
                         Start
                       </Button>
                     )}
-                    {isPrimaryRunning && (
+                    {isFocusTaskRunning && (
                       <Button
                         variant="outline"
-                        onClick={handlePauseNow}
+                        onClick={handleFocusPause}
                         disabled={isPausing}
                       >
                         Pause
                       </Button>
                     )}
-                    {isPrimaryPaused && (
+                    {isFocusTaskPaused && (
                       <>
                         <Button
-                          onClick={handleStartNow}
+                          onClick={handleFocusStart}
                           disabled={isStarting}
                         >
                           Continue
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={stopTimer}
+                          onClick={handleFocusEnd}
                           disabled={isStopping}
                         >
                           End
@@ -462,7 +546,7 @@ export default function TodayPage() {
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No primary task selected.
+                  No tasks in Today. Add tasks to Today first.
                 </p>
               )}
             </div>

@@ -49,20 +49,4 @@ timezone selector needed for time tra stuff and tracker data
   - Pomodoro mode
   - Overview stats panel
 
-
-
-  ## Error Type
-Console Error
-
-## Error Message
-Failed to fetch segments: {}
-
-Next.js version: 16.1.1 (Turbopack)
-
-## Error Type
-Console Error
-
-## Error Message
-Failed to create resume segment: {}
-
-Next.js version: 16.1.1 (Turbopack)
+- [ ] Add a log option for the focus to track random activities
