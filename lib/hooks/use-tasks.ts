@@ -58,6 +58,7 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
       project:projects(id, title)
     `
     )
+    .is("deleted_at", null) // Exclude soft-deleted tasks
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -174,6 +175,7 @@ async function fetchTask(id: string): Promise<TaskWithDetails> {
     `
     )
     .eq("id", id)
+    .is("deleted_at", null) // Exclude soft-deleted tasks
     .single();
 
   if (error) {
@@ -254,11 +256,19 @@ async function updateTask({
   return data;
 }
 
-// Delete task
+// Soft delete task (moves to logbook)
 async function deleteTask(id: string): Promise<void> {
   const supabase = createClient();
 
-  const { error } = await supabase.from("tasks").delete().eq("id", id);
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_reason: "user_deleted",
+      is_now: false,
+      now_slot: null,
+    })
+    .eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -458,6 +468,8 @@ export function useDeleteTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      // Invalidate logbook since deleted items appear there
+      queryClient.invalidateQueries({ queryKey: ["logbook"] });
     },
   });
 }
@@ -976,7 +988,7 @@ export function useBulkUpdateTaskStatus() {
   });
 }
 
-// Bulk delete tasks
+// Bulk soft delete tasks
 export function useBulkDeleteTasks() {
   const queryClient = useQueryClient();
 
@@ -984,7 +996,15 @@ export function useBulkDeleteTasks() {
     mutationFn: async (taskIds: string[]) => {
       const supabase = createClient();
 
-      const { error } = await supabase.from("tasks").delete().in("id", taskIds);
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          deleted_at: new Date().toISOString(),
+          deleted_reason: "user_deleted",
+          is_now: false,
+          now_slot: null,
+        })
+        .in("id", taskIds);
 
       if (error) {
         throw new Error(error.message);
@@ -993,6 +1013,7 @@ export function useBulkDeleteTasks() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["logbook"] });
     },
   });
 }

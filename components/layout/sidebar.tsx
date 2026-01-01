@@ -10,6 +10,7 @@ import {
   FolderKanban,
   Target,
   ClipboardCheck,
+  Archive,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const navigation = [
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Habits", href: "/habits", icon: Target },
   { name: "Review", href: "/review", icon: ClipboardCheck },
+  { name: "Logbook", href: "/logbook", icon: Archive },
 ];
 
 interface SidebarProps {

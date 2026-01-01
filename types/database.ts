@@ -24,6 +24,8 @@ export type Database = {
           due_date: string | null;
           status: "active" | "completed" | "archived";
           sort_order: number;
+          completed_at: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -36,6 +38,8 @@ export type Database = {
           due_date?: string | null;
           status?: "active" | "completed" | "archived";
           sort_order?: number;
+          completed_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -48,6 +52,8 @@ export type Database = {
           due_date?: string | null;
           status?: "active" | "completed" | "archived";
           sort_order?: number;
+          completed_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +73,9 @@ export type Database = {
           start_date: string | null;
           due_date: string | null;
           completed_at: string | null;
+          deleted_at: string | null;
+          deleted_reason: "user_deleted" | "project_deleted" | null;
+          deleted_parent_id: string | null;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -84,6 +93,9 @@ export type Database = {
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;
+          deleted_at?: string | null;
+          deleted_reason?: "user_deleted" | "project_deleted" | null;
+          deleted_parent_id?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -101,6 +113,9 @@ export type Database = {
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;
+          deleted_at?: string | null;
+          deleted_reason?: "user_deleted" | "project_deleted" | null;
+          deleted_parent_id?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -241,6 +256,7 @@ export type Database = {
           title: string;
           description: string | null;
           active: boolean;
+          deleted_at: string | null;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -251,6 +267,7 @@ export type Database = {
           title: string;
           description?: string | null;
           active?: boolean;
+          deleted_at?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -261,6 +278,7 @@ export type Database = {
           title?: string;
           description?: string | null;
           active?: boolean;
+          deleted_at?: string | null;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -360,6 +378,7 @@ export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 export type TaskStatus = Task["status"];
 export type TaskLocation = Task["task_location"];
+export type DeletedReason = NonNullable<Task["deleted_reason"]>;
 
 export type TimeEntry = Database["public"]["Tables"]["time_entries"]["Row"];
 export type TimeEntryInsert = Database["public"]["Tables"]["time_entries"]["Insert"];

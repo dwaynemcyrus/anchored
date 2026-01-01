@@ -7,6 +7,7 @@ import type {
   ProjectInsert,
   ProjectUpdate,
 } from "@/types/database";
+import { taskKeys } from "./use-tasks";
 
 // Extended project type with task count
 export type ProjectWithTaskCount = Project & {
@@ -27,10 +28,12 @@ export const projectKeys = {
 async function fetchProjects(): Promise<ProjectWithTaskCount[]> {
   const supabase = createClient();
 
-  // Fetch projects
+  // Fetch active projects (exclude deleted and completed)
   const { data: projects, error: projectsError } = await supabase
     .from("projects")
     .select("*")
+    .is("deleted_at", null) // Exclude soft-deleted projects
+    .is("completed_at", null) // Exclude completed projects
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -38,11 +41,12 @@ async function fetchProjects(): Promise<ProjectWithTaskCount[]> {
     throw new Error(projectsError.message);
   }
 
-  // Fetch task counts per project
+  // Fetch task counts per project (exclude deleted tasks)
   const { data: taskCounts, error: taskCountsError } = await supabase
     .from("tasks")
     .select("project_id")
     .not("project_id", "is", null)
+    .is("deleted_at", null) // Exclude soft-deleted tasks
     .neq("status", "done");
 
   if (taskCountsError) {
@@ -72,6 +76,7 @@ async function fetchProject(id: string): Promise<Project> {
     .from("projects")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null) // Exclude soft-deleted projects
     .single();
 
   if (error) {
@@ -129,13 +134,79 @@ async function updateProject({
   return data;
 }
 
-// Archive project (soft delete)
+// Archive project (status change - legacy)
 async function archiveProject(id: string): Promise<Project> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("projects")
     .update({ status: "archived" })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// Soft delete project (moves to logbook with cascade to tasks)
+async function softDeleteProject(id: string): Promise<{ tasksDeleted: number }> {
+  const supabase = createClient();
+  const now = new Date().toISOString();
+
+  // Soft delete project
+  const { error: projectError } = await supabase
+    .from("projects")
+    .update({ deleted_at: now })
+    .eq("id", id);
+
+  if (projectError) {
+    throw new Error(projectError.message);
+  }
+
+  // Cascade soft delete to tasks (only active tasks)
+  const { data: tasksToDelete, error: tasksQueryError } = await supabase
+    .from("tasks")
+    .select("id")
+    .eq("project_id", id)
+    .is("deleted_at", null);
+
+  if (tasksQueryError) {
+    throw new Error(tasksQueryError.message);
+  }
+
+  const taskIds = tasksToDelete?.map((t) => t.id) || [];
+
+  if (taskIds.length > 0) {
+    const { error: deleteTasksError } = await supabase
+      .from("tasks")
+      .update({
+        deleted_at: now,
+        deleted_reason: "project_deleted",
+        deleted_parent_id: id,
+        is_now: false,
+        now_slot: null,
+      })
+      .in("id", taskIds);
+
+    if (deleteTasksError) {
+      throw new Error(deleteTasksError.message);
+    }
+  }
+
+  return { tasksDeleted: taskIds.length };
+}
+
+// Complete project (moves to logbook as completed)
+async function completeProject(id: string): Promise<Project> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ completed_at: new Date().toISOString() })
     .eq("id", id)
     .select()
     .single();
@@ -189,6 +260,8 @@ export function useCreateProject() {
           due_date: newProject.due_date || null,
           status: newProject.status || "active",
           sort_order: 0,
+          completed_at: null,
+          deleted_at: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           task_count: 0,
@@ -287,6 +360,75 @@ export function useArchiveProject() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+export function useSoftDeleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: softDeleteProject,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.lists() });
+
+      const previousProjects = queryClient.getQueryData<ProjectWithTaskCount[]>(
+        projectKeys.lists()
+      );
+
+      // Optimistically remove project from list
+      if (previousProjects) {
+        queryClient.setQueryData<ProjectWithTaskCount[]>(
+          projectKeys.lists(),
+          previousProjects.filter((p) => p.id !== id)
+        );
+      }
+
+      return { previousProjects };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousProjects) {
+        queryClient.setQueryData(projectKeys.lists(), context.previousProjects);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["logbook"] });
+    },
+  });
+}
+
+export function useCompleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: completeProject,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.lists() });
+
+      const previousProjects = queryClient.getQueryData<ProjectWithTaskCount[]>(
+        projectKeys.lists()
+      );
+
+      // Optimistically remove project from list (completed projects don't show in active list)
+      if (previousProjects) {
+        queryClient.setQueryData<ProjectWithTaskCount[]>(
+          projectKeys.lists(),
+          previousProjects.filter((p) => p.id !== id)
+        );
+      }
+
+      return { previousProjects };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousProjects) {
+        queryClient.setQueryData(projectKeys.lists(), context.previousProjects);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["logbook"] });
     },
   });
 }

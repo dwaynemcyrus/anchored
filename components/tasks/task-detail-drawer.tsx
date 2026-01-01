@@ -312,11 +312,11 @@ export function TaskDetailDrawer({ taskId, onClose }: TaskDetailDrawerProps) {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{task?.title}&rdquo;? This
-              action cannot be undone. All time entries for this task will also
-              be deleted.
+              This task will be moved to the Logbook and permanently deleted
+              after 60 days. You can restore it from the Logbook at any time
+              before then.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

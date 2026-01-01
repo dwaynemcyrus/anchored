@@ -53,12 +53,13 @@ timezone selector needed for time tra stuff and tracker data
 - [ ] add a logbook screen to view completed or cancelled tasks
 - [ ] Focus Note 
 - [x] Focus record to show start and end times limited to last 30 entries
+- [ ] Focus record does not automticlly update after a timer has ended...i have to refresh the page manually for it to show.
 
 
 
 run codex resume 019b7a0d-1ba6-7ca3-b78b-ac04ef9dcb8f
 continue stop timer notes modal stop running time
 
-- [ ] in sql rename time_entries table > notes to time_notes? But why???
+- [ ] in sql rename time_entries table > notes to time_notes? But why??? use `time_entry` instead
 - [ ] add notes field to focus window
 - [ ] add an edge case for timers that go way to long with a means to adjust the time before confirming to save or delete like ticktick

@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import styles from "./page.module.css";
 import {
   Select,
   SelectContent,
@@ -66,6 +67,9 @@ export default function TodayPage() {
   const [quickStopNotes, setQuickStopNotes] = useState("");
   const [showTimerDialog, setShowTimerDialog] = useState(false);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
+  const [focusNotesByTask, setFocusNotesByTask] = useState<
+    Record<string, string>
+  >({});
 
   const dateLabel = format(new Date(), "EEE · d MMM");
   const todayDate = useMemo(() => new Date(), []);
@@ -210,8 +214,22 @@ export default function TodayPage() {
     pauseTimer();
   };
 
-  const handleFocusEnd = () => {
-    stopTimer();
+  const handleFocusEnd = async () => {
+    const notes =
+      (effectiveFocusTaskId && focusNotesByTask[effectiveFocusTaskId]) || "";
+    const trimmedNotes = notes.trim();
+    try {
+      await stopTimerWithNotes(trimmedNotes.length > 0 ? trimmedNotes : null);
+      if (effectiveFocusTaskId) {
+        setFocusNotesByTask((prev) => {
+          const next = { ...prev };
+          delete next[effectiveFocusTaskId];
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to stop timer from focus dialog:", error);
+    }
   };
 
   const handlePauseNow = () => {
@@ -712,6 +730,29 @@ export default function TodayPage() {
                       </>
                     )}
                   </DialogFooter>
+                  <div className={styles.focusNotes}>
+                    <label className={styles.focusNotesLabel} htmlFor="focus-notes">
+                      Focus notes
+                    </label>
+                    <textarea
+                      id="focus-notes"
+                      rows={3}
+                      value={
+                        (effectiveFocusTaskId &&
+                          focusNotesByTask[effectiveFocusTaskId]) ||
+                        ""
+                      }
+                      onChange={(event) => {
+                        if (!effectiveFocusTaskId) return;
+                        setFocusNotesByTask((prev) => ({
+                          ...prev,
+                          [effectiveFocusTaskId]: event.target.value,
+                        }));
+                      }}
+                      placeholder="Add a short note for this focus session..."
+                      className={styles.focusNotesTextarea}
+                    />
+                  </div>
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
