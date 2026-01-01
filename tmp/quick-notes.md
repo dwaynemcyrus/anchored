@@ -9,3 +9,10 @@ Things to consider:
 * Grocery/shopping and/or to buy (fu money) list in main menu
 * put the timer/date somewhere
 * Wire the capture keyboard shortcut
+* consider adding a doing now toggle to capture
+* kill deletes and delete is moved to another tables or just shows up in a logbook
+* turn the inbox review into card that can be swiped
+- [ ] can ibox review items have there text edited while in the process?
+* Where does a now secondary action og when it is removed, if next and next is at 3 cap what then?
+- [ ] Command now needs to add a second 
+- [ ] onces theres two system needs to ask to replace prim or sec

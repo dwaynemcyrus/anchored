@@ -62,6 +62,7 @@ export type Database = {
           notes: string | null;
           task_location: "inbox" | "anytime" | "project";
           status: "inbox" | "today" | "anytime" | "done";
+          is_now: boolean;
           start_date: string | null;
           due_date: string | null;
           completed_at: string | null;
@@ -77,6 +78,7 @@ export type Database = {
           notes?: string | null;
           task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
+          is_now?: boolean;
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;
@@ -92,6 +94,7 @@ export type Database = {
           notes?: string | null;
           task_location?: "inbox" | "anytime" | "project";
           status?: "inbox" | "today" | "anytime" | "done";
+          is_now?: boolean;
           start_date?: string | null;
           due_date?: string | null;
           completed_at?: string | null;

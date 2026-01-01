@@ -60,6 +60,7 @@ CREATE TABLE tasks (
     CHECK (task_location IN ('inbox', 'anytime', 'project')),
   status TEXT NOT NULL DEFAULT 'inbox'
     CHECK (status IN ('inbox', 'today', 'anytime', 'done')),
+  is_now BOOLEAN NOT NULL DEFAULT false,
   start_date DATE,
   due_date DATE,
   completed_at TIMESTAMPTZ,
@@ -73,6 +74,7 @@ CREATE INDEX idx_tasks_owner ON tasks(owner_id);
 CREATE INDEX idx_tasks_status ON tasks(owner_id, status);
 CREATE INDEX idx_tasks_project ON tasks(project_id);
 CREATE INDEX idx_tasks_due ON tasks(due_date) WHERE due_date IS NOT NULL;
+CREATE INDEX idx_tasks_is_now ON tasks(owner_id, is_now);
 
 -- Enable RLS
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;

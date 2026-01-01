@@ -36,3 +36,8 @@ This is not a full productivity app. This is a **capture, decide, act** loop.
 
 ⠀**If it doesn’t serve daily use, it doesn’t ship.**
 #documentation
+
+***
+
+Checklist:
+- [ ] 

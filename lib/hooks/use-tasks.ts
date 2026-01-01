@@ -28,6 +28,7 @@ type TaskFilters = {
   dueFrom?: string;
   dueTo?: string;
   excludeDone?: boolean;
+  isNow?: boolean;
 };
 
 // Query keys
@@ -92,6 +93,10 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
 
   if (filters?.excludeDone) {
     query = query.neq("status", "done");
+  }
+
+  if (filters?.isNow !== undefined) {
+    query = query.eq("is_now", filters.isNow);
   }
 
   if (filters?.dueIsNull) {
@@ -298,6 +303,15 @@ export function useAnytimeTasks() {
   });
 }
 
+export function useNowTasks() {
+  const filters: TaskFilters = { isNow: true };
+
+  return useQuery({
+    queryKey: taskKeys.list(filters),
+    queryFn: () => fetchTasks(filters),
+  });
+}
+
 function getTomorrowDueDate(): string {
   return formatDueDate(addDays(startOfDay(new Date()), 1));
 }
@@ -480,8 +494,12 @@ export function useUpdateTaskStatus() {
       // Handle completed_at timestamp
       if (status === "done") {
         updates.completed_at = new Date().toISOString();
+        updates.is_now = false;
       } else {
         updates.completed_at = null;
+        if (status !== "today") {
+          updates.is_now = false;
+        }
       }
 
       const { data, error } = await supabase
@@ -515,9 +533,91 @@ export function useUpdateTaskStatus() {
                   status,
                   completed_at:
                     status === "done" ? new Date().toISOString() : null,
+                  is_now:
+                    status === "done" || status !== "today"
+                      ? false
+                      : task.is_now,
                 }
               : task
           );
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      context?.previousData?.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+export function useSetNowTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId }: { taskId: string | null }) => {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+
+      const { error: clearError } = await supabase
+        .from("tasks")
+        .update({ is_now: false })
+        .eq("owner_id", user.id)
+        .eq("is_now", true);
+
+      if (clearError) {
+        throw new Error(clearError.message);
+      }
+
+      if (!taskId) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ is_now: true, status: "today" })
+        .eq("id", taskId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    },
+    onMutate: async ({ taskId }) => {
+      await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+
+      const previousData = queryClient.getQueriesData({
+        queryKey: taskKeys.lists(),
+      });
+
+      queryClient.setQueriesData(
+        { queryKey: taskKeys.lists() },
+        (old: TaskWithDetails[] | undefined) => {
+          if (!old) return old;
+          return old.map((task) => ({
+            ...task,
+            is_now: taskId ? task.id === taskId : false,
+            status:
+              taskId && task.id === taskId && task.status !== "today"
+                ? "today"
+                : task.status,
+          }));
         }
       );
 
