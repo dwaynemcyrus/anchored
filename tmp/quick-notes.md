@@ -41,7 +41,7 @@ timezone selector needed for time tra stuff and tracker data
   |------------------------|-------------|--------------------------------------|
   | Focus Record history   | ✅ Moderate | Data exists in time_entry_segments   |
   | Timeline visualization | ⚠️ Moderate | Would need to build UI               |
-  | Focus Note             | ⚠️ Moderate | Would need notes field on time_entry | Do t
+  | Focus Note             | ⚠️ Moderate | Would need notes field on time_entry | Do this
   | Task picker dropdown   | ✅ Easy     | You use "Now" slots instead          |
 
   Skip (per your request):

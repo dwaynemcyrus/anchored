@@ -53,6 +53,8 @@ export default function TodayPage() {
   const [showSwapDialog, setShowSwapDialog] = useState(false);
   const [showReleaseDialog, setShowReleaseDialog] = useState(false);
   const [releaseTaskId, setReleaseTaskId] = useState<string | null>(null);
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [promoteTaskId, setPromoteTaskId] = useState<string | null>(null);
   const [showTimerDialog, setShowTimerDialog] = useState(false);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
 
@@ -387,21 +389,24 @@ export default function TodayPage() {
             {nextTasks.map((task) => (
               <div key={task.id} className="flex items-center justify-between gap-3">
                 <div className="text-sm">• {task.title}</div>
-                {!nowSecondary && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setNowSlot.mutate({
-                        taskId: task.id,
-                        slot: nowPrimary ? "secondary" : "primary",
-                      })
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (nowPrimary && nowSecondary) {
+                      setPromoteTaskId(task.id);
+                      setShowPromoteDialog(true);
+                      return;
                     }
-                    disabled={setNowSlot.isPending}
-                  >
-                    Promote to Now
-                  </Button>
-                )}
+                    setNowSlot.mutate({
+                      taskId: task.id,
+                      slot: nowPrimary ? "secondary" : "primary",
+                    });
+                  }}
+                  disabled={setNowSlot.isPending}
+                >
+                  Promote to Now
+                </Button>
               </div>
             ))}
           </div>
@@ -466,6 +471,47 @@ export default function TodayPage() {
               disabled={swapNowSlots.isPending || isStopping}
             >
               Stop and Swap
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showPromoteDialog}
+        onOpenChange={(open) => {
+          setShowPromoteDialog(open);
+          if (!open) {
+            setPromoteTaskId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Now is full.</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Replace which?</p>
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!promoteTaskId) return;
+                setNowSlot.mutate({ taskId: promoteTaskId, slot: "primary" });
+                setShowPromoteDialog(false);
+              }}
+              disabled={setNowSlot.isPending}
+            >
+              Primary
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!promoteTaskId) return;
+                setNowSlot.mutate({ taskId: promoteTaskId, slot: "secondary" });
+                setShowPromoteDialog(false);
+              }}
+              disabled={setNowSlot.isPending}
+            >
+              Secondary
             </Button>
           </DialogFooter>
         </DialogContent>
