@@ -55,6 +55,10 @@ export interface TimeEntryWithTask extends TimeEntry {
   };
 }
 
+type StopTimerInput = {
+  notes?: string | null;
+};
+
 // Fetch active (running) timer
 async function fetchActiveTimer(): Promise<ActiveTimer | null> {
   const supabase = createClient();
@@ -228,7 +232,7 @@ async function addDailyTotalsForSegment(
 }
 
 // Stop current timer
-async function stopTimer(): Promise<TimeEntry | null> {
+async function stopTimer({ notes }: StopTimerInput = {}): Promise<TimeEntry | null> {
   const supabase = createClient();
 
   const { data: existing } = await supabase
@@ -279,14 +283,20 @@ async function stopTimer(): Promise<TimeEntry | null> {
     segments?.reduce((sum, segment) => sum + (segment.duration_seconds || 0), 0) ||
     0;
 
+  const updateFields: Partial<TimeEntry> = {
+    ended_at: new Date().toISOString(),
+    duration_seconds: duration,
+    accumulated_seconds: duration,
+    paused_at: null,
+  };
+
+  if (notes !== undefined) {
+    updateFields.notes = notes?.trim() ? notes.trim() : null;
+  }
+
   const { data, error } = await supabase
     .from("time_entries")
-    .update({
-      ended_at: new Date().toISOString(),
-      duration_seconds: duration,
-      accumulated_seconds: duration,
-      paused_at: null,
-    })
+    .update(updateFields)
     .eq("id", existing.id)
     .select()
     .single();
@@ -784,6 +794,11 @@ export function useTimerControls() {
     stopTimerMutation.mutate();
   }, [stopTimerMutation]);
 
+  const handleStopTimerWithNotes = useCallback(
+    (notes?: string | null) => stopTimerMutation.mutateAsync({ notes }),
+    [stopTimerMutation]
+  );
+
   const handlePauseTimer = useCallback(() => {
     pauseTimerMutation.mutate();
   }, [pauseTimerMutation]);
@@ -819,6 +834,7 @@ export function useTimerControls() {
     pauseTimer: handlePauseTimer,
     resumeTimer: handleResumeTimer,
     stopTimer: handleStopTimer,
+    stopTimerWithNotes: handleStopTimerWithNotes,
     toggleTimer: handleToggleTimer,
     isPaused,
     isTimerRunningForTask: (taskId: string) =>

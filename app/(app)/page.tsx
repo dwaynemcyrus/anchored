@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -55,6 +56,14 @@ export default function TodayPage() {
   const [releaseTaskId, setReleaseTaskId] = useState<string | null>(null);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [promoteTaskId, setPromoteTaskId] = useState<string | null>(null);
+  const [promoteSlot, setPromoteSlot] = useState<"primary" | "secondary" | null>(
+    null
+  );
+  const [showQuickStopDialog, setShowQuickStopDialog] = useState(false);
+  const [quickStopAction, setQuickStopAction] = useState<
+    "promote" | "swap" | null
+  >(null);
+  const [quickStopNotes, setQuickStopNotes] = useState("");
   const [showTimerDialog, setShowTimerDialog] = useState(false);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
 
@@ -75,6 +84,7 @@ export default function TodayPage() {
     activeTimer,
     elapsedSeconds,
     stopTimer,
+    stopTimerWithNotes,
     pauseTimer,
     resumeTimer,
     startTimer,
@@ -211,6 +221,11 @@ export default function TodayPage() {
 
   const handleSwapNow = () => {
     if (!nowSecondary) return;
+    if (activeTimer) {
+      setQuickStopAction("swap");
+      setShowQuickStopDialog(true);
+      return;
+    }
     setShowSwapDialog(true);
   };
 
@@ -234,6 +249,61 @@ export default function TodayPage() {
     if (!nowPrimary) return;
     setReleaseTaskId(nowPrimary.id);
     setShowReleaseDialog(true);
+  };
+
+  const handlePromoteToSlot = (taskId: string, slot: "primary" | "secondary") => {
+    if (activeTimer) {
+      setPromoteTaskId(taskId);
+      setPromoteSlot(slot);
+      setQuickStopAction("promote");
+      setShowQuickStopDialog(true);
+      return;
+    }
+
+    setNowSlot.mutate({ taskId, slot });
+  };
+
+  const handlePromoteClick = (taskId: string) => {
+    if (nowPrimary && nowSecondary) {
+      setPromoteTaskId(taskId);
+      setShowPromoteDialog(true);
+      return;
+    }
+
+    handlePromoteToSlot(taskId, nowPrimary ? "secondary" : "primary");
+  };
+
+  const handleSelectPromoteSlot = (slot: "primary" | "secondary") => {
+    if (!promoteTaskId) return;
+    setShowPromoteDialog(false);
+    handlePromoteToSlot(promoteTaskId, slot);
+  };
+
+  const handleConfirmQuickStop = async () => {
+    const notes = quickStopNotes.trim();
+
+    try {
+      await stopTimerWithNotes(notes.length > 0 ? notes : null);
+
+      if (quickStopAction === "promote" && promoteTaskId && promoteSlot) {
+        setNowSlot.mutate({ taskId: promoteTaskId, slot: promoteSlot });
+      }
+
+      if (quickStopAction === "swap" && nowSecondary) {
+        swapNowSlots.mutate({
+          primaryId: nowPrimary?.id ?? null,
+          secondaryId: nowSecondary.id,
+        });
+      }
+
+      setShowQuickStopDialog(false);
+      setPromoteTaskId(null);
+      setPromoteSlot(null);
+      setQuickStopAction(null);
+      setQuickStopNotes("");
+    } catch (error) {
+      console.error("Failed to stop timer before promoting:", error);
+    }
   };
 
   return (
@@ -392,17 +462,7 @@ export default function TodayPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    if (nowPrimary && nowSecondary) {
-                      setPromoteTaskId(task.id);
-                      setShowPromoteDialog(true);
-                      return;
-                    }
-                    setNowSlot.mutate({
-                      taskId: task.id,
-                      slot: nowPrimary ? "secondary" : "primary",
-                    });
-                  }}
+                  onClick={() => handlePromoteClick(task.id)}
                   disabled={setNowSlot.isPending}
                 >
                   Promote to Now
@@ -482,6 +542,7 @@ export default function TodayPage() {
           setShowPromoteDialog(open);
           if (!open) {
             setPromoteTaskId(null);
+            setPromoteSlot(null);
           }
         }}
       >
@@ -493,25 +554,64 @@ export default function TodayPage() {
           <DialogFooter className="flex gap-2 sm:justify-start">
             <Button
               variant="outline"
-              onClick={() => {
-                if (!promoteTaskId) return;
-                setNowSlot.mutate({ taskId: promoteTaskId, slot: "primary" });
-                setShowPromoteDialog(false);
-              }}
-              disabled={setNowSlot.isPending}
+              onClick={() => handleSelectPromoteSlot("primary")}
+              disabled={setNowSlot.isPending || isStopping}
             >
               Primary
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                if (!promoteTaskId) return;
-                setNowSlot.mutate({ taskId: promoteTaskId, slot: "secondary" });
-                setShowPromoteDialog(false);
-              }}
-              disabled={setNowSlot.isPending}
+              onClick={() => handleSelectPromoteSlot("secondary")}
+              disabled={setNowSlot.isPending || isStopping}
             >
               Secondary
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showQuickStopDialog}
+        onOpenChange={(open) => {
+          setShowQuickStopDialog(open);
+          if (!open) {
+            setQuickStopNotes("");
+            setPromoteSlot(null);
+            setPromoteTaskId(null);
+            setQuickStopAction(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>End focus and log notes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-sm">
+              <div className="font-medium">
+                {activeTimer?.taskTitle || "Active focus session"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {nowTime} elapsed
+              </div>
+            </div>
+            <Textarea
+              value={quickStopNotes}
+              onChange={(event) => setQuickStopNotes(event.target.value)}
+              placeholder="Add a short note about this focus session..."
+              autoFocus
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowQuickStopDialog(false)}
+              disabled={isStopping}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmQuickStop} disabled={isStopping}>
+              Stop & Save
             </Button>
           </DialogFooter>
         </DialogContent>
