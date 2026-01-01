@@ -791,7 +791,7 @@ export function useTimerControls() {
   );
 
   const handleStopTimer = useCallback(() => {
-    stopTimerMutation.mutate();
+    stopTimerMutation.mutate({});
   }, [stopTimerMutation]);
 
   const handleStopTimerWithNotes = useCallback(
