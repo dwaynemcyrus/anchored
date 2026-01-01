@@ -12,7 +12,7 @@ export type DocumentSummary = {
 async function fetchLatestDocument(): Promise<DocumentSummary | null> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("documents")
     .select("id, title, updated_at")
     .order("updated_at", { ascending: false })
