@@ -61,7 +61,12 @@ import {
   useLogUsage,
   useUndoUsage,
 } from "@/lib/hooks/use-quota-habits";
-import { AvoidHabitCardCompact, QuotaHabitCardCompact } from "@/components/habits";
+import {
+  useActiveBuildHabits,
+  useLogProgress,
+  useUndoProgress,
+} from "@/lib/hooks/use-build-habits";
+import { AvoidHabitCardCompact, QuotaHabitCardCompact, BuildHabitCardCompact } from "@/components/habits";
 
 export default function TodayPage() {
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -99,6 +104,10 @@ export default function TodayPage() {
     useActiveQuotaHabits();
   const logUsage = useLogUsage();
   const undoUsage = useUndoUsage();
+  const { data: buildHabits, isLoading: buildHabitsLoading } =
+    useActiveBuildHabits();
+  const logProgress = useLogProgress();
+  const undoProgress = useUndoProgress();
   const { data: dailyTotals, isLoading: entriesLoading } =
     useDailyTotalsByDate(todayDate);
   const { data: todayEntries, isLoading: todayEntriesLoading } =
@@ -615,6 +624,44 @@ export default function TodayPage() {
                   onUndoUsage={(eventId) => undoUsage.mutate(eventId)}
                   isLogging={logUsage.isPending}
                   isUndoing={undoUsage.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Build Habits Section */}
+      {buildHabits && buildHabits.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Build
+            </div>
+            <Link
+              href="/habits"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Manage →
+            </Link>
+          </div>
+          <div className="h-px bg-border" />
+          {buildHabitsLoading ? (
+            <div className="text-sm text-muted-foreground">
+              Loading habits...
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {buildHabits.map((habit) => (
+                <BuildHabitCardCompact
+                  key={habit.id}
+                  habit={habit}
+                  onLogProgress={(habitId, amount) =>
+                    logProgress.mutate({ habitId, amount })
+                  }
+                  onUndoProgress={(eventId) => undoProgress.mutate(eventId)}
+                  isLogging={logProgress.isPending}
+                  isUndoing={undoProgress.isPending}
                 />
               ))}
             </div>

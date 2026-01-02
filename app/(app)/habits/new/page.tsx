@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useCreateAvoidHabit } from "@/lib/hooks/use-avoid-habits";
 import { useCreateQuotaHabit } from "@/lib/hooks/use-quota-habits";
+import { useCreateBuildHabit } from "@/lib/hooks/use-build-habits";
 import type { QuotaPeriod } from "@/lib/time/periods";
 
-type HabitIntent = "stop" | "limit" | null;
+type HabitIntent = "stop" | "limit" | "build" | null;
 type WizardStep = "intent" | "name" | "rule" | "review";
 
 interface HabitData {
@@ -19,6 +20,10 @@ interface HabitData {
   quotaPeriod: QuotaPeriod;
   nearThresholdPercent: number;
   allowSoftOver: boolean;
+  // Build-specific
+  buildTarget: number;
+  buildUnit: string;
+  buildPeriod: QuotaPeriod;
 }
 
 const initialData: HabitData = {
@@ -29,6 +34,9 @@ const initialData: HabitData = {
   quotaPeriod: "day",
   nearThresholdPercent: 80,
   allowSoftOver: false,
+  buildTarget: 10,
+  buildUnit: "count",
+  buildPeriod: "day",
 };
 
 export default function NewHabitPage() {
@@ -39,8 +47,9 @@ export default function NewHabitPage() {
 
   const createAvoidHabit = useCreateAvoidHabit();
   const createQuotaHabit = useCreateQuotaHabit();
+  const createBuildHabit = useCreateBuildHabit();
 
-  const isCreating = createAvoidHabit.isPending || createQuotaHabit.isPending;
+  const isCreating = createAvoidHabit.isPending || createQuotaHabit.isPending || createBuildHabit.isPending;
 
   const handleBack = () => {
     switch (step) {
@@ -87,6 +96,13 @@ export default function NewHabitPage() {
         nearThresholdPercent: data.nearThresholdPercent,
         allowSoftOver: data.allowSoftOver,
       });
+    } else if (data.intent === "build") {
+      await createBuildHabit.mutateAsync({
+        title: data.name,
+        buildTarget: data.buildTarget,
+        buildUnit: data.buildUnit,
+        buildPeriod: data.buildPeriod,
+      });
     }
     router.push("/habits");
   };
@@ -115,6 +131,11 @@ export default function NewHabitPage() {
       const periodLabel = data.quotaPeriod === "day" ? "per day" : data.quotaPeriod === "week" ? "per week" : "per month";
       return `Limit to ${data.quotaAmount} ${unitLabel} ${periodLabel}.`;
     }
+    if (data.intent === "build") {
+      const unitLabel = getBuildUnitLabel(data.buildUnit, data.buildTarget);
+      const periodLabel = data.buildPeriod === "day" ? "per day" : data.buildPeriod === "week" ? "per week" : "per month";
+      return `At least ${data.buildTarget} ${unitLabel} ${periodLabel}.`;
+    }
     return "";
   };
 
@@ -131,6 +152,26 @@ export default function NewHabitPage() {
         return plural ? "units" : "unit";
       case "currency":
         return "dollars";
+      default:
+        return unit;
+    }
+  };
+
+  const getBuildUnitLabel = (unit: string, amount: number) => {
+    const plural = amount !== 1;
+    switch (unit) {
+      case "minutes":
+        return plural ? "minutes" : "minute";
+      case "count":
+        return plural ? "times" : "time";
+      case "pages":
+        return plural ? "pages" : "page";
+      case "steps":
+        return "steps";
+      case "reps":
+        return plural ? "reps" : "rep";
+      case "sessions":
+        return plural ? "sessions" : "session";
       default:
         return unit;
     }
@@ -189,6 +230,14 @@ export default function NewHabitPage() {
               <span className={styles.intentLabel}>Limit something</span>
               <span className={styles.intentDescription}>Keep it under control</span>
             </button>
+            <button
+              type="button"
+              className={styles.intentButton}
+              onClick={() => handleIntentSelect("build")}
+            >
+              <span className={styles.intentLabel}>Build something</span>
+              <span className={styles.intentDescription}>Minimum commitment per period</span>
+            </button>
           </div>
         </div>
       )}
@@ -206,7 +255,7 @@ export default function NewHabitPage() {
               className={styles.input}
               value={data.name}
               onChange={(e) => setData((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder={data.intent === "stop" ? "e.g., Smoking" : "e.g., Social media"}
+              placeholder={data.intent === "stop" ? "e.g., Smoking" : data.intent === "limit" ? "e.g., Social media" : "e.g., Read"}
               autoFocus
             />
           </div>
@@ -348,6 +397,56 @@ export default function NewHabitPage() {
             </>
           )}
 
+          {data.intent === "build" && (
+            <>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Set a minimum target</label>
+                <div className={styles.inputRow}>
+                  <input
+                    type="number"
+                    className={`${styles.input} ${styles.inputSmall}`}
+                    value={data.buildTarget}
+                    onChange={(e) =>
+                      setData((prev) => ({
+                        ...prev,
+                        buildTarget: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    min={1}
+                  />
+                  <select
+                    className={styles.select}
+                    value={data.buildUnit}
+                    onChange={(e) =>
+                      setData((prev) => ({ ...prev, buildUnit: e.target.value }))
+                    }
+                  >
+                    <option value="count">times</option>
+                    <option value="minutes">minutes</option>
+                    <option value="pages">pages</option>
+                    <option value="steps">steps</option>
+                    <option value="reps">reps</option>
+                    <option value="sessions">sessions</option>
+                  </select>
+                  <select
+                    className={styles.select}
+                    value={data.buildPeriod}
+                    onChange={(e) =>
+                      setData((prev) => ({
+                        ...prev,
+                        buildPeriod: e.target.value as QuotaPeriod,
+                      }))
+                    }
+                  >
+                    <option value="day">per day</option>
+                    <option value="week">per week</option>
+                    <option value="month">per month</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+
           <div className={styles.actions}>
             <button type="button" className={styles.secondaryButton} onClick={handleBack}>
               Back
@@ -364,7 +463,7 @@ export default function NewHabitPage() {
         <div>
           <div className={styles.summary}>
             <p className={styles.summaryLabel}>
-              {data.intent === "stop" ? "Avoid habit" : "Quota habit"}
+              {data.intent === "stop" ? "Avoid habit" : data.intent === "limit" ? "Quota habit" : "Build habit"}
             </p>
             <p className={styles.summaryValue}>{data.name}</p>
             <p className={styles.summaryRule}>{getRuleSummary()}</p>

@@ -10,3 +10,7 @@ export { AvoidHabitList } from "./avoid-habit-list";
 // Quota Habits (Phase 2)
 export { QuotaHabitCard, QuotaHabitCardCompact } from "./quota-habit-card";
 export { QuotaHabitList } from "./quota-habit-list";
+
+// Build Habits (Phase 3)
+export { BuildHabitCard, BuildHabitCardCompact } from "./build-habit-card";
+export { BuildHabitList } from "./build-habit-list";
