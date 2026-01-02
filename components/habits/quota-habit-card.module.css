@@ -1,0 +1,141 @@
+/* Quota Habit Card Styles */
+/* Pure CSS - No Tailwind - Text-first minimal aesthetic */
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.cardUnder {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+.cardNear {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.cardOver {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusUnder {
+  color: var(--muted-foreground);
+}
+
+.statusNear {
+  color: #f59e0b;
+}
+
+.statusOver {
+  color: #ef4444;
+}
+
+.remaining {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.usage {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background: var(--accent);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.undoButton {
+  color: var(--muted-foreground);
+  border-color: transparent;
+}
+
+.undoButton:hover {
+  color: var(--foreground);
+}
+
+/* Compact variant for Today page */
+.compact {
+  padding: 0.75rem;
+}
+
+.compact .header {
+  margin-bottom: 0.5rem;
+}
+
+.compact .remaining {
+  font-size: 1.125rem;
+  margin-bottom: 0.125rem;
+}
+
+.compact .usage {
+  margin-bottom: 0.5rem;
+}
+
+.compact .actions {
+  gap: 0.25rem;
+}
+
+.compact .actionButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+}
+
+/* Period info */
+.periodLabel {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}

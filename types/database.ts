@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       documents: {
@@ -138,6 +163,47 @@ export type Database = {
           },
         ]
       }
+      habit_periods: {
+        Row: {
+          habit_id: string
+          id: string
+          local_period_end: string
+          local_period_start: string
+          owner_id: string
+          status: string
+          total_used: number
+          updated_at: string
+        }
+        Insert: {
+          habit_id: string
+          id?: string
+          local_period_end: string
+          local_period_start: string
+          owner_id: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+        }
+        Update: {
+          habit_id?: string
+          id?: string
+          local_period_end?: string
+          local_period_start?: string
+          owner_id?: string
+          status?: string
+          total_used?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_periods_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_slips: {
         Row: {
           created_at: string
@@ -179,14 +245,63 @@ export type Database = {
           },
         ]
       }
+      habit_usage_events: {
+        Row: {
+          amount: number
+          created_at: string
+          habit_id: string
+          id: string
+          local_period_end: string
+          local_period_start: string
+          note: string | null
+          occurred_at: string
+          owner_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          local_period_end: string
+          local_period_start: string
+          note?: string | null
+          occurred_at?: string
+          owner_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          local_period_end?: string
+          local_period_start?: string
+          note?: string | null
+          occurred_at?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_usage_events_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habits: {
         Row: {
           active: boolean | null
+          allow_soft_over: boolean
           created_at: string | null
           deleted_at: string | null
           description: string | null
           id: string
+          near_threshold_percent: number
           owner_id: string
+          quota_amount: number | null
+          quota_period: string | null
+          quota_unit: string | null
           sort_order: number | null
           timezone: string
           title: string
@@ -195,11 +310,16 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          allow_soft_over?: boolean
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
           id?: string
+          near_threshold_percent?: number
           owner_id: string
+          quota_amount?: number | null
+          quota_period?: string | null
+          quota_unit?: string | null
           sort_order?: number | null
           timezone?: string
           title: string
@@ -208,11 +328,16 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          allow_soft_over?: boolean
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
           id?: string
+          near_threshold_percent?: number
           owner_id?: string
+          quota_amount?: number | null
+          quota_period?: string | null
+          quota_unit?: string | null
           sort_order?: number | null
           timezone?: string
           title?: string
@@ -635,13 +760,16 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
 
 // ============================================
-// Convenience Type Exports
+// CONVENIENCE TYPE EXPORTS
 // ============================================
 
 // Projects
@@ -661,6 +789,13 @@ export type TimeEntry = Database["public"]["Tables"]["time_entries"]["Row"];
 export type TimeEntryInsert = Database["public"]["Tables"]["time_entries"]["Insert"];
 export type TimeEntryUpdate = Database["public"]["Tables"]["time_entries"]["Update"];
 
+// Time Entry Segments
+export type TimeEntrySegment = Database["public"]["Tables"]["time_entry_segments"]["Row"];
+export type TimeEntrySegmentInsert = Database["public"]["Tables"]["time_entry_segments"]["Insert"];
+
+// Time Entry Daily Totals
+export type TimeEntryDailyTotal = Database["public"]["Tables"]["time_entry_daily_totals"]["Row"];
+
 // Habits
 export type Habit = Database["public"]["Tables"]["habits"]["Row"];
 export type HabitInsert = Database["public"]["Tables"]["habits"]["Insert"];
@@ -675,19 +810,25 @@ export type HabitEntryUpdate = Database["public"]["Tables"]["habit_entries"]["Up
 // Habit Slips (avoid habits)
 export type HabitSlip = Database["public"]["Tables"]["habit_slips"]["Row"];
 export type HabitSlipInsert = Database["public"]["Tables"]["habit_slips"]["Insert"];
-export type HabitSlipUpdate = Database["public"]["Tables"]["habit_slips"]["Update"];
 
-// Habit Days (avoid habits - cached state)
+// Habit Days (avoid habits - day cache)
 export type HabitDay = Database["public"]["Tables"]["habit_days"]["Row"];
 export type HabitDayInsert = Database["public"]["Tables"]["habit_days"]["Insert"];
-export type HabitDayUpdate = Database["public"]["Tables"]["habit_days"]["Update"];
 export type HabitDayStatus = HabitDay["status"];
+
+// Habit Usage Events (quota habits)
+export type HabitUsageEvent = Database["public"]["Tables"]["habit_usage_events"]["Row"];
+export type HabitUsageEventInsert = Database["public"]["Tables"]["habit_usage_events"]["Insert"];
+
+// Habit Periods (quota habits - period cache)
+export type HabitPeriod = Database["public"]["Tables"]["habit_periods"]["Row"];
+export type HabitPeriodInsert = Database["public"]["Tables"]["habit_periods"]["Insert"];
+export type HabitPeriodStatus = HabitPeriod["status"];
 
 // Review Sessions
 export type ReviewSession = Database["public"]["Tables"]["review_sessions"]["Row"];
 export type ReviewSessionInsert = Database["public"]["Tables"]["review_sessions"]["Insert"];
 export type ReviewSessionUpdate = Database["public"]["Tables"]["review_sessions"]["Update"];
-export type ReviewType = ReviewSession["review_type"];
 
 // Documents
 export type Document = Database["public"]["Tables"]["documents"]["Row"];

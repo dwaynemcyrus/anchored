@@ -61,7 +61,7 @@ Build habits are NOT:
 - Avoid habits
 - Time-scheduled rituals
 
-Overachievement is allowed and ignored once the minimum is met.
+Overachievement is allowed and ignored once the minimum is met, but the record remains (ie. 12/10).
 
 ====================================================
 1) DATABASE EXTENSIONS (SUPABASE)

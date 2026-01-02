@@ -56,7 +56,12 @@ import {
   useUndoSlip,
   useSetDayExcluded,
 } from "@/lib/hooks/use-avoid-habits";
-import { AvoidHabitCardCompact } from "@/components/habits";
+import {
+  useActiveQuotaHabits,
+  useLogUsage,
+  useUndoUsage,
+} from "@/lib/hooks/use-quota-habits";
+import { AvoidHabitCardCompact, QuotaHabitCardCompact } from "@/components/habits";
 
 export default function TodayPage() {
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -90,6 +95,10 @@ export default function TodayPage() {
     useActiveAvoidHabits();
   const logSlip = useLogSlip();
   const undoSlip = useUndoSlip();
+  const { data: quotaHabits, isLoading: quotaHabitsLoading } =
+    useActiveQuotaHabits();
+  const logUsage = useLogUsage();
+  const undoUsage = useUndoUsage();
   const { data: dailyTotals, isLoading: entriesLoading } =
     useDailyTotalsByDate(todayDate);
   const { data: todayEntries, isLoading: todayEntriesLoading } =
@@ -568,6 +577,44 @@ export default function TodayPage() {
                   }}
                   isLoggingSlip={logSlip.isPending}
                   isUndoingSlip={undoSlip.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Quota Habits Section */}
+      {quotaHabits && quotaHabits.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Limits
+            </div>
+            <Link
+              href="/habits"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Manage →
+            </Link>
+          </div>
+          <div className="h-px bg-border" />
+          {quotaHabitsLoading ? (
+            <div className="text-sm text-muted-foreground">
+              Loading habits...
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {quotaHabits.map((habit) => (
+                <QuotaHabitCardCompact
+                  key={habit.id}
+                  habit={habit}
+                  onLogUsage={(habitId, amount) =>
+                    logUsage.mutate({ habitId, amount })
+                  }
+                  onUndoUsage={(eventId) => undoUsage.mutate(eventId)}
+                  isLogging={logUsage.isPending}
+                  isUndoing={undoUsage.isPending}
                 />
               ))}
             </div>
