@@ -128,3 +128,5 @@ continue stop timer notes modal stop running time
 
 
 - [ ] when the primary now task is marked complete the secondary task should then become the primary task.
+
+Read the `/docs/habits/*` to get an understanding of what needs to be wired into our app. Keep in mind this is a map forward broken down into phases and you will make the necessary adjustments to the plan's recommendations. 

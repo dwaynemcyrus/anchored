@@ -187,8 +187,19 @@ export function useLogbookItems(
     entityTypes: filters.entityTypes,
   };
 
+  // Serialize dates for stable query key (use date-only format since query uses date boundaries)
+  const queryKey = [
+    ...logbookKeys.lists(),
+    {
+      state: fullFilters.state,
+      from: format(fullFilters.dateRange.from, "yyyy-MM-dd"),
+      to: format(fullFilters.dateRange.to, "yyyy-MM-dd"),
+      entityTypes: fullFilters.entityTypes,
+    },
+  ];
+
   return useQuery({
-    queryKey: logbookKeys.list(fullFilters),
+    queryKey,
     queryFn: () => fetchLogbookItems(fullFilters),
   });
 }

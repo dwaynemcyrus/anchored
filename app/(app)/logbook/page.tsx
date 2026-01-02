@@ -39,7 +39,7 @@ function getDateRangeFromOption(option: DateRangeOption): {
 }
 
 export default function LogbookPage() {
-  const [state, setState] = useState<LogbookState>("completed");
+  const [state, setState] = useState<LogbookState>("deleted");
   const [dateRangeOption, setDateRangeOption] =
     useState<DateRangeOption>("30d");
   const [customRange, setCustomRange] = useState<{
