@@ -14,6 +14,7 @@ import {
   formatBuildAmount,
   type BuildStatus,
 } from "@/lib/habits/build-stats";
+import { habitKeys } from "@/lib/hooks/use-habits";
 import type { Habit } from "@/types/database";
 
 // ============================================
@@ -317,6 +318,7 @@ export function useCreateBuildHabit() {
     mutationFn: createBuildHabit,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: buildHabitKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: habitKeys.lists() });
     },
   });
 }
