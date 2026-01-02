@@ -31,6 +31,6 @@ timezone selector needed for time tra stuff and tracker data
 - [x] Focus record does not automticlly update after a timer has ended...i have to refresh the page manually for it to show.
 - [ ] in sql rename time_entries table > notes to time_notes? But why??? use `time_entry` instead
 - [x] add notes field to focus window
-- [ ] add an edge case for timers that go way to long with a means to adjust the time before confirming to save or delete like ticktick
+- [ ] add an edge case for timers that go way too long with a means to adjust the time before confirming to save or delete like ticktick
 - [x] Bug: when the primary now task on the today sheet is marked complete the secondary task should then become the primary task, but it does not. Find the problem and soltion plan. no code
-- [ ] Build the avoid habit creation form
+- [ ] Use Claude to continue fixing the the "build habit" and testing it. 
