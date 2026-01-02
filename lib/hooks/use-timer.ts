@@ -63,22 +63,10 @@ type StopTimerInput = {
 async function fetchActiveTimer(): Promise<ActiveTimer | null> {
   const supabase = createClient();
 
+  // Step 1: Fetch active time entry (no join to avoid column ambiguity)
   const { data, error } = await supabase
     .from("time_entries")
-    .select(
-      `
-      id,
-      task_id,
-      started_at,
-      accumulated_seconds,
-      paused_at,
-      task:tasks(
-        id,
-        title,
-        project:projects(id, title)
-      )
-    `
-    )
+    .select("id, task_id, started_at, accumulated_seconds, paused_at")
     .is("ended_at", null)
     .single();
 
@@ -90,19 +78,40 @@ async function fetchActiveTimer(): Promise<ActiveTimer | null> {
     throw new Error(error.message);
   }
 
-  if (!data || !data.task) {
+  if (!data) {
     return null;
   }
 
-  const task = data.task as unknown as Pick<Task, "id" | "title"> & {
-    project: Pick<Project, "id" | "title"> | null;
-  };
+  // Step 2: Fetch task details separately
+  const { data: taskData, error: taskError } = await supabase
+    .from("tasks")
+    .select("id, title, project_id")
+    .eq("id", data.task_id)
+    .single();
+
+  if (taskError || !taskData) {
+    return null;
+  }
+
+  // Step 3: Fetch project if task has project_id
+  let projectTitle: string | null = null;
+  if (taskData.project_id) {
+    const { data: projectData } = await supabase
+      .from("projects")
+      .select("id, title")
+      .eq("id", taskData.project_id)
+      .single();
+
+    if (projectData) {
+      projectTitle = projectData.title;
+    }
+  }
 
   return {
     id: data.id,
     taskId: data.task_id,
-    taskTitle: task.title,
-    projectTitle: task.project?.title || null,
+    taskTitle: taskData.title,
+    projectTitle,
     startedAt: new Date(data.started_at),
     accumulatedSeconds: data.accumulated_seconds || 0,
     isPaused: Boolean(data.paused_at),
@@ -533,25 +542,87 @@ async function fetchDailyTotalsByDate(
   return data || [];
 }
 
-// Fetch recent completed time entries for Focus Record
+// Fetch today's completed time entries for Focus Record (today only, excludes 0s entries)
+async function fetchTodayTimeEntries(): Promise<TimeEntryWithTask[]> {
+  const supabase = createClient();
+  const todayStart = startOfDay(new Date()).toISOString();
+  const tomorrowStart = addDays(startOfDay(new Date()), 1).toISOString();
+
+  // Step 1: Fetch today's completed time entries with duration > 0
+  const { data: entries, error } = await supabase
+    .from("time_entries")
+    .select("id, task_id, started_at, ended_at, duration_seconds, accumulated_seconds, paused_at, notes, created_at")
+    .not("ended_at", "is", null)
+    .gte("started_at", todayStart)
+    .lt("started_at", tomorrowStart)
+    .gt("duration_seconds", 0)
+    .order("started_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+
+  // Step 2: Batch fetch tasks for these entries
+  const taskIds = [...new Set(entries.map((e) => e.task_id))];
+  const { data: tasks, error: tasksError } = await supabase
+    .from("tasks")
+    .select("id, title, project_id")
+    .in("id", taskIds);
+
+  if (tasksError) {
+    throw new Error(tasksError.message);
+  }
+
+  // Step 3: Batch fetch projects for tasks that have project_id
+  const projectIds = [...new Set(tasks?.map((t) => t.project_id).filter(Boolean))] as string[];
+  const projectMap = new Map<string, Pick<Project, "id" | "title">>();
+
+  if (projectIds.length > 0) {
+    const { data: projects, error: projectsError } = await supabase
+      .from("projects")
+      .select("id, title")
+      .in("id", projectIds);
+
+    if (projectsError) {
+      throw new Error(projectsError.message);
+    }
+
+    projects?.forEach((p) => {
+      projectMap.set(p.id, { id: p.id, title: p.title });
+    });
+  }
+
+  // Build task map with project info
+  const taskMap = new Map<string, Pick<Task, "id" | "title"> & { project: Pick<Project, "id" | "title"> | null }>();
+  tasks?.forEach((t) => {
+    taskMap.set(t.id, {
+      id: t.id,
+      title: t.title,
+      project: t.project_id ? projectMap.get(t.project_id) ?? null : null,
+    });
+  });
+
+  // Step 4: Merge results
+  return entries.map((entry) => ({
+    ...entry,
+    task: taskMap.get(entry.task_id) || { id: entry.task_id, title: "Unknown Task", project: null },
+  }));
+}
+
+// Fetch recent completed time entries for Focus Record (legacy, all dates)
 async function fetchRecentTimeEntries(limit = 50): Promise<TimeEntryWithTask[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  // Step 1: Fetch time entries (no join to avoid column ambiguity), exclude 0s entries
+  const { data: entries, error } = await supabase
     .from("time_entries")
-    .select(`
-      id,
-      task_id,
-      started_at,
-      ended_at,
-      duration_seconds,
-      accumulated_seconds,
-      paused_at,
-      notes,
-      created_at,
-      task:tasks(id, title, project:projects(id, title))
-    `)
+    .select("id, task_id, started_at, ended_at, duration_seconds, accumulated_seconds, paused_at, notes, created_at")
     .not("ended_at", "is", null)
+    .gt("duration_seconds", 0)
     .order("started_at", { ascending: false })
     .limit(limit);
 
@@ -559,9 +630,54 @@ async function fetchRecentTimeEntries(limit = 50): Promise<TimeEntryWithTask[]> 
     throw new Error(error.message);
   }
 
-  return (data || []).map((entry) => ({
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+
+  // Step 2: Batch fetch tasks for these entries
+  const taskIds = [...new Set(entries.map((e) => e.task_id))];
+  const { data: tasks, error: tasksError } = await supabase
+    .from("tasks")
+    .select("id, title, project_id")
+    .in("id", taskIds);
+
+  if (tasksError) {
+    throw new Error(tasksError.message);
+  }
+
+  // Step 3: Batch fetch projects for tasks that have project_id
+  const projectIds = [...new Set(tasks?.map((t) => t.project_id).filter(Boolean))] as string[];
+  const projectMap = new Map<string, Pick<Project, "id" | "title">>();
+
+  if (projectIds.length > 0) {
+    const { data: projects, error: projectsError } = await supabase
+      .from("projects")
+      .select("id, title")
+      .in("id", projectIds);
+
+    if (projectsError) {
+      throw new Error(projectsError.message);
+    }
+
+    projects?.forEach((p) => {
+      projectMap.set(p.id, { id: p.id, title: p.title });
+    });
+  }
+
+  // Build task map with project info
+  const taskMap = new Map<string, Pick<Task, "id" | "title"> & { project: Pick<Project, "id" | "title"> | null }>();
+  tasks?.forEach((t) => {
+    taskMap.set(t.id, {
+      id: t.id,
+      title: t.title,
+      project: t.project_id ? projectMap.get(t.project_id) ?? null : null,
+    });
+  });
+
+  // Step 4: Merge results
+  return entries.map((entry) => ({
     ...entry,
-    task: entry.task as unknown as TimeEntryWithTask["task"],
+    task: taskMap.get(entry.task_id) || { id: entry.task_id, title: "Unknown Task", project: null },
   }));
 }
 
@@ -755,6 +871,15 @@ export function useRecentTimeEntries(limit = 50) {
   return useQuery({
     queryKey: ["timer", "recent", limit],
     queryFn: () => fetchRecentTimeEntries(limit),
+  });
+}
+
+// Hook to get today's completed time entries for Focus Record
+export function useTodayTimeEntries() {
+  const todayKey = format(new Date(), "yyyy-MM-dd");
+  return useQuery({
+    queryKey: ["timer", "today", todayKey],
+    queryFn: fetchTodayTimeEntries,
   });
 }
 

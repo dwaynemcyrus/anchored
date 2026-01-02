@@ -50,15 +50,11 @@ export const taskKeys = {
 async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
   const supabase = createClient();
 
+  // Step 1: Fetch tasks (no join to avoid column ambiguity with deleted_at)
   let query = supabase
     .from("tasks")
-    .select(
-      `
-      *,
-      project:projects(id, title)
-    `
-    )
-    .is("deleted_at", null) // Exclude soft-deleted tasks
+    .select("*")
+    .is("deleted_at", null)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -131,13 +127,32 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
     throw new Error(tasksError.message);
   }
 
-  // Fetch time entries for these tasks
-  const taskIds = tasks?.map((t) => t.id) || [];
-
-  if (taskIds.length === 0) {
+  if (!tasks || tasks.length === 0) {
     return [];
   }
 
+  const taskIds = tasks.map((t) => t.id);
+
+  // Step 2: Batch fetch projects for tasks that have project_id
+  const projectIds = [...new Set(tasks.map((t) => t.project_id).filter(Boolean))] as string[];
+  const projectMap = new Map<string, Pick<Project, "id" | "title">>();
+
+  if (projectIds.length > 0) {
+    const { data: projects, error: projectsError } = await supabase
+      .from("projects")
+      .select("id, title")
+      .in("id", projectIds);
+
+    if (projectsError) {
+      throw new Error(projectsError.message);
+    }
+
+    projects?.forEach((p) => {
+      projectMap.set(p.id, { id: p.id, title: p.title });
+    });
+  }
+
+  // Step 3: Fetch time entries for these tasks
   const { data: timeEntries, error: timeError } = await supabase
     .from("time_entries")
     .select("task_id, duration_seconds")
@@ -155,9 +170,10 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
     timeMap.set(entry.task_id, current + (entry.duration_seconds || 0));
   });
 
-  return (tasks || []).map((task) => ({
+  // Step 4: Merge results
+  return tasks.map((task) => ({
     ...task,
-    project: task.project as Pick<Project, "id" | "title"> | null,
+    project: task.project_id ? projectMap.get(task.project_id) ?? null : null,
     time_tracked_seconds: timeMap.get(task.id) || 0,
   }));
 }
@@ -166,23 +182,33 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
 async function fetchTask(id: string): Promise<TaskWithDetails> {
   const supabase = createClient();
 
+  // Step 1: Fetch task (no join to avoid column ambiguity with deleted_at)
   const { data: task, error } = await supabase
     .from("tasks")
-    .select(
-      `
-      *,
-      project:projects(id, title)
-    `
-    )
+    .select("*")
     .eq("id", id)
-    .is("deleted_at", null) // Exclude soft-deleted tasks
+    .is("deleted_at", null)
     .single();
 
   if (error) {
     throw new Error(error.message);
   }
 
-  // Fetch time entries
+  // Step 2: Fetch project if task has project_id
+  let project: Pick<Project, "id" | "title"> | null = null;
+  if (task.project_id) {
+    const { data: projectData } = await supabase
+      .from("projects")
+      .select("id, title")
+      .eq("id", task.project_id)
+      .single();
+
+    if (projectData) {
+      project = { id: projectData.id, title: projectData.title };
+    }
+  }
+
+  // Step 3: Fetch time entries
   const { data: timeEntries } = await supabase
     .from("time_entries")
     .select("duration_seconds")
@@ -194,7 +220,7 @@ async function fetchTask(id: string): Promise<TaskWithDetails> {
 
   return {
     ...task,
-    project: task.project as Pick<Project, "id" | "title"> | null,
+    project,
     time_tracked_seconds: totalTime,
   };
 }

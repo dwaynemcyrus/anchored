@@ -47,7 +47,7 @@ import {
   useActiveTimer,
   useTimerControls,
   useDailyTotalsByDate,
-  useRecentTimeEntries,
+  useTodayTimeEntries,
 } from "@/lib/hooks/use-timer";
 import { formatDuration, formatTimerDisplay } from "@/lib/utils/formatting";
 
@@ -81,8 +81,8 @@ export default function TodayPage() {
   const { data: latestDoc, isLoading: docLoading } = useLatestDocument();
   const { data: dailyTotals, isLoading: entriesLoading } =
     useDailyTotalsByDate(todayDate);
-  const { data: recentEntries, isLoading: recentLoading } =
-    useRecentTimeEntries(30);
+  const { data: todayEntries, isLoading: todayEntriesLoading } =
+    useTodayTimeEntries();
   const { isTimerLoading } = useActiveTimer();
   const {
     activeTimer,
@@ -158,25 +158,6 @@ export default function TodayPage() {
     return timeMap;
   }, [dailyTotals, todayDate, elapsedSeconds, activeTimer]);
 
-  // Group recent entries by date for Focus Record
-  const entriesByDate = useMemo(() => {
-    if (!recentEntries) return [];
-
-    const groups = new Map<string, typeof recentEntries>();
-
-    for (const entry of recentEntries) {
-      const dateKey = format(new Date(entry.started_at), "yyyy-MM-dd");
-      const existing = groups.get(dateKey) || [];
-      existing.push(entry);
-      groups.set(dateKey, existing);
-    }
-
-    return Array.from(groups.entries()).map(([dateKey, entries]) => ({
-      date: dateKey,
-      label: format(new Date(dateKey), "d MMM yyyy"),
-      entries,
-    }));
-  }, [recentEntries]);
 
   // Reset focusTaskId when dialog closes
   useEffect(() => {
@@ -770,9 +751,9 @@ export default function TodayPage() {
                 <div className="text-sm text-muted-foreground">
                   Loading today&apos;s tasks...
                 </div>
-              ) : todayTasks && todayTasks.length > 0 ? (
+              ) : todayTasks && todayTasks.some((task) => (timeByTaskId.get(task.id) ?? 0) > 0) ? (
                 <div className="space-y-3">
-                  {todayTasks.map((task) => (
+                  {todayTasks.filter((task) => (timeByTaskId.get(task.id) ?? 0) > 0).map((task) => (
                     <div
                       key={task.id}
                       className="flex items-center justify-between gap-4 text-sm"
@@ -786,7 +767,7 @@ export default function TodayPage() {
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">
-                  No tasks in Today.
+                  No time tracked today.
                 </div>
               )}
             </div>
@@ -796,45 +777,38 @@ export default function TodayPage() {
                 Focus Record
               </div>
               <div className="h-px bg-border" />
-              {recentLoading ? (
+              {todayEntriesLoading ? (
                 <div className="text-sm text-muted-foreground">
                   Loading focus history...
                 </div>
-              ) : entriesByDate.length > 0 ? (
-                <div className="space-y-4">
-                  {entriesByDate.map((group) => (
-                    <div key={group.date} className="space-y-2">
-                      <div className="text-xs text-muted-foreground">
-                        {group.label}
+              ) : todayEntries && todayEntries.length > 0 ? (
+                <div className="space-y-2">
+                  {todayEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center justify-between gap-4 text-sm"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {format(new Date(entry.started_at), "HH:mm")}
+                          {" - "}
+                          {entry.ended_at
+                            ? format(new Date(entry.ended_at), "HH:mm")
+                            : "now"}
+                        </span>
+                        <span className="truncate">
+                          {entry.task?.title || "Unknown task"}
+                        </span>
                       </div>
-                      {group.entries.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="flex items-center justify-between gap-4 text-sm"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs text-muted-foreground tabular-nums">
-                              {format(new Date(entry.started_at), "HH:mm")}
-                              {" - "}
-                              {entry.ended_at
-                                ? format(new Date(entry.ended_at), "HH:mm")
-                                : "now"}
-                            </span>
-                            <span className="truncate">
-                              {entry.task?.title || "Unknown task"}
-                            </span>
-                          </div>
-                          <div className="font-mono tabular-nums text-muted-foreground">
-                            {formatDuration(entry.accumulated_seconds || 0)}
-                          </div>
-                        </div>
-                      ))}
+                      <div className="font-mono tabular-nums text-muted-foreground">
+                        {formatDuration(entry.duration_seconds || 0)}
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">
-                  No focus sessions yet.
+                  No focus sessions today.
                 </div>
               )}
             </div>

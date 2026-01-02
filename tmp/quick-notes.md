@@ -63,3 +63,68 @@ continue stop timer notes modal stop running time
 - [ ] in sql rename time_entries table > notes to time_notes? But why??? use `time_entry` instead
 - [ ] add notes field to focus window
 - [ ] add an edge case for timers that go way to long with a means to adjust the time before confirming to save or delete like ticktick
+
+
+***
+
+
+ Based on reviewing the implementation plan and the changes made, I can identify the likely cause:
+
+  Root Cause Analysis
+
+  The implementation added .is("deleted_at", null) filters to all queries. The key observation:
+
+  Works: Task count query (simple select, no join)
+  .from("tasks")
+  .select("project_id")
+  .is("deleted_at", null)
+
+  Doesn't work: Task list query (has a JOIN to projects)
+  .from("tasks")
+  .select(`*, project:projects(id, title)`)
+  .is("deleted_at", null)
+
+  The Problem
+
+  Both tasks and projects tables now have a deleted_at column. When the tasks query JOINs to projects via project:projects(id, title), there's column ambiguity - PostgREST may not know which table's deleted_at to filter on, or may be silently failing.
+
+  This explains why:
+  - Project list works (filtering on projects.deleted_at - unambiguous)
+  - Task counts work (no join, filtering on tasks.deleted_at - unambiguous)
+  - Task lists fail (join creates ambiguity between tasks.deleted_at and projects.deleted_at)
+
+  Secondary Possibility
+
+  PostgREST schema cache may not have refreshed after the migration. Supabase caches the database schema, and new columns might not be recognized properly until the cache refreshes.
+
+  Verification
+
+  To confirm, check:
+  1. Does the task list work if you remove the project join from the select?
+  2. Does qualifying the column as tasks.deleted_at in the filter fix it?
+  3. Is there a way to manually refresh the Supabase schema cache (dashboard → Settings → API → Reload schema)?
+
+
+
+
+
+
+
+
+
+   Done. Fixed the Focus Record to show only today's entries with duration > 0:
+
+  Changes made:
+
+  1. New fetchTodayTimeEntries() function - Filters by:
+    - Today's date only (started_at between today start and tomorrow start)
+    - Duration > 0 (excludes 0s entries)
+  2. New useTodayTimeEntries() hook - Uses the new function with a date-based query key
+  3. Updated fetchRecentTimeEntries() - Also now excludes 0s entries (.gt("duration_seconds", 0))
+  4. Updated Focus dialog - Uses useTodayTimeEntries instead of useRecentTimeEntries, simplified display (no date grouping needed)
+
+  Refresh your browser - the Focus Record should now only show today's completed focus sessions with actual time tracked.
+
+
+
+- [ ] when the primary now task is marked complete the secondary task should then become the primary task.
