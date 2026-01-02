@@ -41,16 +41,10 @@ export default function ProjectsPage() {
   };
 
   const handleSubmit = async (values: ProjectFormValues) => {
-    const payload = {
-      ...values,
-      start_date: values.start_date?.toISOString() || null,
-      due_date: values.due_date?.toISOString() || null,
-    };
-
     if (editingProject) {
-      await updateProject.mutateAsync({ id: editingProject.id, ...payload });
+      await updateProject.mutateAsync({ id: editingProject.id, ...values });
     } else {
-      await createProject.mutateAsync(payload);
+      await createProject.mutateAsync(values);
     }
     setIsDialogOpen(false);
     setEditingProject(null);

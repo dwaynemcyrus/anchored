@@ -70,7 +70,7 @@ export function TaskForm({
       notes: task?.notes || "",
       project_id: task?.project_id || defaultProjectId || null,
       task_location:
-        task?.task_location ||
+        (task?.task_location as TaskFormValues["task_location"]) ||
         (task?.project_id || defaultProjectId ? "project" : defaultLocation),
       start_date: task?.start_date ? new Date(task.start_date) : null,
       due_date: task?.due_date ? new Date(task.due_date) : null,
@@ -83,7 +83,7 @@ export function TaskForm({
     if (currentProjectId) {
       form.setValue("task_location", "project");
     } else if (form.getValues("task_location") === "project") {
-      form.setValue("task_location", defaultLocation);
+      form.setValue("task_location", defaultLocation as TaskFormValues["task_location"]);
     }
   }, [currentProjectId, defaultLocation, form]);
 

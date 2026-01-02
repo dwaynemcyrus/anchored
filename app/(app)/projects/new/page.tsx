@@ -11,13 +11,7 @@ export default function NewProjectPage() {
   const createProject = useCreateProject();
 
   const handleSubmit = async (values: ProjectFormValues) => {
-    const payload = {
-      ...values,
-      start_date: values.start_date?.toISOString() || null,
-      due_date: values.due_date?.toISOString() || null,
-    };
-
-    const project = await createProject.mutateAsync(payload);
+    const project = await createProject.mutateAsync(values);
     router.push(`/projects/${project.id}`);
   };
 

@@ -248,9 +248,11 @@ export function TaskDetailDrawer({ taskId, onClose }: TaskDetailDrawerProps) {
                 {/* Timestamps */}
                 <Separator />
                 <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>
-                    Created {format(new Date(task.created_at), "MMM d, yyyy 'at' h:mm a")}
-                  </p>
+                  {task.created_at && (
+                    <p>
+                      Created {format(new Date(task.created_at), "MMM d, yyyy 'at' h:mm a")}
+                    </p>
+                  )}
                   {task.completed_at && (
                     <p>
                       Completed{" "}

@@ -2,8 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { ArrowLeft, Pencil, Archive, Plus, Calendar } from "lucide-react";
+import { ArrowLeft, Pencil, Archive, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectDetailSkeleton } from "@/components/skeletons";
@@ -79,8 +78,6 @@ export default function ProjectDetailPage({
     await updateProject.mutateAsync({
       id,
       ...values,
-      start_date: values.start_date?.toISOString() || null,
-      due_date: values.due_date?.toISOString() || null,
     });
     setIsEditDialogOpen(false);
   };
@@ -165,7 +162,7 @@ export default function ProjectDetailPage({
     );
   }
 
-  const config = statusConfig[project.status];
+  const config = statusConfig[project.status as keyof typeof statusConfig] ?? statusConfig.active;
   const taskCount = tasks?.length || 0;
   const activeTaskCount = tasks?.filter((t) => t.status !== "done").length || 0;
 
@@ -190,22 +187,6 @@ export default function ProjectDetailPage({
             <p className="text-muted-foreground max-w-2xl">
               {project.description}
             </p>
-          )}
-          {(project.start_date || project.due_date) && (
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              {project.start_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Starts {format(new Date(project.start_date), "MMM d, yyyy")}
-                </span>
-              )}
-              {project.due_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Due {format(new Date(project.due_date), "MMM d, yyyy")}
-                </span>
-              )}
-            </div>
           )}
           <p className="text-sm text-muted-foreground">
             {activeTaskCount} active {activeTaskCount === 1 ? "task" : "tasks"}

@@ -168,7 +168,8 @@ async function startTimer(taskId: string): Promise<TimeEntry> {
     throw new Error(segmentError.message);
   }
 
-  return data;
+  // Supabase types say created_at is nullable but it's populated by default
+  return data as TimeEntry;
 }
 
 async function addDailyTotalsForSegment(
@@ -314,7 +315,7 @@ async function stopTimer({ notes }: StopTimerInput = {}): Promise<TimeEntry | nu
     throw new Error(error.message);
   }
 
-  return data;
+  return data as TimeEntry;
 }
 
 // Pause current timer
@@ -410,7 +411,7 @@ async function pauseTimer(): Promise<TimeEntry | null> {
     throw new Error(error.message);
   }
 
-  return data;
+  return data as TimeEntry;
 }
 
 // Resume paused timer
@@ -453,7 +454,7 @@ async function resumeTimer(): Promise<TimeEntry | null> {
     console.error("Failed to create resume segment:", segmentError.message, segmentError.code);
   }
 
-  return data;
+  return data as TimeEntry;
 }
 
 // Delete a time entry
@@ -483,7 +484,7 @@ async function fetchTimeEntriesByTask(
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data || []) as TimeEntry[];
 }
 
 async function fetchTimeEntriesByDate(date: Date): Promise<TimeEntry[]> {
@@ -502,7 +503,7 @@ async function fetchTimeEntriesByDate(date: Date): Promise<TimeEntry[]> {
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data || []) as TimeEntry[];
 }
 
 async function fetchTimeEntrySegmentsByDate(date: Date): Promise<TimeEntrySegment[]> {
@@ -521,7 +522,7 @@ async function fetchTimeEntrySegmentsByDate(date: Date): Promise<TimeEntrySegmen
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data || []) as TimeEntrySegment[];
 }
 
 async function fetchDailyTotalsByDate(
@@ -539,7 +540,7 @@ async function fetchDailyTotalsByDate(
     throw new Error(error.message);
   }
 
-  return data || [];
+  return (data || []) as TimeEntryDailyTotal[];
 }
 
 // Fetch today's completed time entries for Focus Record (today only, excludes 0s entries)
@@ -610,7 +611,7 @@ async function fetchTodayTimeEntries(): Promise<TimeEntryWithTask[]> {
   return entries.map((entry) => ({
     ...entry,
     task: taskMap.get(entry.task_id) || { id: entry.task_id, title: "Unknown Task", project: null },
-  }));
+  })) as TimeEntryWithTask[];
 }
 
 // Fetch recent completed time entries for Focus Record (legacy, all dates)
@@ -678,7 +679,7 @@ async function fetchRecentTimeEntries(limit = 50): Promise<TimeEntryWithTask[]> 
   return entries.map((entry) => ({
     ...entry,
     task: taskMap.get(entry.task_id) || { id: entry.task_id, title: "Unknown Task", project: null },
-  }));
+  })) as TimeEntryWithTask[];
 }
 
 // Hooks

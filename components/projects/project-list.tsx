@@ -35,7 +35,7 @@ function ProjectCard({
   onArchive: () => void;
   onClick: () => void;
 }) {
-  const config = statusConfig[project.status];
+  const config = statusConfig[project.status as keyof typeof statusConfig] ?? statusConfig.active;
 
   return (
     <div

@@ -50,6 +50,13 @@ import {
   useTodayTimeEntries,
 } from "@/lib/hooks/use-timer";
 import { formatDuration, formatTimerDisplay } from "@/lib/utils/formatting";
+import {
+  useActiveAvoidHabits,
+  useLogSlip,
+  useUndoSlip,
+  useSetDayExcluded,
+} from "@/lib/hooks/use-avoid-habits";
+import { AvoidHabitCardCompact } from "@/components/habits";
 
 export default function TodayPage() {
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -79,6 +86,10 @@ export default function TodayPage() {
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: nowTasks, isLoading: nowLoading } = useNowTasks();
   const { data: latestDoc, isLoading: docLoading } = useLatestDocument();
+  const { data: avoidHabits, isLoading: avoidHabitsLoading } =
+    useActiveAvoidHabits();
+  const logSlip = useLogSlip();
+  const undoSlip = useUndoSlip();
   const { data: dailyTotals, isLoading: entriesLoading } =
     useDailyTotalsByDate(todayDate);
   const { data: todayEntries, isLoading: todayEntriesLoading } =
@@ -522,6 +533,47 @@ export default function TodayPage() {
           </div>
         )}
       </section>
+
+      {/* Avoid Habits Section */}
+      {avoidHabits && avoidHabits.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Avoid
+            </div>
+            <Link
+              href="/habits"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Manage →
+            </Link>
+          </div>
+          <div className="h-px bg-border" />
+          {avoidHabitsLoading ? (
+            <div className="text-sm text-muted-foreground">
+              Loading habits...
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {avoidHabits.map((habit) => (
+                <AvoidHabitCardCompact
+                  key={habit.id}
+                  habit={habit}
+                  onLogSlip={(habitId) => logSlip.mutate({ habitId })}
+                  onUndoSlip={(habitId) => {
+                    const habit = avoidHabits?.find(h => h.id === habitId);
+                    if (habit?.lastTodaySlipId) {
+                      undoSlip.mutate(habit.lastTodaySlipId);
+                    }
+                  }}
+                  isLoggingSlip={logSlip.isPending}
+                  isUndoingSlip={undoSlip.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <Dialog open={showSwapDialog} onOpenChange={setShowSwapDialog}>
         <DialogContent>
