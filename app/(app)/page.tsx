@@ -169,7 +169,17 @@ export default function TodayPage() {
   const handleEndNow = () => {
     if (!nowPrimary) return;
     stopTimer();
-    updateTaskStatus.mutate({ id: nowPrimary.id, status: "done" });
+    updateTaskStatus.mutate(
+      { id: nowPrimary.id, status: "done" },
+      {
+        onSuccess: () => {
+          // Promote secondary to primary if it exists
+          if (nowSecondary) {
+            setNowSlot.mutate({ taskId: nowSecondary.id, slot: "primary" });
+          }
+        },
+      }
+    );
   };
 
   const handleStartNow = () => {
