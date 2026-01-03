@@ -1,0 +1,205 @@
+/* Schedule Habit Card - Text-first, minimal styling */
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.header {
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.patternLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+.occurrenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.occurrenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: var(--muted);
+  border-radius: 0.25rem;
+}
+
+.occurrenceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.occurrenceTime {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.occurrenceStatus {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.statusCompleted {
+  color: var(--green-600, #16a34a);
+}
+
+.statusMissed {
+  color: var(--red-600, #dc2626);
+}
+
+.statusSkipped {
+  color: var(--muted-foreground);
+}
+
+.occurrenceActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.actionButton:hover {
+  background: var(--accent);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stats {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.statsRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Compact variant for Today view */
+.cardCompact {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--card);
+}
+
+.compactHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.compactTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.compactPattern {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.compactOccurrences {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.compactOccurrenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.5rem;
+  background: var(--muted);
+  border-radius: 0.25rem;
+}
+
+.compactOccurrenceInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.compactTime {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.compactStatus {
+  font-size: 0.75rem;
+}
+
+.compactActions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.compactActionButton {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.6875rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.compactActionButton:hover {
+  background: var(--accent);
+}
+
+.compactActionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty state */
+.emptyOccurrences {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}

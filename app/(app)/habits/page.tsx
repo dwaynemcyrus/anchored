@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { HabitForm, HabitList, AvoidHabitList, QuotaHabitList, BuildHabitList } from "@/components/habits";
+import { HabitForm, HabitList, AvoidHabitList, QuotaHabitList, BuildHabitList, ScheduleHabitList } from "@/components/habits";
 import {
   useHabits,
   useCreateHabit,
@@ -33,6 +33,10 @@ import {
   useLogProgress,
   useUndoProgress,
 } from "@/lib/hooks/use-build-habits";
+import {
+  useScheduleHabits,
+  useMarkOccurrence,
+} from "@/lib/hooks/use-schedule-habits";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTodayLocalDateString, getBrowserTimezone } from "@/lib/time/local-date";
 import type { HabitFormValues } from "@/components/habits/habit-form";
@@ -69,8 +73,14 @@ export default function HabitsPage() {
   const logProgress = useLogProgress();
   const undoProgress = useUndoProgress();
 
-  // Don't block page load if build habits query fails (new tables may not exist yet)
-  const isLoading = habitsLoading || avoidLoading || quotaLoading || (buildLoading && !buildError);
+  // Schedule habits
+  const { data: scheduleHabits, isLoading: scheduleLoading, isError: scheduleError } = useScheduleHabits(
+    showArchived ? undefined : { active: true }
+  );
+  const markOccurrence = useMarkOccurrence();
+
+  // Don't block page load if new habit type queries fail (new tables may not exist yet)
+  const isLoading = habitsLoading || avoidLoading || quotaLoading || (buildLoading && !buildError) || (scheduleLoading && !scheduleError);
 
   const handleUpdateHabit = async (values: HabitFormValues) => {
     if (!editingHabit) return;
@@ -104,6 +114,10 @@ export default function HabitsPage() {
   // Separate active and archived build habits (new type system)
   const activeBuildHabits = buildHabits?.filter((h) => h.active) || [];
   const archivedBuildHabits = buildHabits?.filter((h) => !h.active) || [];
+
+  // Separate active and archived schedule habits
+  const activeScheduleHabits = scheduleHabits?.filter((h) => h.active) || [];
+  const archivedScheduleHabits = scheduleHabits?.filter((h) => !h.active) || [];
 
   // Calculate completion stats for legacy build habits
   const completedCount = activeHabits.filter((h) => h.completedToday).length;
@@ -254,8 +268,37 @@ export default function HabitsPage() {
             </section>
           )}
 
+          {/* Schedule Habits Section */}
+          {(activeScheduleHabits.length > 0 || (showArchived && archivedScheduleHabits.length > 0)) && (
+            <section className="space-y-4">
+              <h2 className="text-lg font-medium">Schedule</h2>
+              <ScheduleHabitList
+                habits={activeScheduleHabits}
+                onMarkComplete={(habitId, scheduledAt, localDate) =>
+                  markOccurrence.mutate({ habitId, scheduledAt, localDate, status: "completed" })
+                }
+                onMarkSkipped={(habitId, scheduledAt, localDate) =>
+                  markOccurrence.mutate({ habitId, scheduledAt, localDate, status: "skipped" })
+                }
+                isMarking={markOccurrence.isPending}
+              />
+              {showArchived && archivedScheduleHabits.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                    Archived ({archivedScheduleHabits.length})
+                  </h3>
+                  <ScheduleHabitList
+                    habits={archivedScheduleHabits}
+                    onMarkComplete={() => {}}
+                    onMarkSkipped={() => {}}
+                  />
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Empty state */}
-          {activeAvoidHabits.length === 0 && activeQuotaHabits.length === 0 && activeBuildHabits.length === 0 && (
+          {activeAvoidHabits.length === 0 && activeQuotaHabits.length === 0 && activeBuildHabits.length === 0 && activeScheduleHabits.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <p>No habits yet.</p>
               <p className="mt-1">

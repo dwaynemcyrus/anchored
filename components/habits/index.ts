@@ -14,3 +14,7 @@ export { QuotaHabitList } from "./quota-habit-list";
 // Build Habits (Phase 3)
 export { BuildHabitCard, BuildHabitCardCompact } from "./build-habit-card";
 export { BuildHabitList } from "./build-habit-list";
+
+// Schedule Habits (Phase 4)
+export { ScheduleHabitCard, ScheduleHabitCardCompact } from "./schedule-habit-card";
+export { ScheduleHabitList } from "./schedule-habit-list";

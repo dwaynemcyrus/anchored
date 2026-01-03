@@ -66,7 +66,11 @@ import {
   useLogProgress,
   useUndoProgress,
 } from "@/lib/hooks/use-build-habits";
-import { AvoidHabitCardCompact, QuotaHabitCardCompact, BuildHabitCardCompact } from "@/components/habits";
+import {
+  useActiveScheduleHabits,
+  useMarkOccurrence,
+} from "@/lib/hooks/use-schedule-habits";
+import { AvoidHabitCardCompact, QuotaHabitCardCompact, BuildHabitCardCompact, ScheduleHabitCardCompact } from "@/components/habits";
 
 export default function TodayPage() {
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -108,6 +112,9 @@ export default function TodayPage() {
     useActiveBuildHabits();
   const logProgress = useLogProgress();
   const undoProgress = useUndoProgress();
+  const { data: scheduleHabits, isLoading: scheduleHabitsLoading } =
+    useActiveScheduleHabits();
+  const markOccurrence = useMarkOccurrence();
   const { data: dailyTotals, isLoading: entriesLoading } =
     useDailyTotalsByDate(todayDate);
   const { data: todayEntries, isLoading: todayEntriesLoading } =
@@ -662,6 +669,45 @@ export default function TodayPage() {
                   onUndoProgress={(eventId) => undoProgress.mutate(eventId)}
                   isLogging={logProgress.isPending}
                   isUndoing={undoProgress.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Schedule Habits Section */}
+      {scheduleHabits && scheduleHabits.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              Rituals
+            </div>
+            <Link
+              href="/habits"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Manage →
+            </Link>
+          </div>
+          <div className="h-px bg-border" />
+          {scheduleHabitsLoading ? (
+            <div className="text-sm text-muted-foreground">
+              Loading habits...
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {scheduleHabits.map((habit) => (
+                <ScheduleHabitCardCompact
+                  key={habit.id}
+                  habit={habit}
+                  onMarkComplete={(habitId, scheduledAt, localDate) =>
+                    markOccurrence.mutate({ habitId, scheduledAt, localDate, status: "completed" })
+                  }
+                  onMarkSkipped={(habitId, scheduledAt, localDate) =>
+                    markOccurrence.mutate({ habitId, scheduledAt, localDate, status: "skipped" })
+                  }
+                  isMarking={markOccurrence.isPending}
                 />
               ))}
             </div>
