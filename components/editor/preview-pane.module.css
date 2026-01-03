@@ -1,0 +1,67 @@
+.preview {
+  min-height: 60vh;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  line-height: 1.7;
+}
+
+.preview h1 {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+
+.preview h2 {
+  font-size: 1.6rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.preview h3 {
+  font-size: 1.25rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.preview p {
+  margin: 0 0 1rem;
+}
+
+.preview ul {
+  padding-left: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.preview li {
+  margin-bottom: 0.35rem;
+}
+
+.preview blockquote {
+  border-left: 3px solid var(--border);
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  background: var(--muted);
+}
+
+.preview code {
+  font-family: var(--font-geist-mono);
+  background: var(--muted);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+.preview pre {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.preview a {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.preview a.wiki-link {
+  text-decoration-style: dotted;
+}

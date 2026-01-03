@@ -51,7 +51,7 @@ async function seed() {
       user_id: userId,
       title: 'Emotional Sovereignty',
       slug: 'emotional-sovereignty',
-      content_type: 'principles',
+      collection: 'essays',
       visibility: 'public',
       status: 'published',
       body_md: `# Emotional Sovereignty
@@ -88,7 +88,7 @@ See also [[On Stillness and Motion]] for the balance between action and reflecti
       user_id: userId,
       title: 'The Practice of Becoming',
       slug: 'the-practice-of-becoming',
-      content_type: 'principles',
+      collection: 'essays',
       visibility: 'public',
       status: 'published',
       body_md: `# The Practice of Becoming
@@ -126,7 +126,7 @@ Each day, ask yourself:
       user_id: userId,
       title: 'On Stillness and Motion',
       slug: 'on-stillness-and-motion',
-      content_type: 'fragments',
+      collection: 'notes',
       visibility: 'public',
       status: 'published',
       body_md: `# On Stillness and Motion
@@ -150,7 +150,7 @@ The stillness is not passive. It is active listening, integration, preparation f
       user_id: userId,
       title: 'Morning Light',
       slug: 'morning-light',
-      content_type: 'fragments',
+      collection: 'notes',
       visibility: 'public',
       status: 'published',
       body_md: `# Morning Light
@@ -169,7 +169,7 @@ This is when [[Emotional Sovereignty]] is easiest to practice, before the demand
       user_id: userId,
       title: 'Anchored: Building a Personal OS',
       slug: 'anchored',
-      content_type: 'projects',
+      collection: 'essays',
       visibility: 'public',
       status: 'published',
       body_md: `# Anchored: Building a Personal OS
@@ -208,7 +208,7 @@ Phase 1 complete: Tasks, projects, timer, habits, daily review.
       user_id: userId,
       title: 'The Examined Life in Practice',
       slug: 'examined-life-in-practice',
-      content_type: 'essays',
+      collection: 'essays',
       visibility: 'public',
       status: 'published',
       body_md: `# The Examined Life in Practice
@@ -238,7 +238,7 @@ This connects to [[Emotional Sovereignty]]: you cannot examine what you cannot s
       user_id: userId,
       title: 'Before Dawn',
       slug: 'before-dawn',
-      content_type: 'poetry',
+      collection: 'notes',
       visibility: 'public',
       status: 'published',
       body_md: `# Before Dawn
@@ -263,7 +263,7 @@ like light across the horizon.`,
       user_id: userId,
       title: 'Work in Progress',
       slug: 'work-in-progress',
-      content_type: 'essays',
+      collection: 'essays',
       visibility: 'private',
       status: 'draft',
       body_md: `# Work in Progress
@@ -289,7 +289,7 @@ Still working through these ideas...`,
 
   console.log(`\nSuccessfully seeded ${data.length} documents:\n`);
   data.forEach(doc => {
-    console.log(`  - ${doc.title} (${doc.content_type}, ${doc.status})`);
+    console.log(`  - ${doc.title} (${doc.collection}, ${doc.status})`);
   });
 }
 

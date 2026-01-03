@@ -42,8 +42,10 @@ export type Database = {
       documents: {
         Row: {
           body_md: string | null
-          content_type: string
+          canonical: string | null
+          collection: string
           created_at: string | null
+          date: string | null
           id: string
           metadata: Json | null
           order: number | null
@@ -51,6 +53,7 @@ export type Database = {
           slug: string
           status: string
           summary: string | null
+          tags: string[] | null
           title: string
           updated_at: string | null
           user_id: string
@@ -58,8 +61,10 @@ export type Database = {
         }
         Insert: {
           body_md?: string | null
-          content_type: string
+          canonical?: string | null
+          collection: string
           created_at?: string | null
+          date?: string | null
           id: string
           metadata?: Json | null
           order?: number | null
@@ -67,6 +72,7 @@ export type Database = {
           slug: string
           status?: string
           summary?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -74,8 +80,10 @@ export type Database = {
         }
         Update: {
           body_md?: string | null
-          content_type?: string
+          canonical?: string | null
+          collection?: string
           created_at?: string | null
+          date?: string | null
           id?: string
           metadata?: Json | null
           order?: number | null
@@ -83,12 +91,78 @@ export type Database = {
           slug?: string
           status?: string
           summary?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
           user_id?: string
           visibility?: string
         }
         Relationships: []
+      }
+      document_versions: {
+        Row: {
+          body_md: string | null
+          canonical: string | null
+          collection: string
+          created_at: string | null
+          date: string | null
+          document_id: string
+          id: string
+          metadata: Json | null
+          published_at: string | null
+          slug: string
+          snapshot_reason: string
+          status: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          visibility: string
+        }
+        Insert: {
+          body_md?: string | null
+          canonical?: string | null
+          collection: string
+          created_at?: string | null
+          date?: string | null
+          document_id: string
+          id: string
+          metadata?: Json | null
+          published_at?: string | null
+          slug: string
+          snapshot_reason: string
+          status: string
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          visibility: string
+        }
+        Update: {
+          body_md?: string | null
+          canonical?: string | null
+          collection?: string
+          created_at?: string | null
+          date?: string | null
+          document_id?: string
+          id?: string
+          metadata?: Json | null
+          published_at?: string | null
+          slug?: string
+          snapshot_reason?: string
+          status?: string
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       habit_days: {
         Row: {
@@ -837,3 +911,11 @@ export type ReviewSessionUpdate = Database["public"]["Tables"]["review_sessions"
 export type Document = Database["public"]["Tables"]["documents"]["Row"];
 export type DocumentInsert = Database["public"]["Tables"]["documents"]["Insert"];
 export type DocumentUpdate = Database["public"]["Tables"]["documents"]["Update"];
+
+// Document Versions
+export type DocumentVersion =
+  Database["public"]["Tables"]["document_versions"]["Row"];
+export type DocumentVersionInsert =
+  Database["public"]["Tables"]["document_versions"]["Insert"];
+export type DocumentVersionUpdate =
+  Database["public"]["Tables"]["document_versions"]["Update"];

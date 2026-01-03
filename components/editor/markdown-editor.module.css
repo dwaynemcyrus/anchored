@@ -1,0 +1,65 @@
+.editorRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editorInput {
+  min-height: 60vh;
+  width: 100%;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.editorInput:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.suggestions {
+  position: absolute;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  width: min(320px, 90%);
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.suggestionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.suggestionItem:hover {
+  background: var(--muted);
+}
+
+.suggestionTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.suggestionSlug {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

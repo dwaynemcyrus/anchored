@@ -419,15 +419,18 @@ CREATE TABLE documents (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   slug TEXT NOT NULL,
-  content_type TEXT NOT NULL,  -- open text: principles, essays, fragments, projects, poetry, artwork, books, etc.
+  collection TEXT NOT NULL,  -- open text: essays, notes, linked, etc.
   visibility TEXT NOT NULL DEFAULT 'private'
-    CHECK (visibility IN ('public', 'supporter', '1v1', 'private')),
+    CHECK (visibility IN ('public', 'personal', 'private')),
   status TEXT NOT NULL DEFAULT 'draft'
     CHECK (status IN ('draft', 'published', 'archived')),
   body_md TEXT,  -- markdown content
   summary TEXT,  -- optional excerpt/description
   "order" INTEGER,  -- for manual sorting within series (quoted: reserved word)
   metadata JSONB DEFAULT '{}',  -- type-specific fields (medium, author, repo_url, etc.)
+  canonical TEXT,
+  tags TEXT[],
+  date DATE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
   published_at TIMESTAMPTZ  -- set when status becomes published
@@ -435,12 +438,12 @@ CREATE TABLE documents (
 
 -- Indexes
 CREATE INDEX idx_documents_slug ON documents(slug);
-CREATE INDEX idx_documents_content_type ON documents(content_type);
+CREATE INDEX idx_documents_collection ON documents(collection);
 CREATE INDEX idx_documents_visibility ON documents(visibility);
 CREATE INDEX idx_documents_status ON documents(status);
 CREATE INDEX idx_documents_published_at ON documents(published_at DESC) WHERE published_at IS NOT NULL;
-CREATE INDEX idx_documents_type_status_visibility ON documents(content_type, status, visibility);
-CREATE INDEX idx_documents_user_type ON documents(user_id, content_type);
+CREATE INDEX idx_documents_collection_status_visibility ON documents(collection, status, visibility);
+CREATE INDEX idx_documents_user_collection ON documents(user_id, collection);
 
 -- Constraints
 ALTER TABLE documents
@@ -480,6 +483,67 @@ CREATE TRIGGER update_documents_updated_at
   BEFORE UPDATE ON documents
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- 10. DOCUMENT VERSIONS - Document Snapshots
+-- ============================================================================
+
+CREATE TABLE document_versions (
+  id TEXT PRIMARY KEY,
+  document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  summary TEXT,
+  body_md TEXT,
+  status TEXT NOT NULL
+    CHECK (status IN ('draft', 'published', 'archived')),
+  visibility TEXT NOT NULL
+    CHECK (visibility IN ('public', 'personal', 'private')),
+  collection TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  canonical TEXT,
+  tags TEXT[],
+  date DATE,
+  published_at TIMESTAMPTZ,
+  snapshot_reason TEXT NOT NULL
+    CHECK (snapshot_reason IN ('manual', 'publish'))
+);
+
+CREATE INDEX idx_document_versions_document_id ON document_versions(document_id);
+CREATE INDEX idx_document_versions_created_at
+  ON document_versions(created_at DESC);
+CREATE INDEX idx_document_versions_document_id_created_at
+  ON document_versions(document_id, created_at DESC);
+
+ALTER TABLE document_versions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own document versions"
+  ON document_versions FOR SELECT
+  USING (
+    document_id IN (SELECT id FROM documents WHERE user_id = auth.uid())
+  );
+
+CREATE POLICY "Users can create own document versions"
+  ON document_versions FOR INSERT
+  WITH CHECK (
+    document_id IN (SELECT id FROM documents WHERE user_id = auth.uid())
+  );
+
+CREATE POLICY "Users can update own document versions"
+  ON document_versions FOR UPDATE
+  USING (
+    document_id IN (SELECT id FROM documents WHERE user_id = auth.uid())
+  )
+  WITH CHECK (
+    document_id IN (SELECT id FROM documents WHERE user_id = auth.uid())
+  );
+
+CREATE POLICY "Users can delete own document versions"
+  ON document_versions FOR DELETE
+  USING (
+    document_id IN (SELECT id FROM documents WHERE user_id = auth.uid())
+  );
 
 -- ============================================================================
 -- SCHEMA COMPLETE

@@ -10,6 +10,7 @@ import {
   FolderKanban,
   Target,
   ClipboardCheck,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Habits", href: "/habits", icon: Target },
   { name: "Review", href: "/review", icon: ClipboardCheck },
+  { name: "Writing", href: "/writing", icon: FileText },
 ];
 
 export function MobileNav() {
