@@ -960,3 +960,68 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// ============================================
+// Convenience type aliases
+// ============================================
+
+// Tasks
+export type Task = Tables<"tasks">;
+export type TaskInsert = TablesInsert<"tasks">;
+export type TaskUpdate = TablesUpdate<"tasks">;
+export type TaskStatus = Task["status"];
+export type TaskLocation = Task["task_location"];
+
+// Projects
+export type Project = Tables<"projects">;
+export type ProjectInsert = TablesInsert<"projects">;
+export type ProjectUpdate = TablesUpdate<"projects">;
+
+// Habits
+export type Habit = Tables<"habits">;
+export type HabitInsert = TablesInsert<"habits">;
+export type HabitUpdate = TablesUpdate<"habits">;
+
+// Habit entries (legacy)
+export type HabitEntry = Tables<"habit_entries">;
+
+// Habit slips (avoid habits)
+export type HabitSlip = Tables<"habit_slips">;
+
+// Habit days (avoid habits)
+export type HabitDay = Tables<"habit_days">;
+export type HabitDayStatus = HabitDay["status"];
+
+// Habit usage events (quota habits)
+export type HabitUsageEvent = Tables<"habit_usage_events">;
+
+// Habit periods (quota habits)
+export type HabitPeriod = Tables<"habit_periods">;
+
+// Habit build events
+export type HabitBuildEvent = Tables<"habit_build_events">;
+
+// Habit build periods
+export type HabitBuildPeriod = Tables<"habit_build_periods">;
+
+// Habit schedule occurrences
+export type HabitScheduleOccurrence = Tables<"habit_schedule_occurrences">;
+
+// Documents
+export type Document = Tables<"documents">;
+export type DocumentInsert = TablesInsert<"documents">;
+export type DocumentUpdate = TablesUpdate<"documents">;
+
+// Document versions
+export type DocumentVersion = Tables<"document_versions">;
+export type DocumentVersionInsert = TablesInsert<"document_versions">;
+
+// Review sessions
+export type ReviewSession = Tables<"review_sessions">;
+export type ReviewSessionInsert = TablesInsert<"review_sessions">;
+export type ReviewSessionUpdate = TablesUpdate<"review_sessions">;
+
+// Time entries
+export type TimeEntry = Tables<"time_entries">;
+export type TimeEntryInsert = TablesInsert<"time_entries">;
+export type TimeEntryUpdate = TablesUpdate<"time_entries">;
