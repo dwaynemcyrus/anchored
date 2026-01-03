@@ -33,6 +33,6 @@ timezone selector needed for time tra stuff and tracker data
 - [x] add notes field to focus window
 - [ ] add an edge case for timers that go way too long with a means to adjust the time before confirming to save or delete like ticktick
 - [x] Bug: when the primary now task on the today sheet is marked complete the secondary task should then become the primary task, but it does not. Find the problem and soltion plan. no code
-- [ ] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
+- [x] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
 - [ ] Wire CodeMirror 6 in for editor
 - [ ] for habits in settings week starts on Sunday, and anything ekse like logs and day pickers etc

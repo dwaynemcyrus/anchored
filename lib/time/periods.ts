@@ -56,9 +56,9 @@ export function getPeriodForDate(
       end = endOfDay(tzDate);
       break;
     case "week":
-      // Monday is the start of week (weekStartsOn: 1)
-      start = startOfWeek(tzDate, { weekStartsOn: 1 });
-      end = endOfWeek(tzDate, { weekStartsOn: 1 });
+      // Sunday is the start of week (weekStartsOn: 0)
+      start = startOfWeek(tzDate, { weekStartsOn: 0 });
+      end = endOfWeek(tzDate, { weekStartsOn: 0 });
       break;
     case "month":
       start = startOfMonth(tzDate);
@@ -90,7 +90,7 @@ export function isSamePeriod(
     case "day":
       return isSameDay(tzA, tzB);
     case "week":
-      return isSameWeek(tzA, tzB, { weekStartsOn: 1 });
+      return isSameWeek(tzA, tzB, { weekStartsOn: 0 });
     case "month":
       return isSameMonth(tzA, tzB);
   }
