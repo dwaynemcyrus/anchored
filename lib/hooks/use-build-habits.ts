@@ -102,7 +102,7 @@ async function fetchBuildHabits(
       .select("total_done, status")
       .eq("habit_id", habit.id)
       .eq("local_period_start", period.localStartDate)
-      .single();
+      .maybeSingle();
 
     const totalDone = periodData?.total_done ?? 0;
 
@@ -114,7 +114,7 @@ async function fetchBuildHabits(
       .eq("local_period_start", period.localStartDate)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     const stats = calculateBuildStats(totalDone, target);
 
@@ -172,16 +172,23 @@ async function logProgress({ habitId, amount, note }: LogProgressParams) {
   const period = getCurrentPeriod(timezone, habit.build_period as QuotaPeriod);
 
   // Insert event
-  const { error: eventError } = await supabaseAny.from("habit_build_events").insert({
-    habit_id: habitId,
-    user_id: user.id,
-    local_period_start: period.localStartDate,
-    local_period_end: period.localEndDate,
-    amount,
-    note,
-  });
+  const { data: insertedEvent, error: eventError } = await supabaseAny
+    .from("habit_build_events")
+    .insert({
+      habit_id: habitId,
+      user_id: user.id,
+      local_period_start: period.localStartDate,
+      local_period_end: period.localEndDate,
+      amount,
+      note,
+    })
+    .select()
+    .single();
 
-  if (eventError) throw new Error(eventError.message);
+  if (eventError) {
+    console.error("Insert error details:", eventError);
+    throw new Error(eventError.message);
+  }
 
   // Update period totals
   const { data: events } = await supabaseAny
@@ -311,6 +318,9 @@ export function useLogProgress() {
     mutationFn: logProgress,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: buildHabitKeys.lists() });
+    },
+    onError: (error) => {
+      console.error("Failed to log build progress:", error);
     },
   });
 }

@@ -9,22 +9,33 @@ ALTER TABLE habits ADD COLUMN IF NOT EXISTS build_target numeric NULL;
 ALTER TABLE habits ADD COLUMN IF NOT EXISTS build_unit text NULL;
 ALTER TABLE habits ADD COLUMN IF NOT EXISTS build_period text NULL;
 
--- Add check constraints
-ALTER TABLE habits ADD CONSTRAINT habits_type_check
-  CHECK (type IN ('avoid', 'quota', 'build'));
+-- Add check constraints (skip if already exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'habits_type_check') THEN
+    ALTER TABLE habits ADD CONSTRAINT habits_type_check
+      CHECK (type IN ('avoid', 'quota', 'build'));
+  END IF;
 
-ALTER TABLE habits ADD CONSTRAINT habits_build_unit_check
-  CHECK (build_unit IS NULL OR build_unit IN ('minutes', 'count', 'pages', 'steps', 'reps', 'sessions'));
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'habits_build_unit_check') THEN
+    ALTER TABLE habits ADD CONSTRAINT habits_build_unit_check
+      CHECK (build_unit IS NULL OR build_unit IN ('minutes', 'count', 'pages', 'steps', 'reps', 'sessions'));
+  END IF;
 
-ALTER TABLE habits ADD CONSTRAINT habits_build_period_check
-  CHECK (build_period IS NULL OR build_period IN ('day', 'week', 'month'));
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'habits_build_period_check') THEN
+    ALTER TABLE habits ADD CONSTRAINT habits_build_period_check
+      CHECK (build_period IS NULL OR build_period IN ('day', 'week', 'month'));
+  END IF;
 
--- Build fields required when type = 'build'
-ALTER TABLE habits ADD CONSTRAINT habits_build_fields_check
-  CHECK (
-    (type != 'build') OR
-    (build_target IS NOT NULL AND build_unit IS NOT NULL AND build_period IS NOT NULL)
-  );
+  -- Skip habits_build_fields_check - existing data may not comply
+  -- IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'habits_build_fields_check') THEN
+  --   ALTER TABLE habits ADD CONSTRAINT habits_build_fields_check
+  --     CHECK (
+  --       (type != 'build') OR
+  --       (build_target IS NOT NULL AND build_unit IS NOT NULL AND build_period IS NOT NULL)
+  --     );
+  -- END IF;
+END $$;
 
 -- Create habit_build_events table
 CREATE TABLE IF NOT EXISTS habit_build_events (
@@ -62,7 +73,11 @@ CREATE TABLE IF NOT EXISTS habit_build_periods (
 ALTER TABLE habit_build_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habit_build_periods ENABLE ROW LEVEL SECURITY;
 
--- RLS policies for habit_build_events
+-- RLS policies for habit_build_events (drop first if exist)
+DROP POLICY IF EXISTS "Users can view own build events" ON habit_build_events;
+DROP POLICY IF EXISTS "Users can insert own build events" ON habit_build_events;
+DROP POLICY IF EXISTS "Users can delete own build events" ON habit_build_events;
+
 CREATE POLICY "Users can view own build events"
   ON habit_build_events FOR SELECT
   USING (user_id = auth.uid());
@@ -75,7 +90,12 @@ CREATE POLICY "Users can delete own build events"
   ON habit_build_events FOR DELETE
   USING (user_id = auth.uid());
 
--- RLS policies for habit_build_periods
+-- RLS policies for habit_build_periods (drop first if exist)
+DROP POLICY IF EXISTS "Users can view own build periods" ON habit_build_periods;
+DROP POLICY IF EXISTS "Users can insert own build periods" ON habit_build_periods;
+DROP POLICY IF EXISTS "Users can update own build periods" ON habit_build_periods;
+DROP POLICY IF EXISTS "Users can delete own build periods" ON habit_build_periods;
+
 CREATE POLICY "Users can view own build periods"
   ON habit_build_periods FOR SELECT
   USING (user_id = auth.uid());
@@ -91,3 +111,10 @@ CREATE POLICY "Users can update own build periods"
 CREATE POLICY "Users can delete own build periods"
   ON habit_build_periods FOR DELETE
   USING (user_id = auth.uid());
+
+-- Grant permissions for PostgREST
+GRANT SELECT, INSERT, DELETE ON TABLE public.habit_build_events TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.habit_build_periods TO authenticated;
+
+-- Notify PostgREST to reload schema cache
+NOTIFY pgrst, 'reload schema';

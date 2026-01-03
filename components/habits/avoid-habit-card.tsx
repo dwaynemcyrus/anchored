@@ -26,7 +26,7 @@ import type { AvoidHabitWithStatus } from "@/lib/hooks/use-avoid-habits";
 interface AvoidHabitCardProps {
   habit: AvoidHabitWithStatus;
   onLogSlip: (habitId: string) => void;
-  onUndoSlip: (habitId: string) => void;
+  onUndoSlip: (slipId: string) => void;
   onExcludeToday: (habitId: string, excluded: boolean) => void;
   onEdit: (habit: AvoidHabitWithStatus) => void;
   onArchive: (habitId: string) => void;
@@ -55,8 +55,8 @@ export function AvoidHabitCard({
   };
 
   const handleUndoSlip = () => {
-    if (!isUndoingSlip) {
-      onUndoSlip(habit.id);
+    if (!isUndoingSlip && habit.lastTodaySlipId) {
+      onUndoSlip(habit.lastTodaySlipId);
     }
   };
 
@@ -275,7 +275,7 @@ export function AvoidHabitCardCompact({
 }: {
   habit: AvoidHabitWithStatus;
   onLogSlip: (habitId: string) => void;
-  onUndoSlip: (habitId: string) => void;
+  onUndoSlip: (slipId: string) => void;
   isLoggingSlip?: boolean;
   isUndoingSlip?: boolean;
 }) {
@@ -345,7 +345,13 @@ export function AvoidHabitCardCompact({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => isSlipped ? onUndoSlip(habit.id) : onLogSlip(habit.id)}
+          onClick={() => {
+            if (isSlipped && habit.lastTodaySlipId) {
+              onUndoSlip(habit.lastTodaySlipId);
+            } else if (!isSlipped) {
+              onLogSlip(habit.id);
+            }
+          }}
           disabled={isPending}
           className={cn(
             "h-7 px-2 text-xs",

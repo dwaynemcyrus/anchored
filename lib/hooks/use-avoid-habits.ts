@@ -345,7 +345,7 @@ async function logSlip({
     .select("status")
     .eq("habit_id", habitId)
     .eq("local_date", localDate)
-    .single();
+    .maybeSingle();
 
   // Only update if not excluded
   if (!existingDay || existingDay.status !== "excluded") {
@@ -378,10 +378,15 @@ async function undoSlip(slipId: string): Promise<void> {
     .from("habit_slips")
     .select("habit_id, local_date")
     .eq("id", slipId)
-    .single();
+    .maybeSingle();
 
   if (fetchError) {
     throw new Error(fetchError.message);
+  }
+
+  if (!slip) {
+    // Slip was already deleted
+    return;
   }
 
   // Delete the slip
@@ -408,7 +413,7 @@ async function undoSlip(slipId: string): Promise<void> {
       .select("status")
       .eq("habit_id", slip.habit_id)
       .eq("local_date", slip.local_date)
-      .single();
+      .maybeSingle();
 
     if (existingDay && existingDay.status !== "excluded") {
       // Delete the day record (clean is the default)

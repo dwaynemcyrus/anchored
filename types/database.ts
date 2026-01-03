@@ -12,93 +12,8 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
-      documents: {
-        Row: {
-          body_md: string | null
-          canonical: string | null
-          collection: string
-          created_at: string | null
-          date: string | null
-          id: string
-          metadata: Json | null
-          order: number | null
-          published_at: string | null
-          slug: string
-          status: string
-          summary: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          user_id: string
-          visibility: string
-        }
-        Insert: {
-          body_md?: string | null
-          canonical?: string | null
-          collection: string
-          created_at?: string | null
-          date?: string | null
-          id: string
-          metadata?: Json | null
-          order?: number | null
-          published_at?: string | null
-          slug: string
-          status?: string
-          summary?: string | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-          visibility?: string
-        }
-        Update: {
-          body_md?: string | null
-          canonical?: string | null
-          collection?: string
-          created_at?: string | null
-          date?: string | null
-          id?: string
-          metadata?: Json | null
-          order?: number | null
-          published_at?: string | null
-          slug?: string
-          status?: string
-          summary?: string | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-          visibility?: string
-        }
-        Relationships: []
-      }
       document_versions: {
         Row: {
           body_md: string | null
@@ -160,6 +75,151 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          body_md: string | null
+          canonical: string | null
+          collection: string
+          created_at: string | null
+          date: string | null
+          id: string
+          metadata: Json | null
+          order: number | null
+          published_at: string | null
+          slug: string
+          status: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          body_md?: string | null
+          canonical?: string | null
+          collection: string
+          created_at?: string | null
+          date?: string | null
+          id: string
+          metadata?: Json | null
+          order?: number | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          body_md?: string | null
+          canonical?: string | null
+          collection?: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          metadata?: Json | null
+          order?: number | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      habit_build_events: {
+        Row: {
+          amount: number
+          created_at: string
+          habit_id: string
+          id: string
+          local_period_end: string
+          local_period_start: string
+          note: string | null
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          local_period_end: string
+          local_period_start: string
+          note?: string | null
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          local_period_end?: string
+          local_period_start?: string
+          note?: string | null
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_build_events_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habit_build_periods: {
+        Row: {
+          habit_id: string
+          id: string
+          local_period_end: string
+          local_period_start: string
+          status: string
+          total_done: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          habit_id: string
+          id?: string
+          local_period_end: string
+          local_period_start: string
+          status: string
+          total_done?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          habit_id?: string
+          id?: string
+          local_period_end?: string
+          local_period_start?: string
+          status?: string
+          total_done?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_build_periods_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
             referencedColumns: ["id"]
           },
         ]
@@ -278,6 +338,50 @@ export type Database = {
           },
         ]
       }
+      habit_schedule_occurrences: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          habit_id: string
+          id: string
+          local_date: string
+          note: string | null
+          scheduled_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          habit_id: string
+          id?: string
+          local_date: string
+          note?: string | null
+          scheduled_at: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          habit_id?: string
+          id?: string
+          local_date?: string
+          note?: string | null
+          scheduled_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_schedule_occurrences_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_slips: {
         Row: {
           created_at: string
@@ -367,6 +471,9 @@ export type Database = {
         Row: {
           active: boolean | null
           allow_soft_over: boolean
+          build_period: string | null
+          build_target: number | null
+          build_unit: string | null
           created_at: string | null
           deleted_at: string | null
           description: string | null
@@ -376,6 +483,8 @@ export type Database = {
           quota_amount: number | null
           quota_period: string | null
           quota_unit: string | null
+          schedule_pattern: Json | null
+          schedule_timezone: string | null
           sort_order: number | null
           timezone: string
           title: string
@@ -385,6 +494,9 @@ export type Database = {
         Insert: {
           active?: boolean | null
           allow_soft_over?: boolean
+          build_period?: string | null
+          build_target?: number | null
+          build_unit?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -394,6 +506,8 @@ export type Database = {
           quota_amount?: number | null
           quota_period?: string | null
           quota_unit?: string | null
+          schedule_pattern?: Json | null
+          schedule_timezone?: string | null
           sort_order?: number | null
           timezone?: string
           title: string
@@ -403,6 +517,9 @@ export type Database = {
         Update: {
           active?: boolean | null
           allow_soft_over?: boolean
+          build_period?: string | null
+          build_target?: number | null
+          build_unit?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -412,6 +529,8 @@ export type Database = {
           quota_amount?: number | null
           quota_period?: string | null
           quota_unit?: string | null
+          schedule_pattern?: Json | null
+          schedule_timezone?: string | null
           sort_order?: number | null
           timezone?: string
           title?: string
@@ -837,85 +956,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
 } as const
-
-// ============================================
-// CONVENIENCE TYPE EXPORTS
-// ============================================
-
-// Projects
-export type Project = Database["public"]["Tables"]["projects"]["Row"];
-export type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"];
-export type ProjectUpdate = Database["public"]["Tables"]["projects"]["Update"];
-
-// Tasks
-export type Task = Database["public"]["Tables"]["tasks"]["Row"];
-export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
-export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
-export type TaskStatus = Task["status"];
-export type TaskLocation = Task["task_location"];
-
-// Time Entries
-export type TimeEntry = Database["public"]["Tables"]["time_entries"]["Row"];
-export type TimeEntryInsert = Database["public"]["Tables"]["time_entries"]["Insert"];
-export type TimeEntryUpdate = Database["public"]["Tables"]["time_entries"]["Update"];
-
-// Time Entry Segments
-export type TimeEntrySegment = Database["public"]["Tables"]["time_entry_segments"]["Row"];
-export type TimeEntrySegmentInsert = Database["public"]["Tables"]["time_entry_segments"]["Insert"];
-
-// Time Entry Daily Totals
-export type TimeEntryDailyTotal = Database["public"]["Tables"]["time_entry_daily_totals"]["Row"];
-
-// Habits
-export type Habit = Database["public"]["Tables"]["habits"]["Row"];
-export type HabitInsert = Database["public"]["Tables"]["habits"]["Insert"];
-export type HabitUpdate = Database["public"]["Tables"]["habits"]["Update"];
-export type HabitType = Habit["type"];
-
-// Habit Entries (legacy build habits)
-export type HabitEntry = Database["public"]["Tables"]["habit_entries"]["Row"];
-export type HabitEntryInsert = Database["public"]["Tables"]["habit_entries"]["Insert"];
-export type HabitEntryUpdate = Database["public"]["Tables"]["habit_entries"]["Update"];
-
-// Habit Slips (avoid habits)
-export type HabitSlip = Database["public"]["Tables"]["habit_slips"]["Row"];
-export type HabitSlipInsert = Database["public"]["Tables"]["habit_slips"]["Insert"];
-
-// Habit Days (avoid habits - day cache)
-export type HabitDay = Database["public"]["Tables"]["habit_days"]["Row"];
-export type HabitDayInsert = Database["public"]["Tables"]["habit_days"]["Insert"];
-export type HabitDayStatus = HabitDay["status"];
-
-// Habit Usage Events (quota habits)
-export type HabitUsageEvent = Database["public"]["Tables"]["habit_usage_events"]["Row"];
-export type HabitUsageEventInsert = Database["public"]["Tables"]["habit_usage_events"]["Insert"];
-
-// Habit Periods (quota habits - period cache)
-export type HabitPeriod = Database["public"]["Tables"]["habit_periods"]["Row"];
-export type HabitPeriodInsert = Database["public"]["Tables"]["habit_periods"]["Insert"];
-export type HabitPeriodStatus = HabitPeriod["status"];
-
-// Review Sessions
-export type ReviewSession = Database["public"]["Tables"]["review_sessions"]["Row"];
-export type ReviewSessionInsert = Database["public"]["Tables"]["review_sessions"]["Insert"];
-export type ReviewSessionUpdate = Database["public"]["Tables"]["review_sessions"]["Update"];
-
-// Documents
-export type Document = Database["public"]["Tables"]["documents"]["Row"];
-export type DocumentInsert = Database["public"]["Tables"]["documents"]["Insert"];
-export type DocumentUpdate = Database["public"]["Tables"]["documents"]["Update"];
-
-// Document Versions
-export type DocumentVersion =
-  Database["public"]["Tables"]["document_versions"]["Row"];
-export type DocumentVersionInsert =
-  Database["public"]["Tables"]["document_versions"]["Insert"];
-export type DocumentVersionUpdate =
-  Database["public"]["Tables"]["document_versions"]["Update"];

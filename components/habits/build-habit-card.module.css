@@ -133,8 +133,13 @@
   cursor: pointer;
 }
 
-.compactActionButton:hover {
+.compactActionButton:hover:not(:disabled) {
   background: var(--accent);
+}
+
+.compactActionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .compactUndoButton {
@@ -146,6 +151,11 @@
   cursor: pointer;
 }
 
-.compactUndoButton:hover {
+.compactUndoButton:hover:not(:disabled) {
   color: var(--foreground);
+}
+
+.compactUndoButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -596,12 +596,7 @@ export default function TodayPage() {
                   key={habit.id}
                   habit={habit}
                   onLogSlip={(habitId) => logSlip.mutate({ habitId })}
-                  onUndoSlip={(habitId) => {
-                    const habit = avoidHabits?.find(h => h.id === habitId);
-                    if (habit?.lastTodaySlipId) {
-                      undoSlip.mutate(habit.lastTodaySlipId);
-                    }
-                  }}
+                  onUndoSlip={(slipId) => undoSlip.mutate(slipId)}
                   isLoggingSlip={logSlip.isPending}
                   isUndoingSlip={undoSlip.isPending}
                 />
