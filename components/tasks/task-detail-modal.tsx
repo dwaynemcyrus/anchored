@@ -75,6 +75,7 @@ export function TaskDetailModal({ taskId }: TaskDetailModalProps) {
   const handleWontDo = async () => {
     if (!task) return;
     await updateTask.mutateAsync({ id: task.id, status: "cancel" });
+    closeSheet();
   };
 
   const handlePinToTop = async () => {
