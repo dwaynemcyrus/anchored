@@ -59,7 +59,7 @@ CREATE TABLE tasks (
   task_location TEXT NOT NULL DEFAULT 'inbox'
     CHECK (task_location IN ('inbox', 'anytime', 'project')),
   status TEXT NOT NULL DEFAULT 'inbox'
-    CHECK (status IN ('inbox', 'today', 'anytime', 'done')),
+    CHECK (status IN ('inbox', 'today', 'anytime', 'done', 'cancel')),
   is_now BOOLEAN NOT NULL DEFAULT false,
   now_slot TEXT
     CHECK (now_slot IN ('primary', 'secondary')),

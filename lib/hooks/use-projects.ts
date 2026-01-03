@@ -47,7 +47,7 @@ async function fetchProjects(): Promise<ProjectWithTaskCount[]> {
     .select("project_id")
     .not("project_id", "is", null)
     .is("deleted_at", null) // Exclude soft-deleted tasks
-    .neq("status", "done");
+    .not("status", "in", "(done,cancel)");
 
   if (taskCountsError) {
     throw new Error(taskCountsError.message);

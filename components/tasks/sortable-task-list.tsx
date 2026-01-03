@@ -170,12 +170,13 @@ interface SortableTaskListGroupedProps {
   disabled?: boolean;
 }
 
-const statusOrder: TaskStatus[] = ["today", "anytime", "inbox", "done"];
+const statusOrder: TaskStatus[] = ["today", "anytime", "inbox", "done", "cancel"];
 const statusLabels: Record<TaskStatus, string> = {
   inbox: "Inbox",
   today: "Today",
   anytime: "Anytime",
   done: "Completed",
+  cancel: "Cancelled",
 };
 
 export function SortableTaskListGrouped({
@@ -227,7 +228,7 @@ export function SortableTaskListGrouped({
               onEdit={onEdit}
               onDelete={onDelete}
               showProject={showProject}
-              showTimer={status !== "done"}
+              showTimer={status !== "done" && status !== "cancel"}
               disabled={disabled}
             />
           </section>
@@ -263,7 +264,7 @@ export function SortableProjectTaskList({
     .filter((t) => t.status === "inbox")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const doneTasks = tasks
-    .filter((t) => t.status === "done")
+    .filter((t) => t.status === "done" || t.status === "cancel")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   const hasActiveTasks =

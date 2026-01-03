@@ -45,7 +45,7 @@ export function TaskList() {
               <input
                 type="checkbox"
                 className={styles.checkbox}
-                checked={task.status === "done"}
+                checked={task.status === "done" || task.status === "cancel"}
                 onChange={(event) => {
                   event.preventDefault();
                   toggleComplete.mutate(task);
@@ -54,7 +54,9 @@ export function TaskList() {
               />
               <span
                 className={
-                  task.status === "done" ? styles.titleDone : styles.titleText
+                  task.status === "done" || task.status === "cancel"
+                    ? styles.titleDone
+                    : styles.titleText
                 }
               >
                 {task.title}

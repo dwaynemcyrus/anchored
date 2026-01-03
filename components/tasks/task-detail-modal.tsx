@@ -74,7 +74,7 @@ export function TaskDetailModal({ taskId }: TaskDetailModalProps) {
 
   const handleWontDo = async () => {
     if (!task) return;
-    await updateTask.mutateAsync({ id: task.id, status: "done" });
+    await updateTask.mutateAsync({ id: task.id, status: "cancel" });
   };
 
   const handlePinToTop = async () => {

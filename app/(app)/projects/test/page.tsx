@@ -278,7 +278,9 @@ export default function TestPage() {
         name: "Update Task Status",
         run: async () => {
           if (!tasks || tasks.length === 0) throw new Error("No tasks to update");
-          const task = tasks.find((t) => t.status !== "done");
+          const task = tasks.find(
+            (t) => t.status !== "done" && t.status !== "cancel"
+          );
           if (!task) throw new Error("No active task found");
           await updateTask.mutateAsync({
             id: task.id,
@@ -291,7 +293,9 @@ export default function TestPage() {
         run: async () => {
           await refetchTasks();
           if (!tasks || tasks.length === 0) throw new Error("No tasks found");
-          const task = tasks.find((t) => t.status !== "done");
+          const task = tasks.find(
+            (t) => t.status !== "done" && t.status !== "cancel"
+          );
           if (!task) throw new Error("No incomplete task found");
           await toggleComplete.mutateAsync(task);
         },
@@ -402,7 +406,9 @@ export default function TestPage() {
       id: "task-complete",
       category: "Tasks",
       description: "Tasks can be marked as complete",
-      check: () => tasks?.some((t) => t.status === "done") || false,
+      check: () =>
+        tasks?.some((t) => t.status === "done" || t.status === "cancel") ||
+        false,
     },
     // Quick Add
     {

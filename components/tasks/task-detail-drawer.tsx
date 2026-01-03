@@ -107,7 +107,7 @@ export function TaskDetailDrawer({ taskId, onClose }: TaskDetailDrawerProps) {
     setIsEditDialogOpen(false);
   };
 
-  const isCompleted = task?.status === "done";
+  const isCompleted = task?.status === "done" || task?.status === "cancel";
 
   return (
     <>

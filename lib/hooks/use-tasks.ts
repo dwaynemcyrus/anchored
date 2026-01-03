@@ -33,6 +33,10 @@ type TaskFilters = {
   nowSlot?: "primary" | "secondary" | Array<"primary" | "secondary">;
 };
 
+function isCompletedStatus(status: TaskStatus | null | undefined) {
+  return status === "done" || status === "cancel";
+}
+
 // Query keys
 export const taskKeys = {
   all: ["tasks"] as const,
@@ -91,7 +95,7 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
   }
 
   if (filters?.excludeDone) {
-    query = query.neq("status", "done");
+    query = query.not("status", "in", "(done,cancel)");
   }
 
   if (filters?.isNow !== undefined) {
@@ -265,11 +269,11 @@ async function updateTask({
   const supabase = createClient();
 
   // If marking as done, set completed_at
-  if (updates.status === "done" && !updates.completed_at) {
+  if (updates.status && isCompletedStatus(updates.status) && !updates.completed_at) {
     updates.completed_at = new Date().toISOString();
   }
   // If unmarking from done, clear completed_at
-  if (updates.status && updates.status !== "done") {
+  if (updates.status && !isCompletedStatus(updates.status)) {
     updates.completed_at = null;
   }
 
@@ -344,7 +348,7 @@ export function useAnytimeTasks() {
   const filters: TaskFilters = {
     taskLocation: "anytime",
     dueIsNull: true,
-    excludeStatus: ["done", "today"],
+    excludeStatus: ["done", "cancel", "today"],
   };
 
   return useQuery({
@@ -357,7 +361,7 @@ export function useNextTasks() {
   const filters: TaskFilters = {
     nextTask: true,
     taskLocation: "anytime",
-    excludeStatus: ["done"],
+    excludeStatus: ["done", "cancel"],
   };
 
   return useQuery({
@@ -525,11 +529,15 @@ export function useToggleTaskComplete() {
   return {
     ...updateTask,
     mutate: (task: TaskWithDetails) => {
-      const newStatus: TaskStatus = task.status === "done" ? "today" : "done";
+      const newStatus: TaskStatus = isCompletedStatus(task.status)
+        ? "today"
+        : "done";
       updateTask.mutate({ id: task.id, status: newStatus });
     },
     mutateAsync: async (task: TaskWithDetails) => {
-      const newStatus: TaskStatus = task.status === "done" ? "today" : "done";
+      const newStatus: TaskStatus = isCompletedStatus(task.status)
+        ? "today"
+        : "done";
       return updateTask.mutateAsync({ id: task.id, status: newStatus });
     },
   };
@@ -537,7 +545,10 @@ export function useToggleTaskComplete() {
 
 // Convenience hook for inbox tasks
 export function useInboxTasks() {
-  return useTasks({ taskLocation: "inbox", excludeStatus: ["today", "done"] });
+  return useTasks({
+    taskLocation: "inbox",
+    excludeStatus: ["today", "done", "cancel"],
+  });
 }
 
 // Quick status change (for moving tasks between inbox/today/anytime)
@@ -557,7 +568,7 @@ export function useUpdateTaskStatus() {
       const updates: TaskUpdate = { status };
 
       // Handle completed_at timestamp
-      if (status === "done") {
+      if (isCompletedStatus(status)) {
         updates.completed_at = new Date().toISOString();
         updates.is_now = false;
         updates.now_slot = null;
@@ -598,14 +609,15 @@ export function useUpdateTaskStatus() {
               ? {
                   ...task,
                   status,
-                  completed_at:
-                    status === "done" ? new Date().toISOString() : null,
+                  completed_at: isCompletedStatus(status)
+                    ? new Date().toISOString()
+                    : null,
                   is_now:
-                    status === "done" || status !== "today"
+                    isCompletedStatus(status) || status !== "today"
                       ? false
                       : task.is_now,
                   now_slot:
-                    status === "done" || status !== "today"
+                    isCompletedStatus(status) || status !== "today"
                       ? null
                       : task.now_slot ?? null,
                 }
@@ -976,7 +988,7 @@ export function useBulkUpdateTaskStatus() {
       const supabase = createClient();
 
       const updates: TaskUpdate = { status };
-      if (status === "done") {
+      if (isCompletedStatus(status)) {
         updates.completed_at = new Date().toISOString();
       } else {
         updates.completed_at = null;
@@ -1010,8 +1022,9 @@ export function useBulkUpdateTaskStatus() {
               ? {
                   ...task,
                   status,
-                  completed_at:
-                    status === "done" ? new Date().toISOString() : null,
+                  completed_at: isCompletedStatus(status)
+                    ? new Date().toISOString()
+                    : null,
                 }
               : task
           );

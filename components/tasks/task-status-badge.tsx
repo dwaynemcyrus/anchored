@@ -24,6 +24,10 @@ const statusConfig: Record<
     label: "Done",
     className: "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300",
   },
+  cancel: {
+    label: "Cancel",
+    className: "bg-rose-100 text-rose-700 hover:bg-rose-100 dark:bg-rose-900 dark:text-rose-300",
+  },
 };
 
 interface TaskStatusBadgeProps {

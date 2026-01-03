@@ -63,7 +63,7 @@ export function TaskItem({
   showTimer = true,
   compact = false,
 }: TaskItemProps) {
-  const isCompleted = task.status === "done";
+  const isCompleted = task.status === "done" || task.status === "cancel";
   const dueDate = task.due_date ? formatDueDate(task.due_date) : null;
   const startDate =
     !task.due_date && task.start_date ? formatStartDate(task.start_date) : null;

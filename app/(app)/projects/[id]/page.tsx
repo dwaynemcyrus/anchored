@@ -164,7 +164,9 @@ export default function ProjectDetailPage({
 
   const config = statusConfig[project.status as keyof typeof statusConfig] ?? statusConfig.active;
   const taskCount = tasks?.length || 0;
-  const activeTaskCount = tasks?.filter((t) => t.status !== "done").length || 0;
+  const activeTaskCount =
+    tasks?.filter((t) => t.status !== "done" && t.status !== "cancel").length ||
+    0;
 
   return (
     <div className="space-y-6">
