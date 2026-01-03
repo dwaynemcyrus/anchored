@@ -35,3 +35,4 @@ timezone selector needed for time tra stuff and tracker data
 - [ ] Wire CodeMirror 6 in for editor
 - [x] for habits in settings week starts on Sunday
 - [ ] i think the timelog of entries disappeared on focus
+- [ ] when remove now primary it also stops rendering the secondary now. What should happen is that it get move to the primary spot when there is a secondary.

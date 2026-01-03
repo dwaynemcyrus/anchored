@@ -1,0 +1,47 @@
+.shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.desktopSidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 16rem;
+  border-right: 1px solid var(--border);
+  background: var(--background);
+  z-index: 50;
+  display: none;
+}
+
+.content {
+  padding-left: 0;
+}
+
+.main {
+  min-height: calc(100vh - 3.5rem);
+  padding-bottom: 1.5rem;
+}
+
+.container {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .desktopSidebar {
+    display: block;
+  }
+
+  .content {
+    padding-left: 16rem;
+  }
+
+  .main {
+    padding-bottom: 0;
+  }
+
+  .container {
+    padding: 1.5rem 2rem;
+  }
+}

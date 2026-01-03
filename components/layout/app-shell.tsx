@@ -6,6 +6,7 @@ import { FloatingMenuButton } from "./floating-menu-button";
 import { useSidebarStore } from "@/lib/stores/sidebar-store";
 import { ErrorBoundary } from "@/components/error-boundary";
 import styles from "./mobile-drawer.module.css";
+import layoutStyles from "./app-shell.module.css";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,9 +18,9 @@ export function AppShell({ children, userEmail }: AppShellProps) {
   const { isOpen, close } = useSidebarStore();
 
   return (
-    <div className="relative min-h-screen">
+    <div className={layoutStyles.shell}>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r lg:block">
+      <aside className={layoutStyles.desktopSidebar}>
         <Sidebar userEmail={userEmail} />
       </aside>
 
@@ -39,12 +40,12 @@ export function AppShell({ children, userEmail }: AppShellProps) {
       </div>
 
       {/* Main content area */}
-      <div className="lg:pl-64">
+      <div className={layoutStyles.content}>
         <FloatingMenuButton />
 
         {/* Page content */}
-        <main className="min-h-[calc(100vh-3.5rem)] pb-6 lg:pb-0">
-          <div className="container py-6">
+        <main className={layoutStyles.main}>
+          <div className={layoutStyles.container}>
             <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
           </div>
         </main>

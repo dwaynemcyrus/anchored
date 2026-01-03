@@ -85,7 +85,7 @@ export default function TodayPage() {
   );
   const [showQuickStopDialog, setShowQuickStopDialog] = useState(false);
   const [quickStopAction, setQuickStopAction] = useState<
-    "promote" | "swap" | "end-day" | null
+    "promote" | "swap" | "end-day" | "remove-primary" | null
   >(null);
   const [quickStopNotes, setQuickStopNotes] = useState("");
   const [showTimerDialog, setShowTimerDialog] = useState(false);
@@ -294,6 +294,12 @@ export default function TodayPage() {
 
   const handleRemovePrimary = () => {
     if (!nowPrimary) return;
+    if (activeTimer) {
+      setReleaseTaskId(nowPrimary.id);
+      setQuickStopAction("remove-primary");
+      setShowQuickStopDialog(true);
+      return;
+    }
     setReleaseTaskId(nowPrimary.id);
     setShowReleaseDialog(true);
   };
@@ -356,6 +362,13 @@ export default function TodayPage() {
         router.push("/end-day");
       }
 
+      if (quickStopAction === "remove-primary") {
+        if (!releaseTaskId && nowPrimary) {
+          setReleaseTaskId(nowPrimary.id);
+        }
+        setShowReleaseDialog(true);
+      }
+
       setShowQuickStopDialog(false);
       setPromoteTaskId(null);
       setPromoteSlot(null);
@@ -367,36 +380,29 @@ export default function TodayPage() {
   };
 
   return (
-    <div className="space-y-10">
-      <div className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          Voyagers
-        </div>
-        <div className="h-px bg-border" />
+    <div className={styles.page}>
+      <div className={styles.pageHeader}>
+        <div className={styles.sectionDivider} />
         <div>
-          <h1 className="text-2xl font-semibold">Today</h1>
-          <p className="text-sm text-muted-foreground">{dateLabel}</p>
+          <h1 className={styles.pageTitle}>Today</h1>
+          <p className={styles.pageSubtitle}>{dateLabel}</p>
         </div>
       </div>
 
-      <section className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          Now
-        </div>
-        <div className="h-px bg-border" />
+      <section className={styles.section}>
+        <div className={styles.sectionKicker}>Now</div>
+        <div className={styles.sectionDivider} />
         {nowLoading || isTimerLoading ? (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+          <div className={styles.placeholderCard}>
             Loading active task...
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Primary
-            </div>
+          <div className={styles.stackLarge}>
+            <div className={styles.sectionKicker}>Primary</div>
             {nowPrimary ? (
-              <div className="space-y-2">
-                <div className="text-sm">• {nowPrimary.title}</div>
-                <div className="flex items-center gap-2">
+              <div className={styles.stackSmall}>
+                <div className={styles.taskTitle}>• {nowPrimary.title}</div>
+                <div className={styles.buttonRow}>
                   {isPrimaryRunning ? (
                     <Button
                       variant="outline"
@@ -434,7 +440,7 @@ export default function TodayPage() {
                 {(isPrimaryRunning || isPrimaryPaused) && (
                   <button
                     type="button"
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    className={styles.timerToggle}
                     onClick={() => setShowTimerDialog(true)}
                   >
                     {nowTime} {isPrimaryPaused ? "paused" : "active"}
@@ -442,9 +448,9 @@ export default function TodayPage() {
                 )}
               </div>
             ) : (
-              <div className="rounded-lg border border-dashed p-4 space-y-2">
-                <p className="text-sm font-medium">Nothing is claimed.</p>
-                <p className="text-sm text-muted-foreground">
+              <div className={styles.emptyCard}>
+                <p className={styles.emptyTitle}>Nothing is claimed.</p>
+                <p className={styles.emptyText}>
                   Decide what you will command next (below).
                 </p>
                 {todayTasks && todayTasks.length > 0 && (
@@ -459,14 +465,12 @@ export default function TodayPage() {
               </div>
             )}
 
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Secondary
-            </div>
+            <div className={styles.sectionKicker}>Secondary</div>
             {nowPrimary ? (
               nowSecondary ? (
-                <div className="space-y-2">
-                  <div className="text-sm">• {nowSecondary.title}</div>
-                  <div className="flex items-center gap-2">
+                <div className={styles.stackSmall}>
+                  <div className={styles.taskTitle}>• {nowSecondary.title}</div>
+                  <div className={styles.buttonRow}>
                     <Button
                       variant="outline"
                       size="sm"
@@ -488,11 +492,11 @@ export default function TodayPage() {
                   </div>
                 </div>
               ) : nextTasks.length === 0 ? (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   No secondary tasks.
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   Choose a task from Next to set as secondary.
                 </div>
               )
@@ -501,24 +505,22 @@ export default function TodayPage() {
         )}
       </section>
 
-      <section className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          Next
-        </div>
-        <div className="h-px bg-border" />
+      <section className={styles.section}>
+        <div className={styles.sectionKicker}>Next</div>
+        <div className={styles.sectionDivider} />
         {todayLoading ? (
-          <div className="text-sm text-muted-foreground">
+          <div className={styles.mutedText}>
             Loading today tasks...
           </div>
         ) : nextTasks.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
+          <div className={styles.mutedText}>
             Nothing queued in Today.
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className={styles.stackSmall}>
             {nextTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between gap-3">
-                <div className="text-sm">• {task.title}</div>
+              <div key={task.id} className={styles.taskRow}>
+                <div className={styles.taskTitle}>• {task.title}</div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -533,17 +535,15 @@ export default function TodayPage() {
         )}
       </section>
 
-      <section className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          Inbox
-        </div>
-        <div className="h-px bg-border" />
+      <section className={styles.section}>
+        <div className={styles.sectionKicker}>Inbox</div>
+        <div className={styles.sectionDivider} />
         {inboxLoading ? (
-          <div className="text-sm text-muted-foreground">Loading inbox...</div>
+          <div className={styles.mutedText}>Loading inbox...</div>
         ) : (
           <Link
             href="/inbox"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className={styles.inlineLink}
           >
             {inboxCount} unclarified {inboxCount === 1 ? "item" : "items"}{" "}
             {"->"}
@@ -551,24 +551,22 @@ export default function TodayPage() {
         )}
       </section>
 
-      <section className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          Knowledge
-        </div>
-        <div className="h-px bg-border" />
+      <section className={styles.section}>
+        <div className={styles.sectionKicker}>Knowledge</div>
+        <div className={styles.sectionDivider} />
         {docLoading ? (
-          <div className="text-sm text-muted-foreground">
+          <div className={styles.mutedText}>
             Loading knowledge...
           </div>
         ) : latestDoc ? (
-          <div className="space-y-1">
-            <div className="text-sm font-medium">Continue Writing {"->"}</div>
-            <div className="text-sm text-muted-foreground">
+          <div className={styles.stackTight}>
+            <div className={styles.sectionLead}>Continue Writing {"->"}</div>
+            <div className={styles.mutedText}>
               Last active: {latestDoc.title}
             </div>
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground">
+          <div className={styles.mutedText}>
             No recent documents.
           </div>
         )}
@@ -576,25 +574,23 @@ export default function TodayPage() {
 
       {/* Avoid Habits Section */}
       {avoidHabits && avoidHabits.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Avoid
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeaderRow}>
+            <div className={styles.sectionKicker}>Avoid</div>
             <Link
               href="/habits"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className={styles.sectionLink}
             >
               Manage →
             </Link>
           </div>
-          <div className="h-px bg-border" />
+          <div className={styles.sectionDivider} />
           {avoidHabitsLoading ? (
-            <div className="text-sm text-muted-foreground">
+            <div className={styles.mutedText}>
               Loading habits...
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className={styles.stackSmall}>
               {avoidHabits.map((habit) => (
                 <AvoidHabitCardCompact
                   key={habit.id}
@@ -617,25 +613,23 @@ export default function TodayPage() {
 
       {/* Quota Habits Section */}
       {quotaHabits && quotaHabits.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Limits
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeaderRow}>
+            <div className={styles.sectionKicker}>Limits</div>
             <Link
               href="/habits"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className={styles.sectionLink}
             >
               Manage →
             </Link>
           </div>
-          <div className="h-px bg-border" />
+          <div className={styles.sectionDivider} />
           {quotaHabitsLoading ? (
-            <div className="text-sm text-muted-foreground">
+            <div className={styles.mutedText}>
               Loading habits...
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className={styles.stackSmall}>
               {quotaHabits.map((habit) => (
                 <QuotaHabitCardCompact
                   key={habit.id}
@@ -655,25 +649,23 @@ export default function TodayPage() {
 
       {/* Build Habits Section */}
       {buildHabits && buildHabits.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Build
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeaderRow}>
+            <div className={styles.sectionKicker}>Build</div>
             <Link
               href="/habits"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className={styles.sectionLink}
             >
               Manage →
             </Link>
           </div>
-          <div className="h-px bg-border" />
+          <div className={styles.sectionDivider} />
           {buildHabitsLoading ? (
-            <div className="text-sm text-muted-foreground">
+            <div className={styles.mutedText}>
               Loading habits...
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className={styles.stackSmall}>
               {buildHabits.map((habit) => (
                 <BuildHabitCardCompact
                   key={habit.id}
@@ -693,25 +685,23 @@ export default function TodayPage() {
 
       {/* Schedule Habits Section */}
       {scheduleHabits && scheduleHabits.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-              Rituals
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeaderRow}>
+            <div className={styles.sectionKicker}>Rituals</div>
             <Link
               href="/habits"
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className={styles.sectionLink}
             >
               Manage →
             </Link>
           </div>
-          <div className="h-px bg-border" />
+          <div className={styles.sectionDivider} />
           {scheduleHabitsLoading ? (
-            <div className="text-sm text-muted-foreground">
+            <div className={styles.mutedText}>
               Loading habits...
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className={styles.stackSmall}>
               {scheduleHabits.map((habit) => (
                 <ScheduleHabitCardCompact
                   key={habit.id}
@@ -730,11 +720,9 @@ export default function TodayPage() {
         </section>
       )}
 
-      <section className="space-y-3">
-        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-          End Day
-        </div>
-        <div className="h-px bg-border" />
+      <section className={styles.section}>
+        <div className={styles.sectionKicker}>End Day</div>
+        <div className={styles.sectionDivider} />
         <Button
           variant="outline"
           onClick={handleEndDay}
@@ -749,7 +737,7 @@ export default function TodayPage() {
           <DialogHeader>
             <DialogTitle>Confirm swap?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className={styles.mutedText}>
             Swapping the primary task will stop and log any focus time first.
           </p>
           <DialogFooter>
@@ -780,8 +768,8 @@ export default function TodayPage() {
           <DialogHeader>
             <DialogTitle>Now is full.</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">Replace which?</p>
-          <DialogFooter className="flex gap-2 sm:justify-start">
+          <p className={styles.mutedText}>Replace which?</p>
+          <DialogFooter className={styles.dialogFooterStart}>
             <Button
               variant="outline"
               onClick={() => handleSelectPromoteSlot("primary")}
@@ -812,16 +800,16 @@ export default function TodayPage() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={styles.dialogContentNarrow}>
           <DialogHeader>
             <DialogTitle>End focus and log notes</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="text-sm">
-              <div className="font-medium">
+          <div className={styles.stackSmall}>
+            <div className={styles.bodyText}>
+              <div className={styles.bodyStrong}>
                 {activeTimer?.taskTitle || "Active focus session"}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className={styles.tinyMuted}>
                 {nowTime} elapsed
               </div>
             </div>
@@ -832,7 +820,7 @@ export default function TodayPage() {
               autoFocus
             />
           </div>
-          <DialogFooter className="gap-2 sm:justify-end">
+          <DialogFooter className={styles.dialogFooterEnd}>
             <Button
               variant="outline"
               onClick={() => setShowQuickStopDialog(false)}
@@ -848,23 +836,23 @@ export default function TodayPage() {
       </Dialog>
 
       <Dialog open={showTimerDialog} onOpenChange={setShowTimerDialog}>
-        <DialogContent className="h-[100dvh] w-[100dvw] max-w-none translate-x-0 translate-y-0 rounded-none border-0 p-6 top-0 left-0 sm:max-w-none overflow-y-auto">
-          <div className="space-y-6">
-            <DialogHeader className="text-left">
+        <DialogContent className={styles.focusDialogContent}>
+          <div className={styles.dialogBody}>
+            <DialogHeader className={styles.dialogHeaderLeft}>
               <DialogTitle>Focus</DialogTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className={styles.mutedText}>
                 Today&apos;s focus and time tracked.
               </p>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className={styles.stackMedium}>
               {todayTasks && todayTasks.length > 0 ? (
                 <>
                   <Select
                     value={effectiveFocusTaskId || ""}
                     onValueChange={(value) => setFocusTaskId(value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className={styles.selectTrigger}>
                       <SelectValue placeholder="Select a task..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -896,17 +884,17 @@ export default function TodayPage() {
                       )}
                     </SelectContent>
                   </Select>
-                  <div className="text-center py-8">
-                    <div className="font-mono text-5xl tabular-nums">
+                  <div className={styles.focusTimer}>
+                    <div className={styles.focusTimerValue}>
                       {nowTime}
                     </div>
                     {isFocusTaskPaused && (
-                      <div className="text-sm text-muted-foreground mt-2">
+                      <div className={styles.focusTimerStatus}>
                         Paused
                       </div>
                     )}
                   </div>
-                  <DialogFooter className="justify-center sm:justify-center gap-2">
+                  <DialogFooter className={styles.dialogFooterCenter}>
                     {!isFocusTaskRunning && !isFocusTaskPaused && (
                       <Button
                         onClick={handleFocusStart}
@@ -967,78 +955,74 @@ export default function TodayPage() {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className={styles.mutedText}>
                   No tasks in Today. Add tasks to Today first.
                 </p>
               )}
             </div>
 
-            <div className="space-y-3">
-              <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-                Today
-              </div>
-              <div className="h-px bg-border" />
+            <div className={styles.stackSmall}>
+              <div className={styles.sectionKicker}>Today</div>
+              <div className={styles.sectionDivider} />
               {todayLoading || entriesLoading ? (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   Loading today&apos;s tasks...
                 </div>
               ) : todayTasks && todayTasks.some((task) => (timeByTaskId.get(task.id) ?? 0) > 0) ? (
-                <div className="space-y-3">
+                <div className={styles.stackSmall}>
                   {todayTasks.filter((task) => (timeByTaskId.get(task.id) ?? 0) > 0).map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between gap-4 text-sm"
+                      className={styles.timeEntryRow}
                     >
-                      <div className="min-w-0 truncate">• {task.title}</div>
-                      <div className="font-mono tabular-nums text-muted-foreground">
+                      <div className={styles.truncateText}>• {task.title}</div>
+                      <div className={styles.durationLabel}>
                         {formatDuration(timeByTaskId.get(task.id) || 0)}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   No time tracked today.
                 </div>
               )}
             </div>
 
-            <div className="space-y-3">
-              <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
-                Focus Record
-              </div>
-              <div className="h-px bg-border" />
+            <div className={styles.stackSmall}>
+              <div className={styles.sectionKicker}>Focus Record</div>
+              <div className={styles.sectionDivider} />
               {todayEntriesLoading ? (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   Loading focus history...
                 </div>
               ) : todayEntries && todayEntries.length > 0 ? (
-                <div className="space-y-2">
+                <div className={styles.stackSmall}>
                   {todayEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center justify-between gap-4 text-sm"
+                      className={styles.timeEntryRow}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xs text-muted-foreground tabular-nums">
+                      <div className={styles.entryDetails}>
+                        <span className={styles.entryTime}>
                           {format(new Date(entry.started_at), "HH:mm")}
                           {" - "}
                           {entry.ended_at
                             ? format(new Date(entry.ended_at), "HH:mm")
                             : "now"}
                         </span>
-                        <span className="truncate">
+                        <span className={styles.truncateText}>
                           {entry.task?.title || "Unknown task"}
                         </span>
                       </div>
-                      <div className="font-mono tabular-nums text-muted-foreground">
+                      <div className={styles.durationLabel}>
                         {formatDuration(entry.duration_seconds || 0)}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">
+                <div className={styles.mutedText}>
                   No focus sessions today.
                 </div>
               )}
@@ -1057,13 +1041,13 @@ export default function TodayPage() {
         }}
       >
         <DialogContent>
-          <DialogClose className="absolute right-4 top-4 h-auto border-0 p-0 text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground">
+          <DialogClose className={styles.dialogClose}>
             Close
           </DialogClose>
           <DialogHeader>
             <DialogTitle>Why are you releasing this?</DialogTitle>
           </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+          <DialogFooter className={styles.dialogFooterStack}>
             <Button
               onClick={() => {
                 if (!releaseTaskId) return;
@@ -1074,7 +1058,7 @@ export default function TodayPage() {
                 });
                 setShowReleaseDialog(false);
               }}
-              className="flex w-full items-center justify-between"
+              className={styles.dialogActionButton}
             >
               <span>I still intend to do this soon</span>
               <span>{"->"} NEXT</span>
@@ -1090,7 +1074,7 @@ export default function TodayPage() {
                 });
                 setShowReleaseDialog(false);
               }}
-              className="flex w-full items-center justify-between"
+              className={styles.dialogActionButton}
             >
               <span>This isn't for this season</span>
               <span>{"->"} LATER</span>
@@ -1106,7 +1090,7 @@ export default function TodayPage() {
                 });
                 setShowReleaseDialog(false);
               }}
-              className="flex w-full items-center justify-between"
+              className={styles.dialogActionButton}
             >
               <span>This was premature / unclear</span>
               <span>{"->"} INBOX</span>

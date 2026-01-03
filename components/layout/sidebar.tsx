@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
+import styles from "./sidebar.module.css";
 
 const navigation = [
   { name: "Today", href: "/", icon: Calendar },
@@ -52,22 +53,22 @@ export function Sidebar({ userEmail, onNavigate }: SidebarProps) {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className={styles.sidebar}>
       {/* Logo */}
-      <div className="flex h-14 items-center px-4">
+      <div className={styles.logo}>
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold"
+          className={styles.logoLink}
           onClick={handleNavClick}
         >
-          <span className="text-lg">Anchored</span>
+          <span className={styles.logoText}>Anchored</span>
         </Link>
       </div>
 
       <Separator />
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-2 py-4">
+      <nav className={styles.nav}>
         {navigation.map((item) => {
           const isActive =
             item.href === "/"
@@ -80,13 +81,11 @@ export function Sidebar({ userEmail, onNavigate }: SidebarProps) {
               href={item.href}
               onClick={handleNavClick}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                styles.navLink,
+                isActive && styles.navLinkActive
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={styles.navIcon} />
               {item.name}
             </Link>
           );
@@ -96,18 +95,16 @@ export function Sidebar({ userEmail, onNavigate }: SidebarProps) {
       <Separator />
 
       {/* Settings */}
-      <div className="px-2 py-2">
+      <div className={styles.settings}>
         <Link
           href="/settings"
           onClick={handleNavClick}
           className={cn(
-            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-            pathname === "/settings"
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            styles.navLink,
+            pathname === "/settings" && styles.navLinkActive
           )}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className={styles.navIcon} />
           Settings
         </Link>
       </div>
@@ -115,19 +112,19 @@ export function Sidebar({ userEmail, onNavigate }: SidebarProps) {
       <Separator />
 
       {/* User section */}
-      <div className="p-4">
+      <div className={styles.userSection}>
         {userEmail && (
-          <p className="mb-2 truncate text-xs text-muted-foreground">
+          <p className={styles.userEmail}>
             {userEmail}
           </p>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-muted-foreground"
+          className={styles.logoutButton}
           onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className={styles.navIcon} />
           Log out
         </Button>
       </div>

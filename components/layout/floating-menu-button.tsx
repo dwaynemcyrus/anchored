@@ -22,7 +22,7 @@ export function FloatingMenuButton() {
         <span className={styles.floatingIcon} aria-hidden="true">
           <span />
         </span>
-        <span className="sr-only">Open menu</span>
+        <span className={styles.srOnly}>Open menu</span>
       </button>
     </div>
   );
