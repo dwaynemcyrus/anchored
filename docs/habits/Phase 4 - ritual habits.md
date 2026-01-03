@@ -10,7 +10,7 @@ NON-NEGOTIABLE CONSTRAINTS
 ====================================================
 
 Tech
-- Stack: Next.js App Router + TypeScript + Supabase (Postgres) + React Query
+- Stack: Next.js App Router + Supabase (Postgres) + React Query
 - Styling:
   - **PURE CSS ONLY**
   - CSS Modules

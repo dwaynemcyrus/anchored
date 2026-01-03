@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { HabitForm, HabitList, AvoidHabitList, QuotaHabitList } from "@/components/habits";
+import { HabitForm, HabitList, AvoidHabitList, QuotaHabitList, BuildHabitList } from "@/components/habits";
 import {
   useHabits,
   useCreateHabit,
@@ -28,6 +28,11 @@ import {
   useLogUsage,
   useUndoUsage,
 } from "@/lib/hooks/use-quota-habits";
+import {
+  useBuildHabits,
+  useLogProgress,
+  useUndoProgress,
+} from "@/lib/hooks/use-build-habits";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTodayLocalDateString, getBrowserTimezone } from "@/lib/time/local-date";
 import type { HabitFormValues } from "@/components/habits/habit-form";
@@ -57,7 +62,15 @@ export default function HabitsPage() {
   const logUsage = useLogUsage();
   const undoUsage = useUndoUsage();
 
-  const isLoading = habitsLoading || avoidLoading || quotaLoading;
+  // Build habits (new type system)
+  const { data: buildHabits, isLoading: buildLoading, isError: buildError } = useBuildHabits(
+    showArchived ? undefined : { active: true }
+  );
+  const logProgress = useLogProgress();
+  const undoProgress = useUndoProgress();
+
+  // Don't block page load if build habits query fails (new tables may not exist yet)
+  const isLoading = habitsLoading || avoidLoading || quotaLoading || (buildLoading && !buildError);
 
   const handleUpdateHabit = async (values: HabitFormValues) => {
     if (!editingHabit) return;
@@ -88,9 +101,17 @@ export default function HabitsPage() {
   const activeQuotaHabits = quotaHabits?.filter((h) => h.active) || [];
   const archivedQuotaHabits = quotaHabits?.filter((h) => !h.active) || [];
 
-  // Calculate completion stats for build habits
+  // Separate active and archived build habits (new type system)
+  const activeBuildHabits = buildHabits?.filter((h) => h.active) || [];
+  const archivedBuildHabits = buildHabits?.filter((h) => !h.active) || [];
+
+  // Calculate completion stats for legacy build habits
   const completedCount = activeHabits.filter((h) => h.completedToday).length;
   const totalActive = activeHabits.length;
+
+  // Calculate completion stats for new build habits
+  const buildCompletedCount = activeBuildHabits.filter((h) => h.status === "complete").length;
+  const buildTotalActive = activeBuildHabits.length;
 
   return (
     <div className="space-y-8">
@@ -195,16 +216,16 @@ export default function HabitsPage() {
           )}
 
           {/* Build Habits Section */}
-          {(activeHabits.length > 0 || (showArchived && archivedHabits.length > 0)) && (
+          {(activeBuildHabits.length > 0 || (showArchived && archivedBuildHabits.length > 0)) && (
             <section className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium">Build</h2>
-                {totalActive > 0 && (
+                {buildTotalActive > 0 && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">{completedCount}</span>
+                    <span className="font-medium text-foreground">{buildCompletedCount}</span>
                     {" / "}
-                    {totalActive} today
-                    {completedCount === totalActive && totalActive > 0 && (
+                    {buildTotalActive} complete
+                    {buildCompletedCount === buildTotalActive && buildTotalActive > 0 && (
                       <span className="font-medium text-green-600 dark:text-green-400 ml-2">
                         All done!
                       </span>
@@ -212,22 +233,21 @@ export default function HabitsPage() {
                   </div>
                 )}
               </div>
-              <HabitList
-                habits={activeHabits}
-                onEdit={handleEdit}
-                emptyMessage="No build habits yet."
+              <BuildHabitList
+                habits={activeBuildHabits}
+                onLogProgress={(habitId, amount) => logProgress.mutate({ habitId, amount })}
+                onUndoProgress={(eventId) => undoProgress.mutate(eventId)}
               />
 
-              {showArchived && archivedHabits.length > 0 && (
+              {showArchived && archivedBuildHabits.length > 0 && (
                 <div className="mt-4">
                   <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                    Archived ({archivedHabits.length})
+                    Archived ({archivedBuildHabits.length})
                   </h3>
-                  <HabitList
-                    habits={archivedHabits}
-                    onEdit={handleEdit}
-                    disabled
-                    emptyMessage="No archived habits"
+                  <BuildHabitList
+                    habits={archivedBuildHabits}
+                    onLogProgress={() => {}}
+                    onUndoProgress={() => {}}
                   />
                 </div>
               )}
@@ -235,7 +255,7 @@ export default function HabitsPage() {
           )}
 
           {/* Empty state */}
-          {activeHabits.length === 0 && activeAvoidHabits.length === 0 && activeQuotaHabits.length === 0 && (
+          {activeAvoidHabits.length === 0 && activeQuotaHabits.length === 0 && activeBuildHabits.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <p>No habits yet.</p>
               <p className="mt-1">

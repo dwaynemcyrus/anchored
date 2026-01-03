@@ -56,34 +56,45 @@ async function fetchBuildHabits(
   const supabase = createClient();
   const timezone = getBrowserTimezone();
 
-  let query = supabase
-    .from("habits")
-    .select("*")
-    .eq("type", "build")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+  try {
+    let query = (supabase as any)
+      .from("habits")
+      .select("*")
+      .eq("type", "build")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
 
-  if (filters?.active !== undefined) {
-    query = query.eq("active", filters.active);
-  }
+    if (filters?.active !== undefined) {
+      query = query.eq("active", filters.active);
+    }
 
-  const { data: habits, error: habitsError } = await query;
+    const { data: habits, error: habitsError } = await query;
 
-  if (habitsError) {
-    throw new Error(habitsError.message);
-  }
+    if (habitsError) {
+      console.error("Error fetching build habits:", habitsError);
+      return [];
+    }
 
-  if (!habits || habits.length === 0) {
-    return [];
-  }
+    if (!habits || habits.length === 0) {
+      return [];
+    }
 
-  // Get current period for each habit
-  const results: BuildHabitWithStatus[] = [];
+    // Filter to only habits with valid build fields
+    const validHabits = habits.filter((h: any) =>
+      h.build_period && h.build_target && h.build_unit
+    );
 
-  for (const habit of habits) {
-    const habitAny = habit as any;
-    const period = getCurrentPeriod(timezone, habitAny.build_period as QuotaPeriod);
-    const target = habitAny.build_target as number;
+    if (validHabits.length === 0) {
+      return [];
+    }
+
+    // Get current period for each habit
+    const results: BuildHabitWithStatus[] = [];
+
+    for (const habit of validHabits) {
+      const habitAny = habit as any;
+      const period = getCurrentPeriod(timezone, habitAny.build_period as QuotaPeriod);
+      const target = habitAny.build_target as number;
 
     // Fetch total for current period
     const { data: periodData } = await (supabase as any)
@@ -121,7 +132,11 @@ async function fetchBuildHabits(
     });
   }
 
-  return results;
+    return results;
+  } catch (error) {
+    console.error("Error in fetchBuildHabits:", error);
+    return [];
+  }
 }
 
 // ============================================
