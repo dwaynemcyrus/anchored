@@ -34,3 +34,30 @@ timezone selector needed for time tra stuff and tracker data
 - [ ] add an edge case for timers that go way too long with a means to adjust the time before confirming to save or delete like ticktick
 - [x] Bug: when the primary now task on the today sheet is marked complete the secondary task should then become the primary task, but it does not. Find the problem and soltion plan. no code
 - [ ] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
+
+***
+
+## Markdown Editor
+Change: 
+- visibility (public | personal | private)
+
+Questions:
+Does the UI edit non-canonical fields based on the various content type's frontmatter?
+Is `date` necessary when we have `created_at` column in our database and not `date` 
+
+Open Decisions:
+5. `notes | essays | linked`
+4. `date` should differ from `published_at`
+3. `document_versions`
+2. `visibility` is independent of `status` 
+1. rename `content_type` to `collection` 
+
+-
+Questions:
+* Why keep `date` when the `published_at` column already exists?
+
+Clarification:
+1. Personal is content that is for my personal use and is not available to the public or the private community.
+2. Is full revision history what Bear app and Obsidian app and iA Writer app do?
+3. notes: source (text), chains (text) / essays: resources (array), visual (boolean) / linked: source_url (text), source_title (text)
+
