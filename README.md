@@ -1,3 +1,8 @@
+## Release Note
+This is just to say a number of things have broken or just behave strange so I'm marking this as a stop point.
+
+***
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
