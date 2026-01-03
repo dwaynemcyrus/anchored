@@ -63,6 +63,7 @@ CREATE TABLE tasks (
   is_now BOOLEAN NOT NULL DEFAULT false,
   now_slot TEXT
     CHECK (now_slot IN ('primary', 'secondary')),
+  next_task BOOLEAN NOT NULL DEFAULT false,
   start_date DATE,
   due_date DATE,
   completed_at TIMESTAMPTZ,
@@ -78,6 +79,7 @@ CREATE INDEX idx_tasks_project ON tasks(project_id);
 CREATE INDEX idx_tasks_due ON tasks(due_date) WHERE due_date IS NOT NULL;
 CREATE INDEX idx_tasks_is_now ON tasks(owner_id, is_now);
 CREATE INDEX idx_tasks_now_slot ON tasks(owner_id, now_slot);
+CREATE INDEX idx_tasks_next_task ON tasks(owner_id, next_task);
 
 -- Enable RLS
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;

@@ -106,6 +106,11 @@ export function TaskItem({
 
         {/* Metadata row */}
         <div className="flex items-center gap-3 mt-1 flex-wrap">
+          {task.next_task && task.task_location === "anytime" && !isCompleted && (
+            <span className="rounded border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Next
+            </span>
+          )}
           {showProject && task.project && (
             <span className="text-xs text-muted-foreground">
               {task.project.title}

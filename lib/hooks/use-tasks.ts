@@ -29,6 +29,7 @@ type TaskFilters = {
   dueTo?: string;
   excludeDone?: boolean;
   isNow?: boolean;
+  nextTask?: boolean;
   nowSlot?: "primary" | "secondary" | Array<"primary" | "secondary">;
 };
 
@@ -95,6 +96,10 @@ async function fetchTasks(filters?: TaskFilters): Promise<TaskWithDetails[]> {
 
   if (filters?.isNow !== undefined) {
     query = query.eq("is_now", filters.isNow);
+  }
+
+  if (filters?.nextTask !== undefined) {
+    query = query.eq("next_task", filters.nextTask);
   }
 
   if (filters?.nowSlot) {
@@ -340,6 +345,19 @@ export function useAnytimeTasks() {
     taskLocation: "anytime",
     dueIsNull: true,
     excludeStatus: ["done", "today"],
+  };
+
+  return useQuery({
+    queryKey: taskKeys.list(filters),
+    queryFn: () => fetchTasks(filters),
+  });
+}
+
+export function useNextTasks() {
+  const filters: TaskFilters = {
+    nextTask: true,
+    taskLocation: "anytime",
+    excludeStatus: ["done"],
   };
 
   return useQuery({

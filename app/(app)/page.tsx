@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { addDays, format, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ import {
 import { AvoidHabitCardCompact, QuotaHabitCardCompact, BuildHabitCardCompact, ScheduleHabitCardCompact } from "@/components/habits";
 
 export default function TodayPage() {
+  const router = useRouter();
   const [showSwapDialog, setShowSwapDialog] = useState(false);
   const [showReleaseDialog, setShowReleaseDialog] = useState(false);
   const [releaseTaskId, setReleaseTaskId] = useState<string | null>(null);
@@ -83,7 +85,7 @@ export default function TodayPage() {
   );
   const [showQuickStopDialog, setShowQuickStopDialog] = useState(false);
   const [quickStopAction, setQuickStopAction] = useState<
-    "promote" | "swap" | null
+    "promote" | "swap" | "end-day" | null
   >(null);
   const [quickStopNotes, setQuickStopNotes] = useState("");
   const [showTimerDialog, setShowTimerDialog] = useState(false);
@@ -318,6 +320,15 @@ export default function TodayPage() {
     handlePromoteToSlot(taskId, nowPrimary ? "secondary" : "primary");
   };
 
+  const handleEndDay = () => {
+    if (activeTimer) {
+      setQuickStopAction("end-day");
+      setShowQuickStopDialog(true);
+      return;
+    }
+    router.push("/end-day");
+  };
+
   const handleSelectPromoteSlot = (slot: "primary" | "secondary") => {
     if (!promoteTaskId) return;
     setShowPromoteDialog(false);
@@ -339,6 +350,10 @@ export default function TodayPage() {
           primaryId: nowPrimary?.id ?? null,
           secondaryId: nowSecondary.id,
         });
+      }
+
+      if (quickStopAction === "end-day") {
+        router.push("/end-day");
       }
 
       setShowQuickStopDialog(false);
@@ -714,6 +729,20 @@ export default function TodayPage() {
           )}
         </section>
       )}
+
+      <section className="space-y-3">
+        <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+          End Day
+        </div>
+        <div className="h-px bg-border" />
+        <Button
+          variant="outline"
+          onClick={handleEndDay}
+          disabled={isStopping || isStarting}
+        >
+          End Day
+        </Button>
+      </section>
 
       <Dialog open={showSwapDialog} onOpenChange={setShowSwapDialog}>
         <DialogContent>

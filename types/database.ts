@@ -428,6 +428,7 @@ export type Database = {
           due_date: string | null
           id: string
           is_now: boolean
+          next_task: boolean
           notes: string | null
           now_slot: string | null
           owner_id: string
@@ -448,6 +449,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_now?: boolean
+          next_task?: boolean
           notes?: string | null
           now_slot?: string | null
           owner_id: string
@@ -468,6 +470,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           is_now?: boolean
+          next_task?: boolean
           notes?: string | null
           now_slot?: string | null
           owner_id?: string

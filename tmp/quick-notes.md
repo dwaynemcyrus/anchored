@@ -36,3 +36,4 @@ timezone selector needed for time tra stuff and tracker data
 - [x] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
 - [ ] Wire CodeMirror 6 in for editor
 - [x] for habits in settings week starts on Sunday
+- [ ] i think the timelog of entries disappeared on focus
