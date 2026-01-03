@@ -1,5 +1,5 @@
 export { TaskItem } from "./task-item";
-export { TaskList, ProjectTaskList } from "./task-list";
+export { TaskList } from "./task-list";
 export { TaskForm, type TaskFormValues } from "./task-form";
 export { TaskStatusBadge } from "./task-status-badge";
 export { TaskDetailDrawer } from "./task-detail-drawer";
