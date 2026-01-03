@@ -91,3 +91,5 @@ Scope: writing editor only (no public export, no search, no graph, no AI)
 - Manual publish creates snapshot.
 - Snapshot count capped at 24.
 - Wiki-link suggestions show and insert correctly.
+
+- [ ] Wire CodeMirror 6 in for editor

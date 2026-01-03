@@ -61,3 +61,4 @@ Clarification:
 2. Is full revision history what Bear app and Obsidian app and iA Writer app do?
 3. notes: source (text), chains (text) / essays: resources (array), visual (boolean) / linked: source_url (text), source_title (text)
 
+git commit -m "add: markdown editor utilities + hooks"
