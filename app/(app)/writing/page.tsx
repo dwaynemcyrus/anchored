@@ -27,7 +27,7 @@ export default function WritingPage() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    if (saved === "notes" || saved === "essays" || saved === "linked") {
       setCollection(saved);
     }
   }, []);

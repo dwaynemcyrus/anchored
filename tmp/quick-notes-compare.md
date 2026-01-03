@@ -1,4 +1,7 @@
-## Things to consider:
+To continue last session, run `codex resume 019b74be-8ea5-7e52-8ba4-eea204b7e1ca`
+
+***
+Things to consider:
 * add the Islamic calendar from World Islamic League
 * add dates to show up according to Islamic calendar
 * in settings a be able to set when a new day starts according to Islamic tradition
@@ -9,10 +12,8 @@
 * consider adding a doing now toggle to capture
 * kill deletes and delete is moved to another tables or just shows up in a logbook
 * turn the inbox review into card that can be swiped
-* Where does a now secondary action og when it is removed, if next and next is at 3 cap what then?
-
-## Tasks & bugs:
 - [ ] can ibox review items have there text edited while in the process?
+* Where does a now secondary action og when it is removed, if next and next is at 3 cap what then?
 - [ ] Command now needs to add a second 
 - [ ] onces theres two system needs to ask to replace prim or sec
 - [ ] swap from next places into secondary now if there's a primary, if no primary it promotes to "do now"
@@ -21,6 +22,7 @@
 - [ ] when primary now is complete promote the secondary to first
 timezone selector needed for time tra stuff and tracker data
 - [ ] set the today time to only count from midnight or a predefined time in the settings that marks the end of the day islamically
+
 - [ ] add timeline visualization like TickTick
 - [ ] Add a log option for the focus timer to track random activities
 - [x] add a logbook screen to view completed or cancelled tasks
@@ -31,7 +33,32 @@ timezone selector needed for time tra stuff and tracker data
 - [x] add notes field to focus window
 - [ ] add an edge case for timers that go way too long with a means to adjust the time before confirming to save or delete like ticktick
 - [x] Bug: when the primary now task on the today sheet is marked complete the secondary task should then become the primary task, but it does not. Find the problem and soltion plan. no code
-- [x] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
-- [ ] Wire CodeMirror 6 in for editor
-- [x] for habits in settings week starts on Sunday
-- [ ] i think the timelog of entries disappeared on focus
+- [ ] Use Claude to continue fixing the the "build habit" and testing it, then to update how the UI/UX of the build section to display the proper information, like the avoid habit and limit habit sections. 
+
+***
+
+## Markdown Editor
+Change: 
+- visibility (public | personal | private)
+
+Questions:
+Does the UI edit non-canonical fields based on the various content type's frontmatter?
+Is `date` necessary when we have `created_at` column in our database and not `date` 
+
+Open Decisions:
+5. `notes | essays | linked`
+4. `date` should differ from `published_at`
+3. `document_versions`
+2. `visibility` is independent of `status` 
+1. rename `content_type` to `collection` 
+
+-
+Questions:
+* Why keep `date` when the `published_at` column already exists?
+
+Clarification:
+1. Personal is content that is for my personal use and is not available to the public or the private community.
+2. Is full revision history what Bear app and Obsidian app and iA Writer app do?
+3. notes: source (text), chains (text) / essays: resources (array), visual (boolean) / linked: source_url (text), source_title (text)
+
+git commit -m "add: markdown editor utilities + hooks"
