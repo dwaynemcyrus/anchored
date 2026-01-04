@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useLayoutEffect, useRef, useState } from "react";
+import { useCreateTask } from "@/lib/hooks/use-tasks";
 import styles from "./task-detail-modal.module.css";
 
 interface TaskCreateModalProps {
@@ -11,6 +12,7 @@ interface TaskCreateModalProps {
 }
 
 export function TaskCreateModal({ open, onClose }: TaskCreateModalProps) {
+  const createTask = useCreateTask();
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const titleRef = useRef<HTMLTextAreaElement | null>(null);
@@ -33,6 +35,21 @@ export function TaskCreateModal({ open, onClose }: TaskCreateModalProps) {
     notesRef.current.style.height = "auto";
     notesRef.current.style.height = `${notesRef.current.scrollHeight}px`;
   }, [notes]);
+
+  const handleSave = async () => {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle || createTask.isPending) return;
+    await createTask.mutateAsync({
+      title: trimmedTitle,
+      notes: notes.trim() ? notes.trim() : null,
+      status: "inbox",
+      task_location: "inbox",
+      project_id: null,
+      due_date: null,
+      start_date: null,
+    });
+    onClose();
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
@@ -70,9 +87,19 @@ export function TaskCreateModal({ open, onClose }: TaskCreateModalProps) {
               rows={2}
               aria-label="Task notes"
             />
-            <div className={styles.meta}>
-              <span className={styles.badge}>inbox</span>
-              <span className={styles.metaText}>no project</span>
+            <div className={styles.metaRow}>
+              <div className={styles.meta}>
+                <span className={styles.badge}>inbox</span>
+                <span className={styles.metaText}>no project</span>
+              </div>
+              <button
+                type="button"
+                className={styles.saveButton}
+                onClick={handleSave}
+                disabled={createTask.isPending || !title.trim()}
+              >
+                Save
+              </button>
             </div>
           </div>
         </Dialog.Content>

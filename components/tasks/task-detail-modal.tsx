@@ -66,6 +66,12 @@ export function TaskDetailModal({ taskId }: TaskDetailModalProps) {
     });
   };
 
+  const handleSave = async () => {
+    await commitTitle();
+    await commitNotes();
+    closeSheet();
+  };
+
   const handleDelete = async () => {
     if (!task) return;
     await deleteTask.mutateAsync(task.id);
@@ -180,11 +186,21 @@ export function TaskDetailModal({ taskId }: TaskDetailModalProps) {
                 rows={2}
                 aria-label="Task notes"
               />
-              <div className={styles.meta}>
-                <span className={styles.badge}>{task.status}</span>
-                {task.project?.title && (
-                  <span className={styles.metaText}>{task.project.title}</span>
-                )}
+              <div className={styles.metaRow}>
+                <div className={styles.meta}>
+                  <span className={styles.badge}>{task.status}</span>
+                  {task.project?.title && (
+                    <span className={styles.metaText}>{task.project.title}</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className={styles.saveButton}
+                  onClick={handleSave}
+                  disabled={updateTask.isPending}
+                >
+                  Save
+                </button>
               </div>
               {task.due_date && (
                 <div className={styles.metaText}>

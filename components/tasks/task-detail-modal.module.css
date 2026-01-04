@@ -112,6 +112,28 @@
   flex-wrap: wrap;
 }
 
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saveButton {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  padding: 0;
+}
+
+.saveButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .badge {
   font-size: 12px;
   text-transform: capitalize;
