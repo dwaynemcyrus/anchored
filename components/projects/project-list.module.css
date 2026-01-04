@@ -1,0 +1,84 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+
+.title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metaText {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.statusButton {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.65);
+  padding: 0;
+  cursor: pointer;
+}
+
+.state {
+  padding: 20px 16px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.menuContent {
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  z-index: 60;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.menuItem:hover,
+.menuItem:focus {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.menuItemLabel {
+  display: inline-block;
+}
+
+.menuItemCheck {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}

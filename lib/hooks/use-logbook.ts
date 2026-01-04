@@ -330,7 +330,7 @@ async function restoreCompletedProject(
 
   const { error } = await supabase
     .from("projects")
-    .update({ completed_at: null })
+    .update({ completed_at: null, status: "active" })
     .eq("id", projectId);
 
   if (error) throw new Error(error.message);
@@ -515,7 +515,7 @@ async function completeProject(projectId: string): Promise<void> {
 
   const { error } = await supabase
     .from("projects")
-    .update({ completed_at: new Date().toISOString() })
+    .update({ status: "complete", completed_at: new Date().toISOString() })
     .eq("id", projectId);
 
   if (error) throw new Error(error.message);

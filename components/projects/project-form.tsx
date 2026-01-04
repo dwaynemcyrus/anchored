@@ -26,7 +26,7 @@ import type { Project } from "@/types/database";
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   description: z.string().max(500, "Description is too long").optional(),
-  status: z.enum(["active", "completed", "archived"]),
+  status: z.enum(["active", "paused", "complete", "archived", "cancelled"]),
 });
 
 export type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -49,7 +49,13 @@ export function ProjectForm({
     defaultValues: {
       title: project?.title || "",
       description: project?.description || "",
-      status: (project?.status as "active" | "completed" | "archived") || "active",
+      status:
+        (project?.status as
+          | "active"
+          | "paused"
+          | "complete"
+          | "archived"
+          | "cancelled") || "active",
     },
   });
 
@@ -112,8 +118,10 @@ export function ProjectForm({
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="paused">Paused</SelectItem>
+                  <SelectItem value="complete">Complete</SelectItem>
                   <SelectItem value="archived">Archived</SelectItem>
+                  <SelectItem value="cancelled">Cancel</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

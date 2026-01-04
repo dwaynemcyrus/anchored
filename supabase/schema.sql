@@ -15,7 +15,7 @@ CREATE TABLE projects (
   start_date DATE,
   due_date DATE,
   status TEXT NOT NULL DEFAULT 'active'
-    CHECK (status IN ('active', 'completed', 'archived')),
+    CHECK (status IN ('active', 'paused', 'complete', 'archived', 'cancelled')),
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()

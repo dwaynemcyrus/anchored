@@ -68,7 +68,7 @@ export function NewTaskCard({
 
   const availableProjects = projects.filter((project) => {
     const status = project.status?.toLowerCase();
-    return status !== "completed" && status !== "archived" && status !== "cancelled";
+    return status !== "complete" && status !== "archived" && status !== "cancelled";
   });
 
   const handleSelectDestination = (next: Destination) => {

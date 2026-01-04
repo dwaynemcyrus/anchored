@@ -14,6 +14,10 @@ export type ProjectWithTaskCount = Project & {
   task_count: number;
 };
 
+function isCompletedProjectStatus(status: Project["status"] | null | undefined) {
+  return status === "complete" || status === "cancelled";
+}
+
 // Query keys
 export const projectKeys = {
   all: ["projects"] as const,
@@ -28,12 +32,11 @@ export const projectKeys = {
 async function fetchProjects(): Promise<ProjectWithTaskCount[]> {
   const supabase = createClient();
 
-  // Fetch active projects (exclude deleted and completed)
+  // Fetch projects (exclude deleted)
   const { data: projects, error: projectsError } = await supabase
     .from("projects")
     .select("*")
     .is("deleted_at", null) // Exclude soft-deleted projects
-    .is("completed_at", null) // Exclude completed projects
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -41,7 +44,7 @@ async function fetchProjects(): Promise<ProjectWithTaskCount[]> {
     throw new Error(projectsError.message);
   }
 
-  // Fetch task counts per project (exclude deleted tasks)
+  // Fetch task counts per project (exclude deleted and completed tasks)
   const { data: taskCounts, error: taskCountsError } = await supabase
     .from("tasks")
     .select("project_id")
@@ -120,6 +123,12 @@ async function updateProject({
 }: ProjectUpdate & { id: string }): Promise<Project> {
   const supabase = createClient();
 
+  if (updates.status) {
+    updates.completed_at = isCompletedProjectStatus(updates.status)
+      ? new Date().toISOString()
+      : null;
+  }
+
   const { data, error } = await supabase
     .from("projects")
     .update(updates)
@@ -134,13 +143,13 @@ async function updateProject({
   return data;
 }
 
-// Archive project (status change - legacy)
+// Archive project (status change)
 async function archiveProject(id: string): Promise<Project> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("projects")
-    .update({ status: "archived" })
+    .update({ status: "archived", completed_at: null })
     .eq("id", id)
     .select()
     .single();
@@ -200,13 +209,13 @@ async function softDeleteProject(id: string): Promise<{ tasksDeleted: number }> 
   return { tasksDeleted: taskIds.length };
 }
 
-// Complete project (moves to logbook as completed)
+// Complete project
 async function completeProject(id: string): Promise<Project> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("projects")
-    .update({ completed_at: new Date().toISOString() })
+    .update({ status: "complete", completed_at: new Date().toISOString() })
     .eq("id", id)
     .select()
     .single();
@@ -301,12 +310,23 @@ export function useUpdateProject() {
         projectKeys.lists()
       );
 
+      const optimisticUpdate = {
+        ...updatedProject,
+        ...(updatedProject.status
+          ? {
+              completed_at: isCompletedProjectStatus(updatedProject.status)
+                ? new Date().toISOString()
+                : null,
+            }
+          : {}),
+      };
+
       // Optimistically update
       if (previousProjects) {
         queryClient.setQueryData<ProjectWithTaskCount[]>(
           projectKeys.lists(),
           previousProjects.map((p) =>
-            p.id === updatedProject.id ? { ...p, ...updatedProject } : p
+            p.id === updatedProject.id ? { ...p, ...optimisticUpdate } : p
           )
         );
       }
@@ -344,7 +364,9 @@ export function useArchiveProject() {
         queryClient.setQueryData<ProjectWithTaskCount[]>(
           projectKeys.lists(),
           previousProjects.map((p) =>
-            p.id === id ? { ...p, status: "archived" as const } : p
+            p.id === id
+              ? { ...p, status: "archived" as const, completed_at: null }
+              : p
           )
         );
       }
@@ -409,11 +431,15 @@ export function useCompleteProject() {
         projectKeys.lists()
       );
 
-      // Optimistically remove project from list (completed projects don't show in active list)
+      // Optimistically update status to complete
       if (previousProjects) {
         queryClient.setQueryData<ProjectWithTaskCount[]>(
           projectKeys.lists(),
-          previousProjects.filter((p) => p.id !== id)
+          previousProjects.map((p) =>
+            p.id === id
+              ? { ...p, status: "complete" as const, completed_at: new Date().toISOString() }
+              : p
+          )
         );
       }
 

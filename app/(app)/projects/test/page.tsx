@@ -78,7 +78,7 @@ export default function TestPage() {
     {
       title: "Mobile App Launch",
       description: "Launch the new mobile application on iOS and Android",
-      status: "completed" as const,
+      status: "complete" as const,
     },
     {
       title: "Legacy System Migration",
@@ -362,7 +362,7 @@ export default function TestPage() {
     {
       id: "project-status",
       category: "Projects",
-      description: "Projects can have active/completed/archived status",
+      description: "Projects can have active/paused/complete/archived/cancelled status",
       check: () => {
         const statuses = new Set(projects?.map((p) => p.status) || []);
         return statuses.size > 0;

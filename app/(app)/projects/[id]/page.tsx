@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Archive, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectDetailSkeleton } from "@/components/skeletons";
@@ -23,18 +23,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  ProjectForm,
-  type ProjectFormValues,
-} from "@/components/projects/project-form";
+import { ProjectDetailModal } from "@/components/projects/project-detail-modal";
+import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
 import { QuickAddInline } from "@/components/tasks/quick-add";
 import { SortableProjectTaskList } from "@/components/tasks/sortable-task-list";
-import {
-  useProject,
-  useUpdateProject,
-  useArchiveProject,
-} from "@/lib/hooks/use-projects";
+import { useProject, useUpdateProject } from "@/lib/hooks/use-projects";
 import {
   useTasksByProject,
   useToggleTaskComplete,
@@ -46,8 +40,10 @@ import {
 
 const statusConfig = {
   active: { label: "Active", variant: "default" as const },
-  completed: { label: "Completed", variant: "secondary" as const },
+  paused: { label: "Paused", variant: "secondary" as const },
+  complete: { label: "Complete", variant: "secondary" as const },
   archived: { label: "Archived", variant: "outline" as const },
+  cancelled: { label: "Cancelled", variant: "outline" as const },
 };
 
 export default function ProjectDetailPage({
@@ -59,7 +55,6 @@ export default function ProjectDetailPage({
   const router = useRouter();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskWithDetails | null>(null);
@@ -68,24 +63,19 @@ export default function ProjectDetailPage({
   const { data: tasks, isLoading: tasksLoading } = useTasksByProject(id);
 
   const updateProject = useUpdateProject();
-  const archiveProject = useArchiveProject();
   const toggleComplete = useToggleTaskComplete();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
 
-  const handleUpdateProject = async (values: ProjectFormValues) => {
+  const handleUpdateProject = async (values: {
+    title: string;
+    description: string | null;
+  }) => {
     await updateProject.mutateAsync({
       id,
       ...values,
     });
-    setIsEditDialogOpen(false);
-  };
-
-  const handleArchiveProject = async () => {
-    await archiveProject.mutateAsync(id);
-    setIsArchiveDialogOpen(false);
-    router.push("/projects");
   };
 
   const handleToggleComplete = (task: TaskWithDetails) => {
@@ -196,26 +186,7 @@ export default function ProjectDetailPage({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          {project.status !== "archived" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsArchiveDialogOpen(true)}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              Archive
-            </Button>
-          )}
-        </div>
+        <ProjectOptionsMenu onEditDetails={() => setIsEditDialogOpen(true)} />
       </div>
 
       {/* Tasks Section */}
@@ -245,39 +216,15 @@ export default function ProjectDetailPage({
         />
       </div>
 
-      {/* Edit Project Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Project</DialogTitle>
-          </DialogHeader>
-          <ProjectForm
-            project={project}
-            onSubmit={handleUpdateProject}
-            onCancel={() => setIsEditDialogOpen(false)}
-            isLoading={updateProject.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Archive Confirmation Dialog */}
-      <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive Project</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to archive &ldquo;{project.title}&rdquo;?
-              The project and its tasks will be moved to the archive.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchiveProject}>
-              Archive
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ProjectDetailModal
+        open={isEditDialogOpen}
+        mode="edit"
+        initialTitle={project.title}
+        initialDescription={project.description}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleUpdateProject}
+        isSaving={updateProject.isPending}
+      />
 
       {/* Task Create/Edit Dialog */}
       <Dialog open={isTaskDialogOpen} onOpenChange={(open) => {
