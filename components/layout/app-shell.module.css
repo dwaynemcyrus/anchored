@@ -1,6 +1,7 @@
 .shell {
   position: relative;
-  min-height: 100vh;
+  height: var(--app-height, 100dvh);
+  overflow: hidden;
 }
 
 .desktopSidebar {
@@ -15,17 +16,21 @@
 
 .content {
   padding-left: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .main {
-  min-height: calc(100vh - 3.5rem);
-  padding-bottom: 1.5rem;
+  flex: 1;
+  overflow: hidden;
 }
 
 .container {
   width: min(1200px, 100%);
   margin: 0 auto;
   padding: 1.5rem;
+  height: 100%;
 }
 
 @media (min-width: 1024px) {

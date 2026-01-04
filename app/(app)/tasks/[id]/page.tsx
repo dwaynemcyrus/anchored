@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { TaskCreateModal } from "@/components/tasks/task-create-modal";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
@@ -11,27 +11,6 @@ import styles from "../page.module.css";
 export default function TaskDetailRoute() {
   const params = useParams();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-  useEffect(() => {
-    const root = document.documentElement;
-    const setAppHeight = () => {
-      const height = window.visualViewport?.height ?? window.innerHeight;
-      root.style.setProperty("--app-height", `${Math.round(height)}px`);
-    };
-    setAppHeight();
-    window.addEventListener("resize", setAppHeight);
-    window.visualViewport?.addEventListener("resize", setAppHeight);
-    return () => {
-      window.removeEventListener("resize", setAppHeight);
-      window.visualViewport?.removeEventListener("resize", setAppHeight);
-    };
-  }, []);
   const taskId =
     typeof params?.id === "string"
       ? params.id
