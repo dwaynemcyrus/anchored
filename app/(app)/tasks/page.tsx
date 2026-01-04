@@ -1,5 +1,31 @@
+"use client";
+
+import { useState } from "react";
+import { TaskCreateModal } from "@/components/tasks/task-create-modal";
 import { TaskList } from "@/components/tasks/task-list";
+import { TaskOptionsMenu } from "@/components/tasks/task-options-menu";
+import styles from "./page.module.css";
 
 export default function TaskListPage() {
-  return <TaskList />;
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.title}>Tasks</div>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => setIsCreateOpen(true)}
+          >
+            New
+          </button>
+          <TaskOptionsMenu />
+        </div>
+      </div>
+      <TaskList />
+      <TaskCreateModal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
+    </div>
+  );
 }

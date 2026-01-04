@@ -29,42 +29,39 @@ export function TaskList() {
   }
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>Tasks</h1>
-      <ul className={styles.list}>
-        {tasks.map((task) => (
-          <li key={task.id}>
-            <Link
-              href={`/tasks/${task.id}`}
+    <ul className={styles.list}>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          <Link
+            href={`/tasks/${task.id}`}
+            className={
+              task.id === selectedId
+                ? `${styles.item} ${styles.itemActive}`
+                : styles.item
+            }
+          >
+            <input
+              type="checkbox"
+              className={styles.checkbox}
+              checked={task.status === "done" || task.status === "cancel"}
+              onChange={(event) => {
+                event.preventDefault();
+                toggleComplete.mutate(task);
+              }}
+              onClick={(event) => event.stopPropagation()}
+            />
+            <span
               className={
-                task.id === selectedId
-                  ? `${styles.item} ${styles.itemActive}`
-                  : styles.item
+                task.status === "done" || task.status === "cancel"
+                  ? styles.titleDone
+                  : styles.titleText
               }
             >
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={task.status === "done" || task.status === "cancel"}
-                onChange={(event) => {
-                  event.preventDefault();
-                  toggleComplete.mutate(task);
-                }}
-                onClick={(event) => event.stopPropagation()}
-              />
-              <span
-                className={
-                  task.status === "done" || task.status === "cancel"
-                    ? styles.titleDone
-                    : styles.titleText
-                }
-              >
-                {task.title}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+              {task.title}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
