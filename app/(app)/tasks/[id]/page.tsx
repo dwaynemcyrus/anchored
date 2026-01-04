@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { TaskCreateModal } from "@/components/tasks/task-create-modal";
 import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
@@ -11,6 +11,13 @@ import styles from "../page.module.css";
 export default function TaskDetailRoute() {
   const params = useParams();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
   const taskId =
     typeof params?.id === "string"
       ? params.id
@@ -33,7 +40,9 @@ export default function TaskDetailRoute() {
           <TaskOptionsMenu />
         </div>
       </div>
-      <TaskList />
+      <div className={styles.scroll}>
+        <TaskList />
+      </div>
       {taskId ? <TaskDetailModal taskId={taskId} /> : null}
       <TaskCreateModal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
     </div>
