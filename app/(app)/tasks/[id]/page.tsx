@@ -18,6 +18,20 @@ export default function TaskDetailRoute() {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+  useEffect(() => {
+    const root = document.documentElement;
+    const setAppHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      root.style.setProperty("--app-height", `${Math.round(height)}px`);
+    };
+    setAppHeight();
+    window.addEventListener("resize", setAppHeight);
+    window.visualViewport?.addEventListener("resize", setAppHeight);
+    return () => {
+      window.removeEventListener("resize", setAppHeight);
+      window.visualViewport?.removeEventListener("resize", setAppHeight);
+    };
+  }, []);
   const taskId =
     typeof params?.id === "string"
       ? params.id
