@@ -10,6 +10,7 @@ import {
   useSetNowSlot,
 } from "@/lib/hooks/use-tasks";
 import { InboxOptionsMenu } from "@/components/inbox/inbox-options-menu";
+import { Separator } from "@/components/ui/separator";
 import styles from "./inbox.module.css";
 
 export default function InboxPage() {
@@ -113,15 +114,15 @@ export default function InboxPage() {
           <span className={styles.headerDivider}>|</span>
           <span className={styles.headerLabel}>Inbox - Processing</span>
         </div>
-        <div className={styles.actions}>
+        <div className={styles.headerActions}>
           <InboxOptionsMenu onEndReview={() => router.push("/")} />
         </div>
       </div>
       <div className={styles.scroll}>
         <div className={styles.review}>
-          <div className={styles.rule} />
+          <Separator className={styles.rule} />
           <div className={styles.title}>INBOX — REVIEW</div>
-          <div className={styles.rule} />
+          <Separator className={styles.rule} />
 
           {isLoading ? (
             <div className={styles.empty}>Loading inbox...</div>
@@ -137,12 +138,12 @@ export default function InboxPage() {
                 "{currentTask?.title}"
               </div>
 
-              <div className={styles.rule} />
+              <Separator className={styles.rule} />
 
               {mode === "action" ? (
                 <>
                   <div className={styles.questionTitle}>ACTION</div>
-                  <div className={styles.rule} />
+                  <Separator className={styles.rule} />
                   <div className={styles.question}>
                     Can this be done
                     <br />
@@ -170,7 +171,7 @@ export default function InboxPage() {
               ) : mode === "position" ? (
                 <>
                   <div className={styles.questionTitle}>POSITION ACTION</div>
-                  <div className={styles.rule} />
+                  <Separator className={styles.rule} />
                   <div className={styles.question}>Where does this belong?</div>
                   <div className={styles.actionsStack}>
                     <button
