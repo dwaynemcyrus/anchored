@@ -28,8 +28,8 @@ interface TaskDetailScreenProps {
 }
 
 const statusOptions: { value: TaskStatus; label: string }[] = [
-  { value: "inbox", label: "Inbox" },
-  { value: "today", label: "Today" },
+  { value: "backlog", label: "Backlog" },
+  { value: "active", label: "Active" },
   { value: "anytime", label: "Anytime" },
   { value: "waiting", label: "Waiting" },
   { value: "done", label: "Complete" },
@@ -113,7 +113,7 @@ export function TaskDetailScreen({
       await createTask.mutateAsync({
         title,
         notes: notes.length > 0 ? notes : null,
-        status: "inbox",
+        status: "backlog",
         task_location: resolvedProjectId ? "project" : "inbox",
         project_id: resolvedProjectId ?? null,
         due_date: null,
@@ -134,7 +134,7 @@ export function TaskDetailScreen({
     projectTasks?.find((projectTask) => projectTask.next_task) || null;
 
   const projectLabel = project?.title || task?.project?.title || "no project";
-  const statusLabel = task?.status ?? "inbox";
+  const statusLabel = task?.status ?? "backlog";
 
   let content = (
     <div className={styles.content}>
