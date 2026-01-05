@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useInboxTasks,
   useToggleTaskComplete,
@@ -18,6 +18,7 @@ import styles from "./inbox.module.css";
 
 export default function InboxPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState<"default" | "action" | "position">("default");
   const [viewMode, setViewMode] = useState<"process" | "overview">("process");
@@ -42,6 +43,7 @@ export default function InboxPage() {
     () => (tasks ? [...tasks].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : []),
     [tasks]
   );
+  const listReturnTo = "/inbox?view=overview";
   const taskCount = orderedTasks.length;
   const currentTask = orderedTasks[currentIndex];
 
@@ -58,6 +60,11 @@ export default function InboxPage() {
   useEffect(() => {
     setMode("default");
   }, [currentTask?.id]);
+
+  useEffect(() => {
+    const viewParam = searchParams?.get("view");
+    setViewMode(viewParam === "overview" ? "overview" : "process");
+  }, [searchParams]);
 
   const handleAction = () => {
     if (!currentTask) return;
@@ -155,6 +162,8 @@ export default function InboxPage() {
             isLoading={isLoading}
             emptyText="Inbox empty."
             onToggleComplete={toggleComplete.mutate}
+            linkBase="/tasks"
+            linkSuffix={`?returnTo=${encodeURIComponent(listReturnTo)}`}
           />
         ) : (
           <div className={styles.review}>
