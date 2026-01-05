@@ -28,6 +28,7 @@ import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
 import { ProjectStatusReasonModal } from "@/components/projects/project-status-reason-modal";
 import { ProjectInfoSheet } from "@/components/projects/project-info-sheet";
 import menuStyles from "@/components/projects/project-options-menu.module.css";
+import styles from "./page.module.css";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
 import { QuickAddInline } from "@/components/tasks/quick-add";
 import { SortableProjectTaskList } from "@/components/tasks/sortable-task-list";
@@ -193,7 +194,8 @@ export default function ProjectDetailPage({
     ).length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className={styles.overlay}>
+      <div className={styles.panel}>
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <button
@@ -373,6 +375,7 @@ export default function ProjectDetailPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }
