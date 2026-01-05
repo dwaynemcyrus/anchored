@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useInboxTasks,
@@ -10,6 +9,7 @@ import {
   useDeleteTask,
   useSetNowSlot,
 } from "@/lib/hooks/use-tasks";
+import { InboxOptionsMenu } from "@/components/inbox/inbox-options-menu";
 import styles from "./inbox.module.css";
 
 export default function InboxPage() {
@@ -100,130 +100,145 @@ export default function InboxPage() {
   };
 
   return (
-    <div className={styles.review}>
-      <div className="flex items-center justify-end">
-        <Link href="/" className={styles.endReview}>
-          End review
-        </Link>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => router.push("/")}
+          >
+            Back
+          </button>
+          <span className={styles.headerDivider}>|</span>
+          <span className={styles.headerLabel}>Inbox - Processing</span>
+        </div>
+        <div className={styles.actions}>
+          <InboxOptionsMenu onEndReview={() => router.push("/")} />
+        </div>
       </div>
-      <div className={styles.rule} />
-      <div className={styles.title}>INBOX — REVIEW</div>
-      <div className={styles.rule} />
-
-      {isLoading ? (
-        <div className={styles.empty}>Loading inbox...</div>
-      ) : taskCount === 0 ? (
-        <div className={styles.empty}>Inbox empty.</div>
-      ) : (
-        <>
-          <div className={styles.counter}>
-            Item {currentIndex + 1} of {taskCount}
-          </div>
-
-          <div className={styles.prompt}>
-            "{currentTask?.title}"
-          </div>
-
+      <div className={styles.scroll}>
+        <div className={styles.review}>
+          <div className={styles.rule} />
+          <div className={styles.title}>INBOX — REVIEW</div>
           <div className={styles.rule} />
 
-          {mode === "action" ? (
-            <>
-              <div className={styles.questionTitle}>ACTION</div>
-              <div className={styles.rule} />
-              <div className={styles.question}>
-                Can this be done
-                <br />
-                in a single sitting?
-              </div>
-              <div className={styles.actionsStack}>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleSingleAction}
-                  disabled={isAnyProcessing}
-                >
-                  YES — SINGLE ACTION
-                </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleProjectAction}
-                  disabled={isAnyProcessing}
-                >
-                  NO — PROJECT
-                </button>
-              </div>
-            </>
-          ) : mode === "position" ? (
-            <>
-              <div className={styles.questionTitle}>POSITION ACTION</div>
-              <div className={styles.rule} />
-              <div className={styles.question}>Where does this belong?</div>
-              <div className={styles.actionsStack}>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleCommandNow}
-                  disabled={isAnyProcessing}
-                >
-                  COMMAND NOW
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.actionButton} ${styles.actionButtonDefault}`}
-                  onClick={handlePutInNext}
-                  disabled={isAnyProcessing}
-                >
-                  PUT IN NEXT
-                </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleLater}
-                  disabled={isAnyProcessing}
-                >
-                  LATER
-                </button>
-              </div>
-            </>
+          {isLoading ? (
+            <div className={styles.empty}>Loading inbox...</div>
+          ) : taskCount === 0 ? (
+            <div className={styles.empty}>Inbox empty.</div>
           ) : (
             <>
-              <div className={styles.question}>
-                Is this something to do,
-                <br />
-                or something to think about?
+              <div className={styles.counter}>
+                Item {currentIndex + 1} of {taskCount}
               </div>
 
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleAction}
-                  disabled={isAnyProcessing}
-                >
-                  ACTION
-                </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={handleThinking}
-                  disabled={isAnyProcessing}
-                >
-                  THINKING
-                </button>
+              <div className={styles.prompt}>
+                "{currentTask?.title}"
               </div>
-              <button
-                type="button"
-                className={`${styles.actionButton} ${styles.killButton}`}
-                onClick={handleKill}
-                disabled={isAnyProcessing}
-              >
-                KILL
-              </button>
+
+              <div className={styles.rule} />
+
+              {mode === "action" ? (
+                <>
+                  <div className={styles.questionTitle}>ACTION</div>
+                  <div className={styles.rule} />
+                  <div className={styles.question}>
+                    Can this be done
+                    <br />
+                    in a single sitting?
+                  </div>
+                  <div className={styles.actionsStack}>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleSingleAction}
+                      disabled={isAnyProcessing}
+                    >
+                      YES — SINGLE ACTION
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleProjectAction}
+                      disabled={isAnyProcessing}
+                    >
+                      NO — PROJECT
+                    </button>
+                  </div>
+                </>
+              ) : mode === "position" ? (
+                <>
+                  <div className={styles.questionTitle}>POSITION ACTION</div>
+                  <div className={styles.rule} />
+                  <div className={styles.question}>Where does this belong?</div>
+                  <div className={styles.actionsStack}>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleCommandNow}
+                      disabled={isAnyProcessing}
+                    >
+                      COMMAND NOW
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.actionButton} ${styles.actionButtonDefault}`}
+                      onClick={handlePutInNext}
+                      disabled={isAnyProcessing}
+                    >
+                      PUT IN NEXT
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleLater}
+                      disabled={isAnyProcessing}
+                    >
+                      LATER
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.question}>
+                    Is this something to do,
+                    <br />
+                    or something to think about?
+                  </div>
+
+                  <div className={styles.actions}>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleAction}
+                      disabled={isAnyProcessing}
+                    >
+                      ACTION
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.actionButton}
+                      onClick={handleThinking}
+                      disabled={isAnyProcessing}
+                    >
+                      THINKING
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${styles.actionButton} ${styles.killButton}`}
+                    onClick={handleKill}
+                    disabled={isAnyProcessing}
+                  >
+                    KILL
+                  </button>
+                </>
+              )}
             </>
           )}
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

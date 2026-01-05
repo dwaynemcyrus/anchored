@@ -1,0 +1,35 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  padding: 0;
+}
+
+.menuContent {
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  z-index: 60;
+}
+
+.menuItem {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.menuItem:hover,
+.menuItem:focus {
+  background: rgba(0, 0, 0, 0.06);
+}
