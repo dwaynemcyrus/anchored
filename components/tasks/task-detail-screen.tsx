@@ -1,13 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { format } from "date-fns";
-import { useTask, useUpdateTask, useDeleteTask, useCreateTask } from "@/lib/hooks/use-tasks";
-import { useCreateProject, useProject } from "@/lib/hooks/use-projects";
+import { useTask, useUpdateTask, useDeleteTask, useCreateTask, useTasksByProject } from "@/lib/hooks/use-tasks";
+import { TaskStatus } from "@/types/database";
+import { useProject } from "@/lib/hooks/use-projects";
 import pageStyles from "@/app/(app)/tasks/page.module.css";
 import styles from "./task-detail-screen.module.css";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TaskDetailScreenProps {
   mode: "create" | "edit";
@@ -15,6 +26,15 @@ interface TaskDetailScreenProps {
   projectId?: string | null;
   returnTo?: string | null;
 }
+
+const statusOptions: { value: TaskStatus; label: string }[] = [
+  { value: "inbox", label: "Inbox" },
+  { value: "today", label: "Today" },
+  { value: "anytime", label: "Anytime" },
+  { value: "waiting", label: "Waiting" },
+  { value: "done", label: "Complete" },
+  { value: "cancel", label: "Cancel" },
+];
 
 export function TaskDetailScreen({
   mode,
@@ -29,10 +49,11 @@ export function TaskDetailScreen({
   const { data: task, isLoading, error } = useTask(taskId ?? "");
   const resolvedProjectId = projectId ?? task?.project_id ?? null;
   const { data: project } = useProject(resolvedProjectId ?? "");
+  const { data: projectTasks } = useTasksByProject(resolvedProjectId ?? "");
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
-  const createProject = useCreateProject();
+  const [isMarkNextOpen, setIsMarkNextOpen] = useState(false);
 
   const handleDismiss = useCallback(() => {
     if (returnTo) {
@@ -109,32 +130,8 @@ export function TaskDetailScreen({
     handleDismiss();
   };
 
-  const handleWontDo = async () => {
-    if (!task) return;
-    await updateTask.mutateAsync({ id: task.id, status: "cancel" });
-    handleDismiss();
-  };
-
-  const handlePinToTop = async () => {
-    if (!task) return;
-    await updateTask.mutateAsync({ id: task.id, sort_order: -1 });
-  };
-
-  const handleConvertToProject = async () => {
-    if (!task) return;
-    const projectResult = await createProject.mutateAsync({
-      title: task.title,
-      outcome: task.title,
-      purpose: "Converted from task",
-      description: task.notes ?? null,
-      status: "backlog",
-    });
-    await updateTask.mutateAsync({
-      id: task.id,
-      project_id: projectResult.id,
-      task_location: "project",
-    });
-  };
+  const currentNextTask =
+    projectTasks?.find((projectTask) => projectTask.next_task) || null;
 
   const projectLabel = project?.title || task?.project?.title || "no project";
   const statusLabel = task?.status ?? "inbox";
@@ -213,6 +210,39 @@ export function TaskDetailScreen({
           </button>
         </div>
         <div className={pageStyles.actions}>
+          {task ? (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button type="button" className={pageStyles.textButton}>
+                  Status
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className={styles.menuContent}
+                  align="end"
+                  sideOffset={6}
+                >
+                  {statusOptions.map((option) => (
+                    <DropdownMenu.Item
+                      key={option.value}
+                      className={styles.menuItem}
+                      onSelect={() => {
+                        if (!task || task.status === option.value) return;
+                        updateTask.mutateAsync({ id: task.id, status: option.value });
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenu.Item>
+                  ))}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          ) : (
+            <button type="button" className={pageStyles.textButton} disabled>
+              Status
+            </button>
+          )}
           <button type="button" className={pageStyles.textButton}>
             Info
           </button>
@@ -232,14 +262,15 @@ export function TaskDetailScreen({
                   <DropdownMenu.Item className={styles.menuItem} onSelect={handleDelete}>
                     Delete
                   </DropdownMenu.Item>
-                  <DropdownMenu.Item className={styles.menuItem} onSelect={handleWontDo}>
-                    Wont do
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item className={styles.menuItem} onSelect={handlePinToTop}>
-                    Pin to top
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item className={styles.menuItem} onSelect={handleConvertToProject}>
-                    Convert to project
+                  <DropdownMenu.Item
+                    className={styles.menuItem}
+                    onSelect={() => {
+                      if (!resolvedProjectId) return;
+                      setIsMarkNextOpen(true);
+                    }}
+                    disabled={!resolvedProjectId}
+                  >
+                    Mark next
                   </DropdownMenu.Item>
                 </DropdownMenu.Content>
               </DropdownMenu.Portal>
@@ -253,6 +284,36 @@ export function TaskDetailScreen({
       </div>
 
       <div className={pageStyles.scroll}>{content}</div>
+      <AlertDialog open={isMarkNextOpen} onOpenChange={setIsMarkNextOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as next?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {currentNextTask && currentNextTask.id !== task?.id
+                ? `This will replace "${currentNextTask.title}" as the current next task.`
+                : "This will set this task as the next task for this project."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!task || !resolvedProjectId) return;
+                if (currentNextTask && currentNextTask.id !== task.id) {
+                  await updateTask.mutateAsync({
+                    id: currentNextTask.id,
+                    next_task: false,
+                  });
+                }
+                await updateTask.mutateAsync({ id: task.id, next_task: true });
+                setIsMarkNextOpen(false);
+              }}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
