@@ -42,12 +42,16 @@ export function ProjectDetailModal({
   const purposeRef = useRef<HTMLTextAreaElement | null>(null);
   const notesRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const resetFields = () => {
+    setTitle(initialTitle);
+    setOutcome(initialOutcome || "");
+    setPurpose(initialPurpose || "");
+    setDescription(initialDescription || "");
+  };
+
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
-      setTitle(initialTitle);
-      setOutcome(initialOutcome || "");
-      setPurpose(initialPurpose || "");
-      setDescription(initialDescription || "");
+      resetFields();
       return;
     }
     onClose();
@@ -95,15 +99,26 @@ export function ProjectDetailModal({
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.sheet} aria-label="Project details">
+        <Dialog.Content
+          className={styles.sheet}
+          aria-label="Project details"
+          onPointerDownOutside={() => onClose()}
+          onEscapeKeyDown={() => onClose()}
+        >
           <VisuallyHidden>
             <Dialog.Title>
               {mode === "create" ? "New Project" : "Edit Project"}
             </Dialog.Title>
           </VisuallyHidden>
           <div className={styles.header}>
-            <Dialog.Close className={styles.close} type="button">
-              Close
+            <Dialog.Close asChild>
+              <button
+                type="button"
+                className={styles.close}
+                onClick={() => onClose()}
+              >
+                Close
+              </button>
             </Dialog.Close>
             <button
               type="button"
