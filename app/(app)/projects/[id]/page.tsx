@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,17 @@ export default function ProjectDetailPage({
   const [pendingStatus, setPendingStatus] = useState<{
     status: "paused" | "cancelled";
   } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        router.push("/projects");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
 
   const handleUpdateProject = async (values: {
     title: string;
@@ -194,8 +205,16 @@ export default function ProjectDetailPage({
     ).length || 0;
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onClick={() => router.push("/projects")}
+    >
+      <div
+        className={styles.panel}
+        role="presentation"
+        onClick={(event) => event.stopPropagation()}
+      >
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <button
