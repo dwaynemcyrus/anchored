@@ -6,12 +6,14 @@ import styles from "./inbox-options-menu.module.css";
 interface InboxOptionsMenuProps {
   onEndReview: () => void;
   onView?: () => void;
+  viewLabel?: string;
   label?: string;
 }
 
 export function InboxOptionsMenu({
   onEndReview,
   onView,
+  viewLabel = "View",
   label = "More",
 }: InboxOptionsMenuProps) {
   return (
@@ -32,8 +34,9 @@ export function InboxOptionsMenu({
             onSelect={() => {
               onView?.();
             }}
+            disabled={!onView}
           >
-            View
+            {viewLabel}
           </DropdownMenu.Item>
           <DropdownMenu.Item
             className={styles.menuItem}

@@ -33,3 +33,13 @@
 .menuItem:focus {
   background: rgba(0, 0, 0, 0.06);
 }
+
+.menuItem[data-disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.menuItem[data-disabled]:hover,
+.menuItem[data-disabled]:focus {
+  background: transparent;
+}
