@@ -170,11 +170,19 @@ interface SortableTaskListGroupedProps {
   disabled?: boolean;
 }
 
-const statusOrder: TaskStatus[] = ["today", "anytime", "inbox", "done", "cancel"];
+const statusOrder: TaskStatus[] = [
+  "active",
+  "anytime",
+  "backlog",
+  "waiting",
+  "done",
+  "cancel",
+];
 const statusLabels: Record<TaskStatus, string> = {
-  inbox: "Inbox",
-  today: "Today",
+  backlog: "Backlog",
+  active: "Active",
   anytime: "Anytime",
+  waiting: "Waiting",
   done: "Completed",
   cancel: "Cancelled",
 };

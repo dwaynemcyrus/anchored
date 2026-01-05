@@ -20,19 +20,19 @@ export interface Project {
  *
  * Supported patterns:
  * - "tomorrow" or "today" → sets due_date and status
- * - "@anytime", "@inbox" → sets task_location, "@today" → sets status
+ * - "@anytime", "@inbox" → sets task_location, "@active" or "@backlog" → sets status
  * - "#project-name" → looks up project by title (fuzzy match)
  * - Everything else becomes the task title
  *
  * Examples:
- * - "Call dentist tomorrow" → { title: "Call dentist", due_date: tomorrow, status: "today" }
+ * - "Call dentist tomorrow" → { title: "Call dentist", due_date: tomorrow, status: "active" }
  * - "Buy milk #errands" → { title: "Buy milk", project_id: matched_id }
  * - "Review docs @anytime" → { title: "Review docs", task_location: "anytime" }
  */
 export function parseTaskInput(
   input: string,
   projects: Project[] = [],
-  defaultStatus: TaskStatus = "inbox",
+  defaultStatus: TaskStatus = "backlog",
   defaultLocation: TaskLocation = "inbox"
 ): ParsedTask {
   let title = input.trim();
@@ -42,12 +42,14 @@ export function parseTaskInput(
   let project_id: string | null = null;
   let projectMatch: string | null = null;
 
-  // Extract status/location tags (@today, @anytime, @inbox)
-  const statusMatch = title.match(/@(today|anytime|inbox)\b/i);
+  // Extract status/location tags (@active, @backlog, @anytime, @inbox)
+  const statusMatch = title.match(/@(active|backlog|anytime|inbox)\b/i);
   if (statusMatch) {
     const tag = statusMatch[1].toLowerCase();
-    if (tag === "today") {
-      status = "today";
+    if (tag === "active") {
+      status = "active";
+    } else if (tag === "backlog") {
+      status = "backlog";
     } else if (tag === "anytime") {
       task_location = "anytime";
     } else if (tag === "inbox") {
@@ -76,16 +78,16 @@ export function parseTaskInput(
   if (tomorrowMatch) {
     const tomorrow = addDays(startOfDay(new Date()), 1);
     due_date = tomorrow.toISOString();
-    // If no explicit status set, default to "today" for dated tasks
+    // If no explicit status set, default to "active" for dated tasks
     if (!statusMatch) {
-      status = "today";
+      status = "active";
     }
     title = title.replace(tomorrowMatch[0], "").trim();
   } else if (todayMatch) {
     due_date = startOfDay(new Date()).toISOString();
-    // If no explicit status set, default to "today" for dated tasks
+    // If no explicit status set, default to "active" for dated tasks
     if (!statusMatch) {
-      status = "today";
+      status = "active";
     }
     title = title.replace(todayMatch[0], "").trim();
   }
@@ -192,7 +194,8 @@ export function extractCurrentTag(
  * Status options for suggestions
  */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "today", label: "Today" },
+  { value: "active", label: "Active" },
+  { value: "backlog", label: "Backlog" },
   { value: "anytime", label: "Anytime" },
   { value: "inbox", label: "Inbox" },
 ];

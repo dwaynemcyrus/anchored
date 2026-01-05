@@ -409,7 +409,7 @@ export function useAnytimeTasks() {
   const filters: TaskFilters = {
     taskLocation: "anytime",
     dueIsNull: true,
-    excludeStatus: ["done", "cancel", "today"],
+    excludeStatus: ["done", "cancel", "active"],
   };
 
   return useQuery({
@@ -452,7 +452,7 @@ export function useMoveTaskToTomorrow() {
     mutate: (task: TaskWithDetails | string) => {
       const taskId = typeof task === "string" ? task : task.id;
       const moveToAnytime =
-        typeof task === "string" ? false : task.status === "today";
+        typeof task === "string" ? false : task.status === "active";
 
       updateTask.mutate({
         id: taskId,
@@ -463,7 +463,7 @@ export function useMoveTaskToTomorrow() {
     mutateAsync: async (task: TaskWithDetails | string) => {
       const taskId = typeof task === "string" ? task : task.id;
       const moveToAnytime =
-        typeof task === "string" ? false : task.status === "today";
+        typeof task === "string" ? false : task.status === "active";
 
       return updateTask.mutateAsync({
         id: taskId,
@@ -591,13 +591,13 @@ export function useToggleTaskComplete() {
     ...updateTask,
     mutate: (task: TaskWithDetails) => {
       const newStatus: TaskStatus = isCompletedStatus(task.status)
-        ? "today"
+        ? "active"
         : "done";
       updateTask.mutate({ id: task.id, status: newStatus });
     },
     mutateAsync: async (task: TaskWithDetails) => {
       const newStatus: TaskStatus = isCompletedStatus(task.status)
-        ? "today"
+        ? "active"
         : "done";
       return updateTask.mutateAsync({ id: task.id, status: newStatus });
     },
@@ -608,11 +608,11 @@ export function useToggleTaskComplete() {
 export function useInboxTasks() {
   return useTasks({
     taskLocation: "inbox",
-    excludeStatus: ["today", "done", "cancel"],
+    excludeStatus: ["active", "done", "cancel"],
   });
 }
 
-// Quick status change (for moving tasks between inbox/today/anytime)
+// Quick status change (for moving tasks between backlog/active/anytime)
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
 
@@ -635,7 +635,7 @@ export function useUpdateTaskStatus() {
         updates.now_slot = null;
       } else {
         updates.completed_at = null;
-        if (status !== "today") {
+        if (status !== "active") {
           updates.is_now = false;
           updates.now_slot = null;
         }
@@ -674,11 +674,11 @@ export function useUpdateTaskStatus() {
                     ? new Date().toISOString()
                     : null,
                   is_now:
-                    isCompletedStatus(status) || status !== "today"
+                    isCompletedStatus(status) || status !== "active"
                       ? false
                       : task.is_now,
                   now_slot:
-                    isCompletedStatus(status) || status !== "today"
+                    isCompletedStatus(status) || status !== "active"
                       ? null
                       : task.now_slot ?? null,
                 }
@@ -738,7 +738,7 @@ export function useSetNowSlot() {
 
       const { data, error } = await supabase
         .from("tasks")
-        .update({ now_slot: slot, status: "today" })
+        .update({ now_slot: slot, status: "active" })
         .eq("id", taskId)
         .select()
         .single();
@@ -769,8 +769,8 @@ export function useSetNowSlot() {
                   ? null
                   : task.now_slot ?? null,
             status:
-              taskId && task.id === taskId && task.status !== "today"
-                ? "today"
+              taskId && task.id === taskId && task.status !== "active"
+                ? "active"
                 : task.status,
           }));
         }
@@ -832,7 +832,7 @@ export function useSwapNowSlots() {
       if (primaryId && secondaryId) {
         const { error: setPrimaryError } = await supabase
           .from("tasks")
-          .update({ now_slot: "primary", status: "today" })
+          .update({ now_slot: "primary", status: "active" })
           .eq("id", secondaryId);
 
         if (setPrimaryError) {
@@ -841,7 +841,7 @@ export function useSwapNowSlots() {
 
         const { error: setSecondaryError } = await supabase
           .from("tasks")
-          .update({ now_slot: "secondary", status: "today" })
+          .update({ now_slot: "secondary", status: "active" })
           .eq("id", primaryId);
 
         if (setSecondaryError) {
@@ -850,7 +850,7 @@ export function useSwapNowSlots() {
       } else if (secondaryId && !primaryId) {
         const { error: setPrimaryError } = await supabase
           .from("tasks")
-          .update({ now_slot: "primary", status: "today" })
+          .update({ now_slot: "primary", status: "active" })
           .eq("id", secondaryId);
 
         if (setPrimaryError) {
@@ -859,7 +859,7 @@ export function useSwapNowSlots() {
       } else if (primaryId && !secondaryId) {
         const { error: setPrimaryError } = await supabase
           .from("tasks")
-          .update({ now_slot: "primary", status: "today" })
+          .update({ now_slot: "primary", status: "active" })
           .eq("id", primaryId);
 
         if (setPrimaryError) {
@@ -885,14 +885,14 @@ export function useSwapNowSlots() {
               return {
                 ...task,
                 now_slot: secondaryId ? "secondary" : null,
-                status: "today",
+                status: "active",
               };
             }
             if (secondaryId && task.id === secondaryId) {
               return {
                 ...task,
                 now_slot: "primary",
-                status: "today",
+                status: "active",
               };
             }
             return task;

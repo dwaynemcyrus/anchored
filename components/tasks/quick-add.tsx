@@ -34,7 +34,7 @@ interface Suggestion {
 
 export function QuickAdd({
   defaultProjectId = null,
-  defaultStatus = "inbox",
+  defaultStatus = "backlog",
   defaultLocation = "inbox",
   placeholder = "Add a task... (# for project, @ for status)",
   className,
@@ -278,7 +278,7 @@ export function QuickAdd({
 // Compact version for inline use
 export function QuickAddInline({
   defaultProjectId = null,
-  defaultStatus = "inbox",
+  defaultStatus = "backlog",
   defaultLocation = "inbox",
   placeholder = "Add a task...",
   className,

@@ -4,7 +4,7 @@
  * Run with: npx tsx lib/utils/task-parser.test.ts
  *
  * Examples from Phase 1 brief:
- * - "Call dentist tomorrow" → title: "Call dentist", due_date: tomorrow, status: "today"
+ * - "Call dentist tomorrow" → title: "Call dentist", due_date: tomorrow, status: "active"
  * - "Buy milk #errands" → title: "Buy milk", project matched
  * - "Review docs @anytime" → title: "Review docs", task_location: "anytime"
  */
@@ -30,12 +30,12 @@ console.log("  Result:", {
   has_due_date: !!result1.due_date,
 });
 console.log(
-  "  Expected: title='Call dentist', status='today', has_due_date=true"
+  "  Expected: title='Call dentist', status='active', has_due_date=true"
 );
 console.log(
   "  PASS:",
   result1.title === "Call dentist" &&
-    result1.status === "today" &&
+    result1.status === "active" &&
     result1.due_date !== null
 );
 console.log();
@@ -70,9 +70,9 @@ console.log(
 );
 console.log();
 
-// Test 4: Combined - "Fix bug #work @today tomorrow"
-console.log('Test 4: "Fix bug #work @today tomorrow" (combined)');
-const result4 = parseTaskInput("Fix bug #work @today tomorrow", mockProjects);
+// Test 4: Combined - "Fix bug #work @active tomorrow"
+console.log('Test 4: "Fix bug #work @active tomorrow" (combined)');
+const result4 = parseTaskInput("Fix bug #work @active tomorrow", mockProjects);
 console.log("  Result:", {
   title: result4.title,
   status: result4.status,
@@ -80,12 +80,12 @@ console.log("  Result:", {
   has_due_date: !!result4.due_date,
 });
 console.log(
-  "  Expected: title='Fix bug', status='today', projectMatch='Work', has_due_date=true"
+  "  Expected: title='Fix bug', status='active', projectMatch='Work', has_due_date=true"
 );
 console.log(
   "  PASS:",
   result4.title === "Fix bug" &&
-    result4.status === "today" &&
+    result4.status === "active" &&
     result4.projectMatch === "Work" &&
     result4.due_date !== null
 );
@@ -160,11 +160,11 @@ console.log("  Result:", {
   status: result7.status,
   has_due_date: !!result7.due_date,
 });
-console.log("  Expected: title='Meeting', status='today', has_due_date=true");
+console.log("  Expected: title='Meeting', status='active', has_due_date=true");
 console.log(
   "  PASS:",
   result7.title === "Meeting" &&
-    result7.status === "today" &&
+    result7.status === "active" &&
     result7.due_date !== null
 );
 console.log();
