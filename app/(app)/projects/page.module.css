@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 20px 16px 40px;
+  padding: 0;
   height: 100%;
   overflow: hidden;
 }
@@ -11,13 +11,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
 }
 
 .title {
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLabel {
+  font-size: 11px;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.headerDivider {
+  font-size: 11px;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.35);
 }
 
 .actions {

@@ -44,7 +44,17 @@ export default function ProjectsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div className={styles.title}>Projects</div>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => router.push("/")}
+          >
+            Back
+          </button>
+          <span className={styles.headerDivider}>|</span>
+          <span className={styles.headerLabel}>Projects</span>
+        </div>
         <div className={styles.actions}>
           <button type="button" className={styles.textButton} onClick={handleCreate}>
             New
