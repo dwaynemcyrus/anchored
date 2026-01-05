@@ -26,6 +26,7 @@ import {
 import { ProjectDetailModal } from "@/components/projects/project-detail-modal";
 import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
 import { ProjectStatusReasonModal } from "@/components/projects/project-status-reason-modal";
+import { ProjectInfoSheet } from "@/components/projects/project-info-sheet";
 import menuStyles from "@/components/projects/project-options-menu.module.css";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
 import { QuickAddInline } from "@/components/tasks/quick-add";
@@ -48,11 +49,23 @@ import {
 } from "@/lib/hooks/use-tasks";
 
 const statusConfig = {
+  backlog: { label: "Backlog", variant: "outline" as const },
   active: { label: "Active", variant: "default" as const },
   paused: { label: "Paused", variant: "secondary" as const },
   complete: { label: "Complete", variant: "secondary" as const },
   archived: { label: "Archived", variant: "outline" as const },
   cancelled: { label: "Cancelled", variant: "outline" as const },
+};
+
+const activityLabels: Record<string, string> = {
+  created: "Created",
+  active: "Activated",
+  paused: "Paused",
+  cancelled: "Cancelled",
+  complete: "Completed",
+  archived: "Archived",
+  task_completed: "Task completed",
+  task_cancelled: "Task cancelled",
 };
 
 export default function ProjectDetailPage({
@@ -65,6 +78,7 @@ export default function ProjectDetailPage({
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskWithDetails | null>(null);
 
@@ -84,6 +98,8 @@ export default function ProjectDetailPage({
 
   const handleUpdateProject = async (values: {
     title: string;
+    outcome: string;
+    purpose: string;
     description: string | null;
   }) => {
     await updateProject.mutateAsync({
@@ -172,8 +188,9 @@ export default function ProjectDetailPage({
   const config = statusConfig[project.status as keyof typeof statusConfig] ?? statusConfig.active;
   const taskCount = tasks?.length || 0;
   const activeTaskCount =
-    tasks?.filter((t) => t.status !== "done" && t.status !== "cancel").length ||
-    0;
+    tasks?.filter(
+      (t) => !["done", "cancel", "waiting"].includes(t.status)
+    ).length || 0;
 
   return (
     <div className="space-y-6">
@@ -187,10 +204,23 @@ export default function ProjectDetailPage({
           Back
         </button>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className={menuStyles.trigger}
+            onClick={() => setIsInfoOpen(true)}
+          >
+            Info
+          </button>
           <ProjectOptionsMenu
             onEditDetails={() => setIsEditDialogOpen(true)}
             status={
-              project.status as "active" | "paused" | "complete" | "archived" | "cancelled"
+              project.status as
+                | "backlog"
+                | "active"
+                | "paused"
+                | "complete"
+                | "archived"
+                | "cancelled"
             }
             onStatusChange={(status) => {
               if (status === "paused" || status === "cancelled") {
@@ -200,9 +230,6 @@ export default function ProjectDetailPage({
               updateProject.mutateAsync({ id, status });
             }}
           />
-          <button type="button" className={menuStyles.trigger}>
-            Info
-          </button>
         </div>
       </div>
 
@@ -233,7 +260,8 @@ export default function ProjectDetailPage({
           <div className="space-y-2 text-sm text-muted-foreground">
             {activity.map((item) => (
               <div key={item.id}>
-                {item.action === "paused" ? "Pause" : "Cancel"}: {item.reason}
+                {activityLabels[item.action] ?? item.action}
+                {item.reason ? `: ${item.reason}` : ""}
               </div>
             ))}
           </div>
@@ -271,6 +299,8 @@ export default function ProjectDetailPage({
         open={isEditDialogOpen}
         mode="edit"
         initialTitle={project.title}
+        initialOutcome={project.outcome}
+        initialPurpose={project.purpose}
         initialDescription={project.description}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUpdateProject}
@@ -290,6 +320,13 @@ export default function ProjectDetailPage({
           setPendingStatus(null);
         }}
         isSaving={updateProjectWithReason.isPending}
+      />
+      <ProjectInfoSheet
+        open={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        project={project}
+        tasks={tasks || []}
+        activity={activity || []}
       />
 
       {/* Task Create/Edit Dialog */}

@@ -26,8 +26,10 @@ export async function POST() {
       .insert({
         owner_id: user.id,
         title: "Anchored MVP",
+        outcome: "Ship the first release",
+        purpose: "Validate the core productivity flow",
         description: "Build the personal productivity OS",
-        status: "active",
+        status: "backlog",
       })
       .select()
       .single();

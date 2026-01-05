@@ -546,8 +546,11 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           id: string
+          outcome: string
           owner_id: string
+          purpose: string
           sort_order: number | null
+          started_at: string | null
           status: string
           title: string
           updated_at: string | null
@@ -558,8 +561,11 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
+          outcome: string
           owner_id: string
+          purpose: string
           sort_order?: number | null
+          started_at?: string | null
           status?: string
           title: string
           updated_at?: string | null
@@ -570,13 +576,51 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
+          outcome?: string
           owner_id?: string
+          purpose?: string
           sort_order?: number | null
+          started_at?: string | null
           status?: string
           title?: string
           updated_at?: string | null
         }
         Relationships: []
+      }
+      project_activity: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          owner_id: string
+          project_id: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          owner_id: string
+          project_id: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          owner_id?: string
+          project_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activity_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       review_sessions: {
         Row: {
@@ -976,6 +1020,7 @@ export type TaskLocation = Task["task_location"];
 export type Project = Tables<"projects">;
 export type ProjectInsert = TablesInsert<"projects">;
 export type ProjectUpdate = TablesUpdate<"projects">;
+export type ProjectActivity = Tables<"project_activity">;
 
 // Habits
 export type Habit = Tables<"habits">;

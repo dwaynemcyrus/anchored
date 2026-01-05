@@ -37,6 +37,29 @@ function isCompletedStatus(status: TaskStatus | null | undefined) {
   return status === "done" || status === "cancel";
 }
 
+async function insertTaskActivity({
+  supabase,
+  projectId,
+  ownerId,
+  action,
+}: {
+  supabase: ReturnType<typeof createClient>;
+  projectId: string;
+  ownerId: string;
+  action: "task_completed" | "task_cancelled";
+}) {
+  const { error } = await supabase.from("project_activity").insert({
+    project_id: projectId,
+    owner_id: ownerId,
+    action,
+    reason: null,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // Query keys
 export const taskKeys = {
   all: ["tasks"] as const,
@@ -267,6 +290,29 @@ async function updateTask({
   ...updates
 }: TaskUpdate & { id: string }): Promise<Task> {
   const supabase = createClient();
+  let projectIdToLog: string | null = null;
+  let activityAction: "task_completed" | "task_cancelled" | null = null;
+
+  if (updates.status === "done" || updates.status === "cancel") {
+    const { data: currentTask, error: currentError } = await supabase
+      .from("tasks")
+      .select("status, project_id")
+      .eq("id", id)
+      .single();
+
+    if (currentError) {
+      throw new Error(currentError.message);
+    }
+
+    if (
+      currentTask.project_id &&
+      currentTask.status !== updates.status
+    ) {
+      projectIdToLog = currentTask.project_id;
+      activityAction =
+        updates.status === "done" ? "task_completed" : "task_cancelled";
+    }
+  }
 
   // If marking as done, set completed_at
   if (updates.status && isCompletedStatus(updates.status) && !updates.completed_at) {
@@ -286,6 +332,21 @@ async function updateTask({
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (projectIdToLog && activityAction) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await insertTaskActivity({
+        supabase,
+        projectId: projectIdToLog,
+        ownerId: user.id,
+        action: activityAction,
+      });
+    }
   }
 
   return data;

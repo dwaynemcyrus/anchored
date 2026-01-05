@@ -22,12 +22,16 @@ export default function ProjectsPage() {
 
   const handleSave = async (values: {
     title: string;
+    outcome: string;
+    purpose: string;
     description: string | null;
   }) => {
     const project = await createProject.mutateAsync({
       title: values.title,
+      outcome: values.outcome,
+      purpose: values.purpose,
       description: values.description,
-      status: "active",
+      status: "backlog",
     });
     router.push(`/projects/${project.id}`);
   };

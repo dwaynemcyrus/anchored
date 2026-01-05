@@ -25,8 +25,10 @@ import type { Project } from "@/types/database";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  outcome: z.string().min(1, "Outcome is required").max(500, "Outcome is too long"),
+  purpose: z.string().min(1, "Purpose is required").max(500, "Purpose is too long"),
   description: z.string().max(500, "Description is too long").optional(),
-  status: z.enum(["active", "paused", "complete", "archived", "cancelled"]),
+  status: z.enum(["backlog", "active", "paused", "complete", "archived", "cancelled"]),
 });
 
 export type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -48,14 +50,17 @@ export function ProjectForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       title: project?.title || "",
+      outcome: project?.outcome || "",
+      purpose: project?.purpose || "",
       description: project?.description || "",
       status:
         (project?.status as
+          | "backlog"
           | "active"
           | "paused"
           | "complete"
           | "archived"
-          | "cancelled") || "active",
+          | "cancelled") || "backlog",
     },
   });
 
@@ -71,6 +76,46 @@ export function ProjectForm({
               <FormControl>
                 <Input
                   placeholder="Project name"
+                  {...field}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="outcome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Outcome</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="What does success look like?"
+                  className="resize-none"
+                  rows={3}
+                  {...field}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="purpose"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Purpose</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Why does this project matter?"
+                  className="resize-none"
+                  rows={3}
                   {...field}
                   disabled={isLoading}
                 />
@@ -117,6 +162,7 @@ export function ProjectForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="backlog">Backlog</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="paused">Paused</SelectItem>
                   <SelectItem value="complete">Complete</SelectItem>

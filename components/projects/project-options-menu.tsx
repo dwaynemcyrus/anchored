@@ -6,7 +6,7 @@ import styles from "./project-options-menu.module.css";
 interface ProjectOptionsMenuProps {
   onEditDetails?: () => void;
   label?: string;
-  status?: "active" | "paused" | "complete" | "archived" | "cancelled";
+  status?: "backlog" | "active" | "paused" | "complete" | "archived" | "cancelled";
   onStatusChange?: (status: "active" | "paused" | "complete" | "archived" | "cancelled") => void;
 }
 
@@ -18,6 +18,14 @@ export function ProjectOptionsMenu({
 }: ProjectOptionsMenuProps) {
   const editDisabled = !onEditDetails;
   const statusLabel = status ? status[0].toUpperCase() + status.slice(1) : "Status";
+  const statusOptions = ["active", "paused", "complete", "archived", "cancelled"] as const;
+  const statusOptionLabels: Record<(typeof statusOptions)[number], string> = {
+    active: "Activate",
+    paused: "Pause",
+    complete: "Complete",
+    archived: "Archive",
+    cancelled: "Cancel",
+  };
 
   return (
     <DropdownMenu.Root>
@@ -43,27 +51,23 @@ export function ProjectOptionsMenu({
                   alignOffset={-4}
                   sideOffset={6}
                 >
-                  {(["active", "paused", "complete", "archived", "cancelled"] as const).map(
-                    (option) => (
+                  {statusOptions.map((option) => (
                       <DropdownMenu.Item
                         key={option}
                         className={styles.menuItem}
-                        onSelect={(event) => {
+                        onSelect={() => {
                           if (option === status) return;
                           onStatusChange(option);
                         }}
                       >
                         <span className={styles.menuItemLabel}>
-                          {option === "cancelled"
-                            ? "Cancel"
-                            : option[0].toUpperCase() + option.slice(1)}
+                          {statusOptionLabels[option]}
                         </span>
                         {option === status && (
                           <span className={styles.menuItemCheck}>✓</span>
                         )}
                       </DropdownMenu.Item>
-                    )
-                  )}
+                    ))}
                 </DropdownMenu.SubContent>
               </DropdownMenu.Portal>
             </DropdownMenu.Sub>
@@ -74,7 +78,7 @@ export function ProjectOptionsMenu({
           <DropdownMenu.Item
             className={styles.menuItem}
             disabled={editDisabled}
-            onSelect={(event) => {
+            onSelect={() => {
               if (!onEditDetails) return;
               onEditDetails();
             }}

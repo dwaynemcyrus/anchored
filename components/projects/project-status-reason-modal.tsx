@@ -23,10 +23,13 @@ export function ProjectStatusReasonModal({
   const [reason, setReason] = useState("");
   const reasonRef = useRef<HTMLTextAreaElement | null>(null);
 
-  useLayoutEffect(() => {
-    if (!open) return;
-    setReason("");
-  }, [open]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setReason("");
+      return;
+    }
+    onClose();
+  };
 
   useLayoutEffect(() => {
     if (!reasonRef.current) return;
@@ -42,7 +45,7 @@ export function ProjectStatusReasonModal({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.overlay} />
         <Dialog.Content className={styles.sheet} aria-label="Project status reason">

@@ -3,14 +3,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 
-export type ProjectActivityAction = "paused" | "cancelled";
+export type ProjectActivityAction =
+  | "created"
+  | "active"
+  | "paused"
+  | "cancelled"
+  | "complete"
+  | "archived"
+  | "task_completed"
+  | "task_cancelled";
 
 export type ProjectActivity = {
   id: string;
   project_id: string;
   owner_id: string;
   action: ProjectActivityAction;
-  reason: string;
+  reason: string | null;
   created_at: string;
 };
 
@@ -39,7 +47,7 @@ async function fetchProjectActivity(projectId: string): Promise<ProjectActivity[
 async function createProjectActivity(input: {
   projectId: string;
   action: ProjectActivityAction;
-  reason: string;
+  reason?: string | null;
 }) {
   const supabase = createClient();
   const {
@@ -56,7 +64,7 @@ async function createProjectActivity(input: {
       project_id: input.projectId,
       owner_id: user.id,
       action: input.action,
-      reason: input.reason,
+      reason: input.reason ?? null,
     })
     .select()
     .single();

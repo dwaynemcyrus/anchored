@@ -19,6 +19,47 @@ function isCompletedProjectStatus(status: Project["status"] | null | undefined) 
   return status === "complete" || status === "cancelled";
 }
 
+type ProjectActivityAction =
+  | "created"
+  | "active"
+  | "paused"
+  | "cancelled"
+  | "complete"
+  | "archived";
+
+type ProjectCreateInput = Omit<
+  ProjectInsert,
+  "owner_id" | "outcome" | "purpose"
+> & {
+  outcome?: string;
+  purpose?: string;
+};
+
+async function insertProjectActivity({
+  supabase,
+  projectId,
+  ownerId,
+  action,
+  reason = null,
+}: {
+  supabase: ReturnType<typeof createClient>;
+  projectId: string;
+  ownerId: string;
+  action: ProjectActivityAction;
+  reason?: string | null;
+}) {
+  const { error } = await supabase.from("project_activity").insert({
+    project_id: projectId,
+    owner_id: ownerId,
+    action,
+    reason,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // Query keys
 export const projectKeys = {
   all: ["projects"] as const,
@@ -92,7 +133,7 @@ async function fetchProject(id: string): Promise<Project> {
 
 // Create project
 async function createProject(
-  project: Omit<ProjectInsert, "owner_id">
+  project: ProjectCreateInput
 ): Promise<Project> {
   const supabase = createClient();
 
@@ -104,9 +145,20 @@ async function createProject(
     throw new Error("Not authenticated");
   }
 
+  const nextStatus = project.status ?? "backlog";
+  const startedAt =
+    nextStatus === "active" ? project.started_at ?? new Date().toISOString() : null;
+
   const { data, error } = await supabase
     .from("projects")
-    .insert({ ...project, owner_id: user.id })
+    .insert({
+      ...project,
+      owner_id: user.id,
+      status: nextStatus,
+      outcome: project.outcome ?? "",
+      purpose: project.purpose ?? "",
+      started_at: startedAt,
+    })
     .select()
     .single();
 
@@ -114,15 +166,49 @@ async function createProject(
     throw new Error(error.message);
   }
 
+  await insertProjectActivity({
+    supabase,
+    projectId: data.id,
+    ownerId: user.id,
+    action: "created",
+  });
+
   return data;
 }
 
 // Update project
 async function updateProject({
   id,
+  skipActivity,
   ...updates
-}: ProjectUpdate & { id: string }): Promise<Project> {
+}: ProjectUpdate & { id: string; skipActivity?: boolean }): Promise<Project> {
   const supabase = createClient();
+  let previousStatus: Project["status"] | null = null;
+  let previousStartedAt: string | null = null;
+
+  if (updates.status) {
+    const { data: currentProject, error: currentError } = await supabase
+      .from("projects")
+      .select("status, started_at")
+      .eq("id", id)
+      .single();
+
+    if (currentError) {
+      throw new Error(currentError.message);
+    }
+
+    previousStatus = currentProject.status;
+    previousStartedAt = currentProject.started_at;
+
+    if (
+      updates.status === "active" &&
+      previousStatus === "backlog" &&
+      !previousStartedAt &&
+      !updates.started_at
+    ) {
+      updates.started_at = new Date().toISOString();
+    }
+  }
 
   if (updates.status) {
     updates.completed_at = isCompletedProjectStatus(updates.status)
@@ -139,6 +225,26 @@ async function updateProject({
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (
+    updates.status &&
+    updates.status !== "backlog" &&
+    updates.status !== previousStatus &&
+    !skipActivity
+  ) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await insertProjectActivity({
+        supabase,
+        projectId: data.id,
+        ownerId: user.id,
+        action: updates.status as ProjectActivityAction,
+      });
+    }
   }
 
   return data;
@@ -261,16 +367,22 @@ export function useCreateProject() {
 
       // Optimistically add new project
       if (previousProjects) {
+        const status = newProject.status || "backlog";
+        const startedAt =
+          status === "active" ? new Date().toISOString() : null;
         const optimisticProject: ProjectWithTaskCount = {
           id: `temp-${Date.now()}`,
           owner_id: "",
           title: newProject.title,
+          outcome: newProject.outcome || "",
+          purpose: newProject.purpose || "",
           description: newProject.description || null,
-          status: newProject.status || "active",
+          status,
           sort_order: 0,
           completed_at: null,
           deleted_at: null,
           created_at: new Date().toISOString(),
+          started_at: startedAt,
           updated_at: new Date().toISOString(),
           task_count: 0,
         };
@@ -367,7 +479,11 @@ export function useUpdateProjectStatusWithReason() {
         action: status,
         reason,
       });
-      return updateProject.mutateAsync({ id: projectId, status });
+      return updateProject.mutateAsync({
+        id: projectId,
+        status,
+        skipActivity: true,
+      });
     },
   });
 }

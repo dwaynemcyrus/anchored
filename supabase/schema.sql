@@ -11,11 +11,14 @@ CREATE TABLE projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
+  outcome TEXT NOT NULL,
+  purpose TEXT NOT NULL,
   description TEXT,
   start_date DATE,
   due_date DATE,
-  status TEXT NOT NULL DEFAULT 'active'
-    CHECK (status IN ('active', 'paused', 'complete', 'archived', 'cancelled')),
+  started_at TIMESTAMPTZ,
+  status TEXT NOT NULL DEFAULT 'backlog'
+    CHECK (status IN ('backlog', 'active', 'paused', 'complete', 'archived', 'cancelled')),
   sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
@@ -54,8 +57,8 @@ CREATE TABLE project_activity (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  action TEXT NOT NULL CHECK (action IN ('paused', 'cancelled')),
-  reason TEXT NOT NULL,
+  action TEXT NOT NULL CHECK (action IN ('created', 'active', 'paused', 'cancelled', 'complete', 'archived', 'task_completed', 'task_cancelled')),
+  reason TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -85,7 +88,7 @@ CREATE TABLE tasks (
   task_location TEXT NOT NULL DEFAULT 'inbox'
     CHECK (task_location IN ('inbox', 'anytime', 'project')),
   status TEXT NOT NULL DEFAULT 'inbox'
-    CHECK (status IN ('inbox', 'today', 'anytime', 'done', 'cancel')),
+    CHECK (status IN ('inbox', 'today', 'anytime', 'waiting', 'done', 'cancel')),
   is_now BOOLEAN NOT NULL DEFAULT false,
   now_slot TEXT
     CHECK (now_slot IN ('primary', 'secondary')),
