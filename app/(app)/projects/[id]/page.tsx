@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,7 @@ export default function ProjectDetailPage({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskWithDetails | null>(null);
 
@@ -96,17 +97,39 @@ export default function ProjectDetailPage({
   const [pendingStatus, setPendingStatus] = useState<{
     status: "paused" | "cancelled";
   } | null>(null);
+  const handleDismissOverlay = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    const navigate = () => {
+      if (typeof window !== "undefined" && window.history.length > 1) {
+        router.back();
+        return;
+      }
+      router.push("/projects");
+    };
+    window.setTimeout(navigate, 200);
+  }, [isClosing, router]);
+
+  const overlayClassName = useMemo(
+    () => (isClosing ? `${styles.overlay} ${styles.closing}` : styles.overlay),
+    [isClosing]
+  );
+
+  const panelClassName = useMemo(
+    () => (isClosing ? `${styles.panel} ${styles.closing}` : styles.panel),
+    [isClosing]
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        router.push("/projects");
+        handleDismissOverlay();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [router]);
+  }, [handleDismissOverlay]);
 
   const handleUpdateProject = async (values: {
     title: string;
@@ -188,7 +211,7 @@ export default function ProjectDetailPage({
         <button
           type="button"
           className={menuStyles.trigger}
-          onClick={() => router.back()}
+          onClick={handleDismissOverlay}
         >
           Back
         </button>
@@ -206,12 +229,12 @@ export default function ProjectDetailPage({
 
   return (
     <div
-      className={styles.overlay}
+      className={overlayClassName}
       role="presentation"
-      onClick={() => router.push("/projects")}
+      onClick={handleDismissOverlay}
     >
       <div
-        className={styles.panel}
+        className={panelClassName}
         role="presentation"
         onClick={(event) => event.stopPropagation()}
       >
@@ -220,7 +243,7 @@ export default function ProjectDetailPage({
         <button
           type="button"
           className={menuStyles.trigger}
-          onClick={() => router.push("/projects")}
+          onClick={handleDismissOverlay}
         >
           Back
         </button>
