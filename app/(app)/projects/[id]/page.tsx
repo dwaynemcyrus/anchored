@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
 import { ProjectStatusReasonModal } from "@/components/projects/project-status-reason-modal";
 import { ProjectInfoSheet } from "@/components/projects/project-info-sheet";
 import menuStyles from "@/components/projects/project-options-menu.module.css";
-import styles from "./page.module.css";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
 import { QuickAddInline } from "@/components/tasks/quick-add";
 import { SortableProjectTaskList } from "@/components/tasks/sortable-task-list";
@@ -80,7 +79,6 @@ export default function ProjectDetailPage({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskWithDetails | null>(null);
 
@@ -98,27 +96,12 @@ export default function ProjectDetailPage({
     status: "paused" | "cancelled";
   } | null>(null);
   const handleDismissOverlay = useCallback(() => {
-    if (isClosing) return;
-    setIsClosing(true);
-    const navigate = () => {
-      if (typeof window !== "undefined" && window.history.length > 1) {
-        router.back();
-        return;
-      }
-      router.push("/projects");
-    };
-    window.setTimeout(navigate, 200);
-  }, [isClosing, router]);
-
-  const overlayClassName = useMemo(
-    () => (isClosing ? `${styles.overlay} ${styles.closing}` : styles.overlay),
-    [isClosing]
-  );
-
-  const panelClassName = useMemo(
-    () => (isClosing ? `${styles.panel} ${styles.closing}` : styles.panel),
-    [isClosing]
-  );
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/projects");
+  }, [router]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -228,16 +211,7 @@ export default function ProjectDetailPage({
     ).length || 0;
 
   return (
-    <div
-      className={overlayClassName}
-      role="presentation"
-      onClick={handleDismissOverlay}
-    >
-      <div
-        className={panelClassName}
-        role="presentation"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <button
@@ -417,7 +391,6 @@ export default function ProjectDetailPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </div>
     </div>
   );
 }
