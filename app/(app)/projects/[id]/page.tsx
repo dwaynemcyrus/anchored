@@ -7,44 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectDetailSkeleton } from "@/components/skeletons";
 import { InlineError } from "@/components/error-boundary";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ProjectDetailModal } from "@/components/projects/project-detail-modal";
 import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
 import { ProjectStatusReasonModal } from "@/components/projects/project-status-reason-modal";
 import { ProjectInfoSheet } from "@/components/projects/project-info-sheet";
 import menuStyles from "@/components/projects/project-options-menu.module.css";
-import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
+import { Separator } from "@/components/ui/separator";
+import { TaskList } from "@/components/tasks/task-list";
+import taskListStyles from "@/components/tasks/task-list.module.css";
+import styles from "./page.module.css";
 import { QuickAddInline } from "@/components/tasks/quick-add";
-import { SortableProjectTaskList } from "@/components/tasks/sortable-task-list";
+import Link from "next/link";
 import {
   useProject,
   useUpdateProject,
   useUpdateProjectStatusWithReason,
 } from "@/lib/hooks/use-projects";
-import {
-  useProjectActivity,
-} from "@/lib/hooks/use-project-activity";
+import { useProjectActivity } from "@/lib/hooks/use-project-activity";
 import {
   useTasksByProject,
   useToggleTaskComplete,
-  useCreateTask,
-  useUpdateTask,
-  useDeleteTask,
   type TaskWithDetails,
 } from "@/lib/hooks/use-tasks";
 
@@ -57,17 +39,6 @@ const statusConfig = {
   cancelled: { label: "Cancelled", variant: "outline" as const },
 };
 
-const activityLabels: Record<string, string> = {
-  created: "Created",
-  active: "Activated",
-  paused: "Paused",
-  cancelled: "Cancelled",
-  complete: "Completed",
-  archived: "Archived",
-  task_completed: "Task completed",
-  task_cancelled: "Task cancelled",
-};
-
 export default function ProjectDetailPage({
   params,
 }: {
@@ -77,10 +48,7 @@ export default function ProjectDetailPage({
   const router = useRouter();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
-  const [deletingTask, setDeletingTask] = useState<TaskWithDetails | null>(null);
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(id);
   const { data: tasks, isLoading: tasksLoading } = useTasksByProject(id);
@@ -89,9 +57,6 @@ export default function ProjectDetailPage({
   const updateProject = useUpdateProject();
   const updateProjectWithReason = useUpdateProjectStatusWithReason();
   const toggleComplete = useToggleTaskComplete();
-  const createTask = useCreateTask();
-  const updateTask = useUpdateTask();
-  const deleteTask = useDeleteTask();
   const [pendingStatus, setPendingStatus] = useState<{
     status: "paused" | "cancelled";
   } | null>(null);
@@ -130,56 +95,11 @@ export default function ProjectDetailPage({
     toggleComplete.mutate(task);
   };
 
-  const handleTaskClick = (task: TaskWithDetails) => {
-    setEditingTask(task);
-    setIsTaskDialogOpen(true);
-  };
-
-  const handleEditTask = (task: TaskWithDetails) => {
-    setEditingTask(task);
-    setIsTaskDialogOpen(true);
-  };
-
-  const handleDeleteTask = (task: TaskWithDetails) => {
-    setDeletingTask(task);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (deletingTask) {
-      await deleteTask.mutateAsync(deletingTask.id);
-      setDeletingTask(null);
-    }
-  };
+  const returnTo = encodeURIComponent(`/projects/${id}`);
+  const taskLinkSuffix = `?returnTo=${returnTo}`;
 
   const handleAddTask = () => {
-    setEditingTask(null);
-    setIsTaskDialogOpen(true);
-  };
-
-  const handleTaskSubmit = async (values: TaskFormValues) => {
-    const taskLocation = values.project_id ? "project" : values.task_location;
-    if (editingTask) {
-      await updateTask.mutateAsync({
-        id: editingTask.id,
-        title: values.title,
-        notes: values.notes || null,
-        project_id: values.project_id,
-        task_location: taskLocation,
-        start_date: values.start_date?.toISOString() || null,
-        due_date: values.due_date?.toISOString() || null,
-      });
-    } else {
-      await createTask.mutateAsync({
-        title: values.title,
-        notes: values.notes || null,
-        project_id: id,
-        task_location: "project",
-        start_date: values.start_date?.toISOString() || null,
-        due_date: values.due_date?.toISOString() || null,
-      });
-    }
-    setIsTaskDialogOpen(false);
-    setEditingTask(null);
+    router.push(`/tasks/new?projectId=${id}&returnTo=${returnTo}`);
   };
 
   const isLoading = projectLoading || tasksLoading;
@@ -204,11 +124,10 @@ export default function ProjectDetailPage({
   }
 
   const config = statusConfig[project.status as keyof typeof statusConfig] ?? statusConfig.active;
-  const taskCount = tasks?.length || 0;
-  const activeTaskCount =
-    tasks?.filter(
-      (t) => !["done", "cancel", "waiting"].includes(t.status)
-    ).length || 0;
+  const nextTask = tasks?.find((task) => task.next_task) || null;
+  const remainingTasks = nextTask
+    ? tasks?.filter((task) => task.id !== nextTask.id)
+    : tasks;
 
   return (
     <div className="space-y-6">
@@ -263,28 +182,10 @@ export default function ProjectDetailPage({
               {project.description}
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            {activeTaskCount} active {activeTaskCount === 1 ? "task" : "tasks"}
-            {taskCount > activeTaskCount && ` · ${taskCount - activeTaskCount} completed`}
-          </p>
         </div>
 
         
       </div>
-
-      {activity && activity.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            {activity.map((item) => (
-              <div key={item.id}>
-                {activityLabels[item.action] ?? item.action}
-                {item.reason ? `: ${item.reason}` : ""}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Tasks Section */}
       <div className="space-y-4">
@@ -296,6 +197,50 @@ export default function ProjectDetailPage({
           </Button>
         </div>
 
+        {nextTask ? (
+          <Link
+            href={`/tasks/${nextTask.id}${taskLinkSuffix}`}
+            className={`${taskListStyles.item} ${styles.nextTask}`}
+          >
+            <input
+              type="checkbox"
+              className={taskListStyles.checkbox}
+              checked={nextTask.status === "done" || nextTask.status === "cancel"}
+              onChange={(event) => {
+                event.preventDefault();
+                handleToggleComplete(nextTask);
+              }}
+              onClick={(event) => event.stopPropagation()}
+            />
+            <span
+              className={
+                nextTask.status === "done" || nextTask.status === "cancel"
+                  ? taskListStyles.titleDone
+                  : taskListStyles.titleText
+              }
+            >
+              {nextTask.title}
+            </span>
+          </Link>
+        ) : (
+          <div className={`${taskListStyles.item} ${styles.nextTask}`}>
+            <input
+              type="checkbox"
+              className={taskListStyles.checkbox}
+              checked={false}
+              readOnly
+              aria-hidden="true"
+            />
+            <span
+              className={`${taskListStyles.titleText} ${styles.nextTaskPlaceholder}`}
+            >
+              No next task set
+            </span>
+          </div>
+        )}
+
+        <Separator />
+
         {/* Quick Add for this project */}
         <QuickAddInline
           defaultProjectId={id}
@@ -304,12 +249,11 @@ export default function ProjectDetailPage({
           placeholder="Quick add task to this project..."
         />
 
-        <SortableProjectTaskList
-          tasks={tasks || []}
+        <TaskList
+          tasks={remainingTasks || []}
           onToggleComplete={handleToggleComplete}
-          onTaskClick={handleTaskClick}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteTask}
+          emptyText="No tasks yet."
+          linkSuffix={taskLinkSuffix}
         />
       </div>
 
@@ -347,50 +291,6 @@ export default function ProjectDetailPage({
         activity={activity || []}
       />
 
-      {/* Task Create/Edit Dialog */}
-      <Dialog open={isTaskDialogOpen} onOpenChange={(open) => {
-        setIsTaskDialogOpen(open);
-        if (!open) setEditingTask(null);
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingTask ? "Edit Task" : "Add Task"}</DialogTitle>
-          </DialogHeader>
-          <TaskForm
-            task={editingTask || undefined}
-            defaultProjectId={id}
-            defaultLocation="project"
-            onSubmit={handleTaskSubmit}
-            onCancel={() => {
-              setIsTaskDialogOpen(false);
-              setEditingTask(null);
-            }}
-            isLoading={createTask.isPending || updateTask.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Task Confirmation Dialog */}
-      <AlertDialog open={!!deletingTask} onOpenChange={(open) => !open && setDeletingTask(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{deletingTask?.title}&rdquo;?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-white hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

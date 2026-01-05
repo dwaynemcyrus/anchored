@@ -1,53 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { TaskCreateModal } from "@/components/tasks/task-create-modal";
-import { TaskDetailModal } from "@/components/tasks/task-detail-modal";
-import { TaskList } from "@/components/tasks/task-list";
-import { TaskOptionsMenu } from "@/components/tasks/task-options-menu";
-import styles from "../page.module.css";
+import { useParams, useSearchParams } from "next/navigation";
+import { TaskDetailScreen } from "@/components/tasks/task-detail-screen";
 
 export default function TaskDetailRoute() {
   const params = useParams();
-  const router = useRouter();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const searchParams = useSearchParams();
   const taskId =
     typeof params?.id === "string"
       ? params.id
       : Array.isArray(params?.id)
       ? params.id[0]
       : null;
+  const returnTo = searchParams.get("returnTo");
+  const projectId = searchParams.get("projectId");
+
+  if (!taskId) {
+    return null;
+  }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <button
-            type="button"
-            className={styles.textButton}
-            onClick={() => router.push("/tasks")}
-          >
-            Back
-          </button>
-          <div className={styles.title}>Tasks</div>
-        </div>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.textButton}
-            onClick={() => setIsCreateOpen(true)}
-          >
-            New
-          </button>
-          <TaskOptionsMenu />
-        </div>
-      </div>
-      <div className={styles.scroll}>
-        <TaskList />
-      </div>
-      {taskId ? <TaskDetailModal taskId={taskId} /> : null}
-      <TaskCreateModal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
-    </div>
+    <TaskDetailScreen
+      mode="edit"
+      taskId={taskId}
+      projectId={projectId}
+      returnTo={returnTo}
+    />
   );
 }

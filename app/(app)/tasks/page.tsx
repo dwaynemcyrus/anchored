@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { TaskCreateModal } from "@/components/tasks/task-create-modal";
+import { useRouter } from "next/navigation";
 import { TaskList } from "@/components/tasks/task-list";
 import { TaskOptionsMenu } from "@/components/tasks/task-options-menu";
 import styles from "./page.module.css";
 
 export default function TaskListPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className={styles.page}>
@@ -17,7 +16,7 @@ export default function TaskListPage() {
           <button
             type="button"
             className={styles.textButton}
-            onClick={() => setIsCreateOpen(true)}
+            onClick={() => router.push("/tasks/new")}
           >
             New
           </button>
@@ -27,7 +26,6 @@ export default function TaskListPage() {
       <div className={styles.scroll}>
         <TaskList />
       </div>
-      <TaskCreateModal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
     </div>
   );
 }

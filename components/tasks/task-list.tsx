@@ -2,40 +2,66 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import type { TaskWithDetails } from "@/lib/hooks/use-tasks";
 import { useTasks, useToggleTaskComplete } from "@/lib/hooks/use-tasks";
 import styles from "./task-list.module.css";
 
-export function TaskList() {
-  const { data: tasks, isLoading, error } = useTasks();
+interface TaskListProps {
+  tasks?: TaskWithDetails[];
+  isLoading?: boolean;
+  error?: Error | null;
+  onToggleComplete?: (task: TaskWithDetails) => void;
+  selectedId?: string | null;
+  emptyText?: string;
+  linkBase?: string;
+  linkSuffix?: string;
+}
+
+export function TaskList({
+  tasks,
+  isLoading,
+  error,
+  onToggleComplete,
+  selectedId,
+  emptyText = "No tasks yet.",
+  linkBase = "/tasks",
+  linkSuffix = "",
+}: TaskListProps = {}) {
+  const { data: fetchedTasks, isLoading: isFetching, error: fetchError } = useTasks();
   const toggleComplete = useToggleTaskComplete();
   const params = useParams();
-  const selectedId =
-    typeof params?.id === "string"
+  const resolvedSelectedId =
+    selectedId ??
+    (typeof params?.id === "string"
       ? params.id
       : Array.isArray(params?.id)
       ? params.id[0]
-      : null;
+      : null);
+  const resolvedTasks = tasks ?? fetchedTasks;
+  const resolvedLoading = isLoading ?? isFetching;
+  const resolvedError = error ?? fetchError;
+  const handleToggleComplete = onToggleComplete ?? toggleComplete.mutate;
 
-  if (isLoading) {
+  if (resolvedLoading) {
     return <div className={styles.state}>Loading tasks...</div>;
   }
 
-  if (error) {
+  if (resolvedError) {
     return <div className={styles.state}>Failed to load tasks.</div>;
   }
 
-  if (!tasks || tasks.length === 0) {
-    return <div className={styles.state}>No tasks yet.</div>;
+  if (!resolvedTasks || resolvedTasks.length === 0) {
+    return <div className={styles.state}>{emptyText}</div>;
   }
 
   return (
     <ul className={styles.list}>
-      {tasks.map((task) => (
+      {resolvedTasks.map((task) => (
         <li key={task.id}>
           <Link
-            href={`/tasks/${task.id}`}
+            href={`${linkBase}/${task.id}${linkSuffix}`}
             className={
-              task.id === selectedId
+              task.id === resolvedSelectedId
                 ? `${styles.item} ${styles.itemActive}`
                 : styles.item
             }
@@ -46,7 +72,7 @@ export function TaskList() {
               checked={task.status === "done" || task.status === "cancel"}
               onChange={(event) => {
                 event.preventDefault();
-                toggleComplete.mutate(task);
+                handleToggleComplete(task);
               }}
               onClick={(event) => event.stopPropagation()}
             />
