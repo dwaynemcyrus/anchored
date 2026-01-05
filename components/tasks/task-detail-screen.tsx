@@ -142,7 +142,7 @@ export function TaskDetailScreen({
   let content = (
     <div className={styles.content}>
       <textarea
-        key={task?.id ?? "new-title"}
+        key={task?.id ? `${task.id}-title` : "new-title"}
         className={styles.titleInput}
         ref={titleRef}
         defaultValue={task?.title ?? ""}
@@ -160,7 +160,7 @@ export function TaskDetailScreen({
         }}
       />
       <textarea
-        key={task?.id ?? "new-notes"}
+        key={task?.id ? `${task.id}-notes` : "new-notes"}
         className={styles.notesInput}
         ref={notesRef}
         defaultValue={task?.notes ?? ""}
