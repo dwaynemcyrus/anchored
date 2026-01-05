@@ -56,12 +56,12 @@ export function TaskDetailScreen({
   const [isMarkNextOpen, setIsMarkNextOpen] = useState(false);
 
   const handleDismiss = useCallback(() => {
-    if (returnTo) {
-      router.push(returnTo);
-      return;
-    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
+      return;
+    }
+    if (returnTo) {
+      router.replace(returnTo);
       return;
     }
     router.push("/tasks");
