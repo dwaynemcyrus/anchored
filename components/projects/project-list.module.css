@@ -1,6 +1,25 @@
 .list {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
