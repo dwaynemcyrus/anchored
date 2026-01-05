@@ -244,7 +244,7 @@ export default function ProjectDetailPage({
         {/* Quick Add for this project */}
         <QuickAddInline
           defaultProjectId={id}
-          defaultStatus="today"
+          defaultStatus="backlog"
           defaultLocation="project"
           placeholder="Quick add task to this project..."
         />

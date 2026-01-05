@@ -89,7 +89,7 @@ export default function InboxPage() {
 
   const handlePutInNext = () => {
     if (!currentTask) return;
-    updateTaskStatus.mutate({ id: currentTask.id, status: "today" });
+    updateTaskStatus.mutate({ id: currentTask.id, status: "active" });
     setMode("default");
   };
 

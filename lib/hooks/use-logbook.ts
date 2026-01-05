@@ -249,7 +249,7 @@ async function restoreCompletedTask(taskId: string): Promise<{
     .from("tasks")
     .update({
       completed_at: null,
-      status: "today",
+      status: "active",
       project_id: projectId,
       task_location: taskLocation,
     })
@@ -311,7 +311,7 @@ async function restoreDeletedTask(taskId: string): Promise<{
       deleted_reason: null,
       deleted_parent_id: null,
       completed_at: null,
-      status: "today",
+      status: "active",
       project_id: projectId,
       task_location: taskLocation,
     })
@@ -389,7 +389,7 @@ async function restoreDeletedProject(projectId: string): Promise<{
         deleted_reason: null,
         deleted_parent_id: null,
         completed_at: null,
-        status: "today",
+        status: "active",
       })
       .in("id", taskIds);
 

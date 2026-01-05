@@ -58,7 +58,7 @@ export async function POST() {
           title: "Build task management UI",
           notes: "Create task list, forms, and status changes",
           task_location: "project",
-          status: "today",
+          status: "active",
         },
       ])
       .select();

@@ -91,20 +91,20 @@ export default function TestPage() {
     // Today tasks
     {
       title: "Review homepage mockups",
-      status: "today" as const,
+      status: "active" as const,
       task_location: "project" as const,
       project_id: projectIds[0],
       due_date: new Date().toISOString(),
     },
     {
       title: "Update navigation component",
-      status: "today" as const,
+      status: "active" as const,
       task_location: "project" as const,
       project_id: projectIds[0],
     },
     {
       title: "Write unit tests for API",
-      status: "today" as const,
+      status: "active" as const,
       task_location: "project" as const,
       project_id: projectIds[1],
     },
@@ -125,13 +125,13 @@ export default function TestPage() {
     // Inbox tasks (no project)
     {
       title: "Research competitor pricing",
-      status: "inbox" as const,
+      status: "backlog" as const,
       task_location: "inbox" as const,
       project_id: null,
     },
     {
       title: "Schedule team meeting",
-      status: "inbox" as const,
+      status: "backlog" as const,
       task_location: "inbox" as const,
       project_id: null,
       due_date: addDays(new Date(), 1).toISOString(),
@@ -139,7 +139,7 @@ export default function TestPage() {
     // Overdue task
     {
       title: "Submit quarterly report",
-      status: "today" as const,
+      status: "active" as const,
       task_location: "project" as const,
       project_id: projectIds[1],
       due_date: subDays(new Date(), 2).toISOString(),
@@ -260,7 +260,7 @@ export default function TestPage() {
         run: async () => {
           const result = await createTask.mutateAsync({
             title: "Test Task " + Date.now(),
-            status: "inbox",
+            status: "backlog",
             task_location: "inbox",
           });
           if (!result.id) throw new Error("No ID returned");
@@ -284,7 +284,7 @@ export default function TestPage() {
           if (!task) throw new Error("No active task found");
           await updateTask.mutateAsync({
             id: task.id,
-            status: "today",
+            status: "active",
           });
         },
       },
@@ -303,14 +303,14 @@ export default function TestPage() {
       {
         name: "Quick Add Parser - Today",
         run: async () => {
-          const result = parseTaskInput("Test task @today", [], "inbox");
-          if (result.status !== "today") throw new Error("Expected status 'today'");
+          const result = parseTaskInput("Test task @active", [], "backlog");
+          if (result.status !== "active") throw new Error("Expected status 'active'");
         },
       },
       {
         name: "Quick Add Parser - Tomorrow",
         run: async () => {
-          const result = parseTaskInput("Test task tomorrow", [], "inbox");
+          const result = parseTaskInput("Test task tomorrow", [], "backlog");
           if (!result.due_date) throw new Error("Expected due date");
         },
       },
@@ -318,7 +318,7 @@ export default function TestPage() {
         name: "Quick Add Parser - Project",
         run: async () => {
           const mockProjects = [{ id: "1", title: "Website" }];
-          const result = parseTaskInput("Test task #Website", mockProjects, "inbox");
+          const result = parseTaskInput("Test task #Website", mockProjects, "backlog");
           if (result.project_id !== "1") throw new Error("Expected project match");
         },
       },
@@ -416,18 +416,18 @@ export default function TestPage() {
       category: "Quick Add",
       description: "Quick add parses basic task titles",
       check: () => {
-        const result = parseTaskInput("My new task", [], "inbox");
+        const result = parseTaskInput("My new task", [], "backlog");
         return result.title === "My new task";
       },
     },
     {
       id: "quick-add-status",
       category: "Quick Add",
-      description: "Quick add supports @today and @anytime tags",
+      description: "Quick add supports @active and @anytime tags",
       check: () => {
-        const today = parseTaskInput("Task @today", [], "inbox");
-        const anytime = parseTaskInput("Task @anytime", [], "inbox");
-        return today.status === "today" && anytime.task_location === "anytime";
+        const active = parseTaskInput("Task @active", [], "backlog");
+        const anytime = parseTaskInput("Task @anytime", [], "backlog");
+        return active.status === "active" && anytime.task_location === "anytime";
       },
     },
     {
@@ -435,7 +435,7 @@ export default function TestPage() {
       category: "Quick Add",
       description: "Quick add supports 'tomorrow' keyword",
       check: () => {
-        const result = parseTaskInput("Task tomorrow", [], "inbox");
+        const result = parseTaskInput("Task tomorrow", [], "backlog");
         return result.due_date !== null;
       },
     },
@@ -445,7 +445,7 @@ export default function TestPage() {
       description: "Quick add supports #project tags",
       check: () => {
         const mockProjects = [{ id: "123", title: "Test" }];
-        const result = parseTaskInput("Task #Test", mockProjects, "inbox");
+        const result = parseTaskInput("Task #Test", mockProjects, "backlog");
         return result.project_id === "123";
       },
     },

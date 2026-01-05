@@ -48,7 +48,7 @@ export default function ReviewPage() {
 
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: todayTasks, isLoading: todayLoading } = useTasks({
-    status: "today",
+    status: "active",
   });
   const { data: doneTasks, isLoading: doneLoading } = useTasks({
     status: "done",
@@ -185,7 +185,7 @@ export default function ReviewPage() {
   };
 
   const handleMoveToToday = (task: TaskWithDetails) => {
-    updateTaskStatus.mutate({ id: task.id, status: "today" });
+    updateTaskStatus.mutate({ id: task.id, status: "active" });
   };
 
   const handleMoveToAnytime = (task: TaskWithDetails) => {

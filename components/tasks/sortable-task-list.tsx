@@ -262,23 +262,27 @@ export function SortableProjectTaskList({
   onEdit,
   onDelete,
 }: SortableProjectTaskListProps) {
-  const todayTasks = tasks
-    .filter((t) => t.status === "today")
+  const activeTasks = tasks
+    .filter((t) => t.status === "active")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const anytimeTasks = tasks
     .filter((t) => t.status === "anytime")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  const inboxTasks = tasks
-    .filter((t) => t.status === "inbox")
+  const backlogTasks = tasks
+    .filter((t) => t.status === "backlog")
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  const waitingTasks = tasks
+    .filter((t) => t.status === "waiting")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   const doneTasks = tasks
     .filter((t) => t.status === "done" || t.status === "cancel")
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   const hasActiveTasks =
-    todayTasks.length > 0 ||
+    activeTasks.length > 0 ||
     anytimeTasks.length > 0 ||
-    inboxTasks.length > 0;
+    backlogTasks.length > 0 ||
+    waitingTasks.length > 0;
 
   if (tasks.length === 0) {
     return (
@@ -290,14 +294,14 @@ export function SortableProjectTaskList({
 
   return (
     <div className="space-y-6">
-      {/* Today */}
-      {todayTasks.length > 0 && (
+      {/* Active */}
+      {activeTasks.length > 0 && (
         <section>
           <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-            Today ({todayTasks.length})
+            Active ({activeTasks.length})
           </h3>
           <SortableTaskList
-            tasks={todayTasks}
+            tasks={activeTasks}
             onToggleComplete={onToggleComplete}
             onTaskClick={onTaskClick}
             onEdit={onEdit}
@@ -322,14 +326,30 @@ export function SortableProjectTaskList({
         </section>
       )}
 
-      {/* Inbox (tasks in project but not scheduled) */}
-      {inboxTasks.length > 0 && (
+      {/* Backlog */}
+      {backlogTasks.length > 0 && (
         <section>
           <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-            Inbox ({inboxTasks.length})
+            Backlog ({backlogTasks.length})
           </h3>
           <SortableTaskList
-            tasks={inboxTasks}
+            tasks={backlogTasks}
+            onToggleComplete={onToggleComplete}
+            onTaskClick={onTaskClick}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        </section>
+      )}
+
+      {/* Waiting */}
+      {waitingTasks.length > 0 && (
+        <section>
+          <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+            Waiting ({waitingTasks.length})
+          </h3>
+          <SortableTaskList
+            tasks={waitingTasks}
             onToggleComplete={onToggleComplete}
             onTaskClick={onTaskClick}
             onEdit={onEdit}

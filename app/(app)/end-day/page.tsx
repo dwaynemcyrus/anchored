@@ -32,7 +32,7 @@ export default function EndDayPage() {
   const [isConfirming, setIsConfirming] = useState(false);
 
   const { data: todayTasks, isLoading: todayLoading } = useTasks({
-    status: "today",
+    status: "active",
   });
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: anytimeTasks, isLoading: anytimeLoading } = useAnytimeTasks();
@@ -44,7 +44,7 @@ export default function EndDayPage() {
 
   const orderedTodayTasks = useMemo(() => {
     return (todayTasks || [])
-      .filter((task) => task.status === "today" && !task.now_slot)
+      .filter((task) => task.status === "active" && !task.now_slot)
       .sort(sortByOrder);
   }, [todayTasks]);
 
@@ -191,7 +191,7 @@ export default function EndDayPage() {
     try {
       await Promise.all(
         selectedNextIds.map((id) =>
-          updateTask.mutateAsync({ id, status: "today", next_task: false })
+          updateTask.mutateAsync({ id, status: "active", next_task: false })
         )
       );
       setSelectedNextIds([]);

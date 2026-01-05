@@ -97,7 +97,7 @@ export default function TodayPage() {
   const dateLabel = format(new Date(), "EEE · d MMM");
   const todayDate = useMemo(() => new Date(), []);
   const { data: todayTasks, isLoading: todayLoading } = useTasks({
-    status: "today",
+    status: "active",
   });
   const { data: inboxTasks, isLoading: inboxLoading } = useInboxTasks();
   const { data: nowTasks, isLoading: nowLoading } = useNowTasks();
@@ -1049,7 +1049,7 @@ export default function TodayPage() {
                 updateTask.mutate({
                   id: releaseTaskId,
                   now_slot: null,
-                  status: "today",
+                  status: "active",
                 });
                 setShowReleaseDialog(false);
               }}
@@ -1080,7 +1080,7 @@ export default function TodayPage() {
                 updateTask.mutate({
                   id: releaseTaskId,
                   now_slot: null,
-                  status: "inbox",
+                  status: "backlog",
                   task_location: "inbox",
                 });
                 setShowReleaseDialog(false);
