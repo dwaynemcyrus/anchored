@@ -47,6 +47,32 @@ CREATE POLICY "Users can delete own projects"
   USING (owner_id = auth.uid());
 
 -- ============================================================================
+-- 1B. PROJECT ACTIVITY TABLE
+-- ============================================================================
+
+CREATE TABLE project_activity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  action TEXT NOT NULL CHECK (action IN ('paused', 'cancelled')),
+  reason TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_project_activity_project ON project_activity(project_id);
+CREATE INDEX idx_project_activity_owner ON project_activity(owner_id);
+
+ALTER TABLE project_activity ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own project activity"
+  ON project_activity FOR SELECT
+  USING (owner_id = auth.uid());
+
+CREATE POLICY "Users can create own project activity"
+  ON project_activity FOR INSERT
+  WITH CHECK (owner_id = auth.uid());
+
+-- ============================================================================
 -- 2. TASKS TABLE
 -- ============================================================================
 

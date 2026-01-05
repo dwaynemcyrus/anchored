@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectDetailSkeleton } from "@/components/skeletons";
@@ -25,10 +25,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProjectDetailModal } from "@/components/projects/project-detail-modal";
 import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
+import { ProjectStatusReasonModal } from "@/components/projects/project-status-reason-modal";
+import menuStyles from "@/components/projects/project-options-menu.module.css";
 import { TaskForm, type TaskFormValues } from "@/components/tasks/task-form";
 import { QuickAddInline } from "@/components/tasks/quick-add";
 import { SortableProjectTaskList } from "@/components/tasks/sortable-task-list";
-import { useProject, useUpdateProject } from "@/lib/hooks/use-projects";
+import {
+  useProject,
+  useUpdateProject,
+  useUpdateProjectStatusWithReason,
+} from "@/lib/hooks/use-projects";
+import {
+  useProjectActivity,
+} from "@/lib/hooks/use-project-activity";
 import {
   useTasksByProject,
   useToggleTaskComplete,
@@ -61,12 +70,17 @@ export default function ProjectDetailPage({
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(id);
   const { data: tasks, isLoading: tasksLoading } = useTasksByProject(id);
+  const { data: activity } = useProjectActivity(id);
 
   const updateProject = useUpdateProject();
+  const updateProjectWithReason = useUpdateProjectStatusWithReason();
   const toggleComplete = useToggleTaskComplete();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const [pendingStatus, setPendingStatus] = useState<{
+    status: "paused" | "cancelled";
+  } | null>(null);
 
   const handleUpdateProject = async (values: {
     title: string;
@@ -143,10 +157,13 @@ export default function ProjectDetailPage({
   if (projectError || !project) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+        <button
+          type="button"
+          className={menuStyles.trigger}
+          onClick={() => router.back()}
+        >
           Back
-        </Button>
+        </button>
         <InlineError message={projectError?.message || "Project not found"} />
       </div>
     );
@@ -161,11 +178,32 @@ export default function ProjectDetailPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push("/projects")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Projects
-        </Button>
+      <div className="flex items-center justify-between gap-4">
+        <button
+          type="button"
+          className={menuStyles.trigger}
+          onClick={() => router.push("/projects")}
+        >
+          Back
+        </button>
+        <div className="flex items-center gap-3">
+          <ProjectOptionsMenu
+            onEditDetails={() => setIsEditDialogOpen(true)}
+            status={
+              project.status as "active" | "paused" | "complete" | "archived" | "cancelled"
+            }
+            onStatusChange={(status) => {
+              if (status === "paused" || status === "cancelled") {
+                setPendingStatus({ status });
+                return;
+              }
+              updateProject.mutateAsync({ id, status });
+            }}
+          />
+          <button type="button" className={menuStyles.trigger}>
+            Info
+          </button>
+        </div>
       </div>
 
       {/* Project Info */}
@@ -186,8 +224,21 @@ export default function ProjectDetailPage({
           </p>
         </div>
 
-        <ProjectOptionsMenu onEditDetails={() => setIsEditDialogOpen(true)} />
+        
       </div>
+
+      {activity && activity.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            {activity.map((item) => (
+              <div key={item.id}>
+                {item.action === "paused" ? "Pause" : "Cancel"}: {item.reason}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tasks Section */}
       <div className="space-y-4">
@@ -224,6 +275,21 @@ export default function ProjectDetailPage({
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUpdateProject}
         isSaving={updateProject.isPending}
+      />
+      <ProjectStatusReasonModal
+        open={!!pendingStatus}
+        statusLabel={pendingStatus?.status === "paused" ? "Pause" : "Cancel"}
+        onClose={() => setPendingStatus(null)}
+        onSubmit={async (reason) => {
+          if (!pendingStatus) return;
+          await updateProjectWithReason.mutateAsync({
+            projectId: id,
+            status: pendingStatus.status,
+            reason,
+          });
+          setPendingStatus(null);
+        }}
+        isSaving={updateProjectWithReason.isPending}
       />
 
       {/* Task Create/Edit Dialog */}

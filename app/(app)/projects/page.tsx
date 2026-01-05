@@ -6,26 +6,14 @@ import { InlineError } from "@/components/error-boundary";
 import { ProjectDetailModal } from "@/components/projects/project-detail-modal";
 import { ProjectList } from "@/components/projects/project-list";
 import { ProjectOptionsMenu } from "@/components/projects/project-options-menu";
-import {
-  useCreateProject,
-  useProjects,
-  useUpdateProject,
-  type ProjectWithTaskCount,
-} from "@/lib/hooks/use-projects";
+import { useCreateProject, useProjects } from "@/lib/hooks/use-projects";
 import styles from "./page.module.css";
 
-type ProjectStatus =
-  | "active"
-  | "paused"
-  | "complete"
-  | "archived"
-  | "cancelled";
 
 export default function ProjectsPage() {
   const router = useRouter();
   const { data: projects = [], isLoading, error } = useProjects();
   const createProject = useCreateProject();
-  const updateProject = useUpdateProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCreate = () => {
@@ -44,12 +32,6 @@ export default function ProjectsPage() {
     router.push(`/projects/${project.id}`);
   };
 
-  const handleStatusChange = async (
-    project: ProjectWithTaskCount,
-    status: ProjectStatus
-  ) => {
-    await updateProject.mutateAsync({ id: project.id, status });
-  };
 
   if (error) {
     return <InlineError message={`Error loading projects: ${error.message}`} />;
@@ -67,11 +49,13 @@ export default function ProjectsPage() {
         </div>
       </div>
       <div className={styles.subtitle}>Organize your work into projects.</div>
-      {isLoading ? (
-        <div className={styles.state}>Loading projects...</div>
-      ) : (
-        <ProjectList projects={projects} onStatusChange={handleStatusChange} />
-      )}
+      <div className={styles.scroll}>
+        {isLoading ? (
+          <div className={styles.state}>Loading projects...</div>
+        ) : (
+          <ProjectList projects={projects} />
+        )}
+      </div>
       <ProjectDetailModal
         open={isModalOpen}
         mode="create"

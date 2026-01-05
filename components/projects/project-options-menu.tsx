@@ -6,13 +6,18 @@ import styles from "./project-options-menu.module.css";
 interface ProjectOptionsMenuProps {
   onEditDetails?: () => void;
   label?: string;
+  status?: "active" | "paused" | "complete" | "archived" | "cancelled";
+  onStatusChange?: (status: "active" | "paused" | "complete" | "archived" | "cancelled") => void;
 }
 
 export function ProjectOptionsMenu({
   onEditDetails,
   label = "More",
+  status,
+  onStatusChange,
 }: ProjectOptionsMenuProps) {
   const editDisabled = !onEditDetails;
+  const statusLabel = status ? status[0].toUpperCase() + status.slice(1) : "Status";
 
   return (
     <DropdownMenu.Root>
@@ -27,6 +32,42 @@ export function ProjectOptionsMenu({
           align="end"
           sideOffset={6}
         >
+          {status && onStatusChange && (
+            <DropdownMenu.Sub>
+              <DropdownMenu.SubTrigger className={styles.menuItem}>
+                {statusLabel}
+              </DropdownMenu.SubTrigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.SubContent
+                  className={styles.menuContent}
+                  alignOffset={-4}
+                  sideOffset={6}
+                >
+                  {(["active", "paused", "complete", "archived", "cancelled"] as const).map(
+                    (option) => (
+                      <DropdownMenu.Item
+                        key={option}
+                        className={styles.menuItem}
+                        onSelect={(event) => {
+                          if (option === status) return;
+                          onStatusChange(option);
+                        }}
+                      >
+                        <span className={styles.menuItemLabel}>
+                          {option === "cancelled"
+                            ? "Cancel"
+                            : option[0].toUpperCase() + option.slice(1)}
+                        </span>
+                        {option === status && (
+                          <span className={styles.menuItemCheck}>✓</span>
+                        )}
+                      </DropdownMenu.Item>
+                    )
+                  )}
+                </DropdownMenu.SubContent>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Sub>
+          )}
           <DropdownMenu.Item className={styles.menuItem}>
             Group &amp; Sort
           </DropdownMenu.Item>
@@ -35,7 +76,6 @@ export function ProjectOptionsMenu({
             disabled={editDisabled}
             onSelect={(event) => {
               if (!onEditDetails) return;
-              event.preventDefault();
               onEditDetails();
             }}
           >

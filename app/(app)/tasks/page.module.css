@@ -26,6 +26,12 @@
   gap: 12px;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .textButton {
   border: none;
   background: transparent;

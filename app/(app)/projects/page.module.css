@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: 12px;
   padding: 20px 16px 40px;
+  height: 100%;
+  overflow: hidden;
 }
 
 .header {
@@ -41,6 +43,15 @@
 .state {
   padding: 20px 16px;
   color: rgba(0, 0, 0, 0.6);
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 24px;
+  touch-action: pan-y;
 }
 
 @media (min-width: 768px) {

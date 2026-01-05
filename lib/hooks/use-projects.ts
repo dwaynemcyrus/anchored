@@ -8,6 +8,7 @@ import type {
   ProjectUpdate,
 } from "@/types/database";
 import { taskKeys } from "./use-tasks";
+import { useCreateProjectActivity } from "./use-project-activity";
 
 // Extended project type with task count
 export type ProjectWithTaskCount = Project & {
@@ -343,6 +344,30 @@ export function useUpdateProject() {
       queryClient.invalidateQueries({
         queryKey: projectKeys.detail(variables.id),
       });
+    },
+  });
+}
+
+export function useUpdateProjectStatusWithReason() {
+  const updateProject = useUpdateProject();
+  const createActivity = useCreateProjectActivity();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      status,
+      reason,
+    }: {
+      projectId: string;
+      status: "paused" | "cancelled";
+      reason: string;
+    }) => {
+      await createActivity.mutateAsync({
+        projectId,
+        action: status,
+        reason,
+      });
+      return updateProject.mutateAsync({ id: projectId, status });
     },
   });
 }

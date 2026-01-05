@@ -41,3 +41,12 @@
 .menuItem[data-disabled]:focus {
   background: transparent;
 }
+
+.menuItemLabel {
+  display: inline-block;
+}
+
+.menuItemCheck {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
