@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +15,19 @@ import {
 } from "@/components/ui/card";
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const guestEmail =
+    process.env.NEXT_PUBLIC_GUEST_EMAIL ??
+    process.env.NEXT_PUBLIC_OWNER_EMAIL ??
+    "";
+  const guestPassword = process.env.NEXT_PUBLIC_GUEST_PASSWORD ?? "";
+  const guestConfigured = Boolean(guestEmail && guestPassword);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -54,6 +62,31 @@ function LoginForm() {
     }
 
     setIsSuccess(true);
+  };
+
+  const handleGuestLogin = async () => {
+    if (!guestConfigured) {
+      setError("Guest login is not configured.");
+      return;
+    }
+
+    setIsGuestLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: guestEmail,
+      password: guestPassword,
+    });
+
+    setIsGuestLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    router.push("/");
   };
 
   if (isSuccess) {
@@ -110,6 +143,16 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Sending..." : "Send magic link"}
           </Button>
+          <div className="text-center text-xs text-muted-foreground">or</div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGuestLogin}
+            disabled={isGuestLoading || !guestConfigured}
+          >
+            {isGuestLoading ? "Signing in..." : "Login as guest"}
+          </Button>
         </form>
       </CardContent>
     </Card>
@@ -133,6 +176,10 @@ function LoginFormFallback() {
           </div>
           <Button className="w-full" disabled>
             Send magic link
+          </Button>
+          <div className="text-center text-xs text-muted-foreground">or</div>
+          <Button className="w-full" variant="outline" disabled>
+            Login as guest
           </Button>
         </div>
       </CardContent>
