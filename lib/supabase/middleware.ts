@@ -46,6 +46,7 @@ export async function updateSession(request: NextRequest) {
   const normalizedOwnerEmail = ownerEmail.trim().toLowerCase();
   const userEmail = user?.email?.trim().toLowerCase() || "";
   const isOwner = !normalizedOwnerEmail || userEmail === normalizedOwnerEmail;
+  const isAnonymousGuest = user?.is_anonymous === true;
 
   // Redirect unauthenticated users to login page
   if (!user && !isAuthRoute) {
@@ -54,8 +55,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect unauthorized users to login page
-  if (user && !isOwner) {
+  // Redirect unauthorized users to login page (but allow anonymous guests)
+  if (user && !isOwner && !isAnonymousGuest) {
     if (!isAuthRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";

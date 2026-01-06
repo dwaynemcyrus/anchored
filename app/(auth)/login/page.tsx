@@ -22,12 +22,6 @@ function LoginForm() {
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const guestEmail =
-    process.env.NEXT_PUBLIC_GUEST_EMAIL ??
-    process.env.NEXT_PUBLIC_OWNER_EMAIL ??
-    "";
-  const guestPassword = process.env.NEXT_PUBLIC_GUEST_PASSWORD ?? "";
-  const guestConfigured = Boolean(guestEmail && guestPassword);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -65,19 +59,11 @@ function LoginForm() {
   };
 
   const handleGuestLogin = async () => {
-    if (!guestConfigured) {
-      setError("Guest login is not configured.");
-      return;
-    }
-
     setIsGuestLoading(true);
     setError(null);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: guestEmail,
-      password: guestPassword,
-    });
+    const { error } = await supabase.auth.signInAnonymously();
 
     setIsGuestLoading(false);
 
@@ -149,9 +135,9 @@ function LoginForm() {
             variant="outline"
             className="w-full"
             onClick={handleGuestLogin}
-            disabled={isGuestLoading || !guestConfigured}
+            disabled={isGuestLoading}
           >
-            {isGuestLoading ? "Signing in..." : "Login as guest"}
+            {isGuestLoading ? "Signing in..." : "Continue as guest"}
           </Button>
         </form>
       </CardContent>
@@ -179,7 +165,7 @@ function LoginFormFallback() {
           </Button>
           <div className="text-center text-xs text-muted-foreground">or</div>
           <Button className="w-full" variant="outline" disabled>
-            Login as guest
+            Continue as guest
           </Button>
         </div>
       </CardContent>
