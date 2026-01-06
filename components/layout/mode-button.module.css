@@ -1,0 +1,99 @@
+.buttonWrapper {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  transform: translateX(-50%);
+  z-index: 1400;
+}
+
+.modeButton {
+  height: 48px;
+  min-width: 96px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0b0b0b;
+  color: #f4f4f4;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.modeButton:focus-visible {
+  outline: 2px solid #f4f4f4;
+  outline-offset: 3px;
+}
+
+.ritualNotice {
+  max-width: 220px;
+  text-transform: none;
+}
+
+.sheetRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+}
+
+.sheetOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.sheetPanel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  transform: translateX(-50%);
+  width: min(320px, calc(100% - 32px));
+  background: #0b0b0b;
+  color: #f4f4f4;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sheetTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sheetClose {
+  background: transparent;
+  border: none;
+  color: #b9b9b9;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.sheetList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheetItem {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sheetItem:focus-visible,
+.sheetClose:focus-visible {
+  outline: 2px solid #f4f4f4;
+  outline-offset: 2px;
+}

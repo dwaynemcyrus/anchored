@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { CaptureButton } from "@/components/layout/capture-button";
+import { ModeButton } from "@/components/layout/mode-button";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default function RootLayout({
       <body className="antialiased">
         <QueryProvider>
           {children}
-          <CaptureButton />
+          <ModeButton />
         </QueryProvider>
       </body>
     </html>
