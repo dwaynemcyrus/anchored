@@ -1,8 +1,18 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { useRitualModeStore } from "@/lib/stores/ritual-mode-store";
 import styles from "./layout.module.css";
 
 export default function EndDayLayout({ children }: { children: ReactNode }) {
+  const { enableRitualMode, disableRitualMode } = useRitualModeStore();
+
+  useEffect(() => {
+    enableRitualMode();
+    return () => {
+      disableRitualMode();
+    };
+  }, [enableRitualMode, disableRitualMode]);
+
   return <div className={styles.shell}>{children}</div>;
 }
