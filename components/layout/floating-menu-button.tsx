@@ -19,8 +19,10 @@ export function FloatingMenuButton() {
         aria-expanded={isOpen}
         onClick={open}
       >
-        <span className={styles.floatingIcon} aria-hidden="true">
-          <span />
+        <span className={styles.hamburger} aria-hidden="true">
+          <span className={styles.hamburgerLine} />
+          <span className={styles.hamburgerLine} />
+          <span className={styles.hamburgerLine} />
         </span>
         <span className={styles.srOnly}>Open menu</span>
       </button>

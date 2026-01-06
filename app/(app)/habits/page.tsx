@@ -128,9 +128,9 @@ export default function HabitsPage() {
   const buildTotalActive = activeBuildHabits.length;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between px-4 pt-4 md:px-6 md:pt-6">
         <div>
           <h1 className="text-2xl font-semibold">Habits</h1>
           <p className="text-muted-foreground">
@@ -145,8 +145,10 @@ export default function HabitsPage() {
         </Button>
       </div>
 
-      {/* Toggle Archived */}
-      <div className="flex justify-end">
+      <div className="flex-1 overflow-y-auto px-4 pb-6 md:px-6">
+        <div className="space-y-8 pt-6">
+          {/* Toggle Archived */}
+          <div className="flex justify-end">
         <Button
           variant="ghost"
           size="sm"
@@ -310,6 +312,8 @@ export default function HabitsPage() {
           )}
         </div>
       )}
+        </div>
+      </div>
 
       {/* Edit Build Habit Dialog */}
       <Dialog

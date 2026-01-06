@@ -26,8 +26,8 @@ export default function AnytimePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-3">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-start gap-3 px-4 pt-4 md:px-6 md:pt-6">
         <div className="rounded-lg bg-muted p-2">
           <Layers className="h-5 w-5" />
         </div>
@@ -39,20 +39,24 @@ export default function AnytimePage() {
         </div>
       </div>
 
-      <QuickAdd
-        defaultLocation="anytime"
-        placeholder="Add an anytime task... (# for project, @ for status)"
-      />
+      <div className="flex-1 overflow-y-auto px-4 pb-6 md:px-6">
+        <div className="space-y-6 pt-6">
+          <QuickAdd
+            defaultLocation="anytime"
+            placeholder="Add an anytime task... (# for project, @ for status)"
+          />
 
-      {isLoading ? (
-        <TaskListSkeleton count={4} />
-      ) : (
-        <AnytimeTaskList
-          tasks={tasks || []}
-          onToggleComplete={handleToggleComplete}
-          onTaskClick={handleTaskClick}
-        />
-      )}
+          {isLoading ? (
+            <TaskListSkeleton count={4} />
+          ) : (
+            <AnytimeTaskList
+              tasks={tasks || []}
+              onToggleComplete={handleToggleComplete}
+              onTaskClick={handleTaskClick}
+            />
+          )}
+        </div>
+      </div>
 
       <TaskDetailDrawer
         taskId={selectedTaskId}

@@ -230,7 +230,8 @@ export default function EndDayPage() {
     screen === 3 && !nextLoading && nextCount === 0 && !flaggingCompleted;
 
   return (
-    <div className={styles.review}>
+    <div className={styles.wrapper}>
+      <div className={styles.review}>
       {screen === 0 && (
         <>
           <div className={styles.rule} />
@@ -511,6 +512,7 @@ export default function EndDayPage() {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }

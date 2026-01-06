@@ -79,9 +79,9 @@ export default function LogbookPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 px-4 pt-4 md:px-6 md:pt-6">
         <div className="rounded-lg bg-muted p-2">
           <Archive className="h-5 w-5" />
         </div>
@@ -93,37 +93,41 @@ export default function LogbookPage() {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between gap-4">
-        <LogbookToggle value={state} onChange={setState} />
-        <LogbookDateRange
-          value={dateRangeOption}
-          customRange={customRange}
-          onChange={handleDateRangeChange}
-        />
-      </div>
+      <div className="flex-1 overflow-y-auto px-4 pb-6 md:px-6">
+        <div className="space-y-6 pt-6">
+          {/* Controls */}
+          <div className="flex items-center justify-between gap-4">
+            <LogbookToggle value={state} onChange={setState} />
+            <LogbookDateRange
+              value={dateRangeOption}
+              customRange={customRange}
+              onChange={handleDateRangeChange}
+            />
+          </div>
 
-      {/* List */}
-      {isLoading ? (
-        <TaskListSkeleton count={6} />
-      ) : items && items.length > 0 ? (
-        <LogbookList
-          items={items}
-          state={state}
-          onRestore={handleRestore}
-          onPermanentDelete={handlePermanentDelete}
-          isRestoring={restoreItem.isPending}
-          isDeleting={hardDeleteItem.isPending}
-        />
-      ) : (
-        <div className="py-12 text-center text-muted-foreground">
-          <Archive className="mx-auto mb-3 h-12 w-12 opacity-20" />
-          <p>
-            No {state === "completed" ? "completed" : "deleted"} items in this
-            date range.
-          </p>
+          {/* List */}
+          {isLoading ? (
+            <TaskListSkeleton count={6} />
+          ) : items && items.length > 0 ? (
+            <LogbookList
+              items={items}
+              state={state}
+              onRestore={handleRestore}
+              onPermanentDelete={handlePermanentDelete}
+              isRestoring={restoreItem.isPending}
+              isDeleting={hardDeleteItem.isPending}
+            />
+          ) : (
+            <div className="py-12 text-center text-muted-foreground">
+              <Archive className="mx-auto mb-3 h-12 w-12 opacity-20" />
+              <p>
+                No {state === "completed" ? "completed" : "deleted"} items in this
+                date range.
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

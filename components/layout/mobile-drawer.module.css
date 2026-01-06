@@ -10,14 +10,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 36px;
-  border-radius: 0;
-  border: 1px solid #000;
-  background: #000;
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.floatingButton:hover {
+  background: var(--muted);
 }
 
 .floatingButton:focus-visible {
@@ -25,14 +30,22 @@
   outline-offset: 2px;
 }
 
-.floatingIcon {
-  background: currentColor;
-  width: 2px;
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 18px;
   height: 18px;
 }
 
-.floatingIcon span {
-  display: none;
+.hamburgerLine {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
 }
 
 .overlay {

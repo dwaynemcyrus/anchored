@@ -214,11 +214,14 @@ export default function ReviewPage() {
   const canContinue = inboxCount === 0;
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="px-4 pt-4 md:px-6 md:pt-6 space-y-1">
         <h1 className="text-2xl font-semibold">Daily Review</h1>
         <p className="text-muted-foreground">{todayLabel}</p>
       </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-6 md:px-6">
+        <div className="space-y-6 pt-6">
 
       {isLoading ? (
         <TaskListSkeleton count={3} />
@@ -362,6 +365,8 @@ export default function ReviewPage() {
           )}
         </>
       )}
+        </div>
+      </div>
     </div>
   );
 }
