@@ -31,6 +31,11 @@ const MODE_ROUTES = [
 type Point = { x: number; y: number };
 type HoldZone = "left" | "right" | "up" | null;
 type ZoneNotice = "mode" | "search" | "capture" | null;
+type ZonePositions = {
+  left: { x: number; y: number };
+  right: { x: number; y: number };
+  up: { x: number; y: number };
+};
 
 export function ModeButton() {
   const pathname = usePathname();
@@ -47,6 +52,7 @@ export function ModeButton() {
   const [isRitualNoticeOpen, setIsRitualNoticeOpen] = useState(false);
   const [isSearchNoticeOpen, setIsSearchNoticeOpen] = useState(false);
   const [zoneNotice, setZoneNotice] = useState<ZoneNotice>(null);
+  const [zonePositions, setZonePositions] = useState<ZonePositions | null>(null);
   const startPointRef = useRef<Point | null>(null);
   const touchActiveRef = useRef(false);
   const swipedRef = useRef(false);
@@ -130,6 +136,23 @@ export function ModeButton() {
       document.body.style.overflow = bodyOverflowRef.current;
       bodyOverflowRef.current = null;
     }
+  }, []);
+
+  const computeZonePositions = useCallback(() => {
+    const button = buttonWrapperRef.current?.getBoundingClientRect();
+    if (!button) return;
+    const zoneSize = 96;
+    const offset = 60;
+    const leftX = button.left - offset - zoneSize;
+    const rightX = button.right + offset;
+    const upX = button.left + button.width / 2 - zoneSize / 2;
+    const upY = button.top - offset - zoneSize;
+    const baseY = button.top + button.height / 2 - zoneSize / 2;
+    setZonePositions({
+      left: { x: leftX, y: baseY },
+      right: { x: rightX, y: baseY },
+      up: { x: upX, y: upY },
+    });
   }, []);
 
   useEffect(() => {
@@ -416,6 +439,24 @@ export function ModeButton() {
   };
 
   useEffect(() => {
+    if (isHoldMode) return;
+    if (dragOffset.x !== 0 || dragOffset.y !== 0) return;
+    computeZonePositions();
+  }, [computeZonePositions, dragOffset.x, dragOffset.y, isHoldMode]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (isHoldMode) return;
+      if (dragOffset.x !== 0 || dragOffset.y !== 0) return;
+      computeZonePositions();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [computeZonePositions, dragOffset.x, dragOffset.y, isHoldMode]);
+
+  useEffect(() => {
     const node = buttonWrapperRef.current;
     if (!node) return;
 
@@ -535,28 +576,44 @@ export function ModeButton() {
                     : ""}
             </TooltipContent>
           </Tooltip>
-          {isHoldMode && (
-            <div className={styles.zonesRoot} aria-hidden="true">
-              <div
-                ref={leftZoneRef}
-                className={`${styles.zone} ${styles.zoneLeft} ${activeZone === "left" ? styles.zoneActive : ""}`}
-              >
-                Mode
-              </div>
-              <div
-                ref={rightZoneRef}
-                className={`${styles.zone} ${styles.zoneRight} ${activeZone === "right" ? styles.zoneActive : ""}`}
-              >
-                Search
-              </div>
-              <div
-                ref={upZoneRef}
-                className={`${styles.zone} ${styles.zoneUp} ${activeZone === "up" ? styles.zoneActive : ""}`}
-              >
-                Capture
-              </div>
-            </div>
-          )}
+        </div>
+      )}
+
+      {isHoldMode && (
+        <div className={styles.zonesRoot} aria-hidden="true">
+          <div
+            ref={leftZoneRef}
+            className={`${styles.zone} ${styles.zoneLeft} ${activeZone === "left" ? styles.zoneActive : ""}`}
+            style={
+              zonePositions
+                ? { left: zonePositions.left.x, top: zonePositions.left.y }
+                : undefined
+            }
+          >
+            Mode
+          </div>
+          <div
+            ref={rightZoneRef}
+            className={`${styles.zone} ${styles.zoneRight} ${activeZone === "right" ? styles.zoneActive : ""}`}
+            style={
+              zonePositions
+                ? { left: zonePositions.right.x, top: zonePositions.right.y }
+                : undefined
+            }
+          >
+            Search
+          </div>
+          <div
+            ref={upZoneRef}
+            className={`${styles.zone} ${styles.zoneUp} ${activeZone === "up" ? styles.zoneActive : ""}`}
+            style={
+              zonePositions
+                ? { left: zonePositions.up.x, top: zonePositions.up.y }
+                : undefined
+            }
+          >
+            Capture
+          </div>
         </div>
       )}
 
