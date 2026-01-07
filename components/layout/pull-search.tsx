@@ -178,7 +178,14 @@ export function PullSearch({
               ›
             </button>
           </div>
-          <DropdownMenu.Root>
+          <DropdownMenu.Root
+            onOpenChange={(open) => {
+              if (!open) return;
+              setTimeout(() => {
+                localInputRef.current?.focus();
+              }, 0);
+            }}
+          >
             <DropdownMenu.Trigger asChild>
               <button
                 type="button"
