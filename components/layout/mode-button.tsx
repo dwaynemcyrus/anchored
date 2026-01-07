@@ -27,6 +27,7 @@ const MODE_ROUTES = [
 ];
 
 type Point = { x: number; y: number };
+type HoldZone = "left" | "right" | "up" | null;
 
 export function ModeButton() {
   const pathname = usePathname();
@@ -36,16 +37,22 @@ export function ModeButton() {
   const [isModeOpen, setIsModeOpen] = useState(false);
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isHoldMode, setIsHoldMode] = useState(false);
+  const [activeZone, setActiveZone] = useState<HoldZone>(null);
   const [isRitualNoticeOpen, setIsRitualNoticeOpen] = useState(false);
   const [isSearchNoticeOpen, setIsSearchNoticeOpen] = useState(false);
   const startPointRef = useRef<Point | null>(null);
   const swipedRef = useRef(false);
   const movedRef = useRef(false);
   const longPressRef = useRef<number | null>(null);
+  const holdTimerRef = useRef<number | null>(null);
   const longPressTriggeredRef = useRef(false);
   const animationTimeoutRef = useRef<number | null>(null);
   const ritualNoticeTimeoutRef = useRef<number | null>(null);
   const searchNoticeTimeoutRef = useRef<number | null>(null);
+  const leftZoneRef = useRef<HTMLDivElement | null>(null);
+  const rightZoneRef = useRef<HTMLDivElement | null>(null);
+  const upZoneRef = useRef<HTMLDivElement | null>(null);
 
   const shouldShow = MODE_ROUTES.some((route) =>
     route === "/" ? pathname === "/" : pathname.startsWith(route)
@@ -98,6 +105,9 @@ export function ModeButton() {
       }
       if (searchNoticeTimeoutRef.current) {
         window.clearTimeout(searchNoticeTimeoutRef.current);
+      }
+      if (holdTimerRef.current) {
+        window.clearTimeout(holdTimerRef.current);
       }
     };
   }, []);
@@ -267,6 +277,28 @@ export function ModeButton() {
               Search to be enabled
             </TooltipContent>
           </Tooltip>
+          {isHoldMode && (
+            <div className={styles.zonesRoot} aria-hidden="true">
+              <div
+                ref={leftZoneRef}
+                className={`${styles.zone} ${styles.zoneLeft} ${activeZone === "left" ? styles.zoneActive : ""}`}
+              >
+                Mode
+              </div>
+              <div
+                ref={rightZoneRef}
+                className={`${styles.zone} ${styles.zoneRight} ${activeZone === "right" ? styles.zoneActive : ""}`}
+              >
+                Search
+              </div>
+              <div
+                ref={upZoneRef}
+                className={`${styles.zone} ${styles.zoneUp} ${activeZone === "up" ? styles.zoneActive : ""}`}
+              >
+                Capture
+              </div>
+            </div>
+          )}
         </div>
       )}
 
