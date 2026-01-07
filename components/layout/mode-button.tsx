@@ -209,6 +209,7 @@ export function ModeButton() {
                 className={styles.modeButton}
                 aria-label="Mode. Tap to switch modes. Swipe up to capture."
                 aria-disabled={isAnimating}
+                onContextMenu={(event) => event.preventDefault()}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
