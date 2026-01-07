@@ -42,7 +42,7 @@ export function TaskCreateModal({ open, onClose }: TaskCreateModalProps) {
     await createTask.mutateAsync({
       title: trimmedTitle,
       notes: notes.trim() ? notes.trim() : null,
-      status: "backlog",
+      status: "pending",
       task_location: "inbox",
       project_id: null,
       due_date: null,
@@ -89,7 +89,7 @@ export function TaskCreateModal({ open, onClose }: TaskCreateModalProps) {
             />
             <div className={styles.metaRow}>
               <div className={styles.meta}>
-                <span className={styles.badge}>backlog</span>
+                <span className={styles.badge}>pending</span>
                 <span className={styles.metaText}>no project</span>
               </div>
               <button

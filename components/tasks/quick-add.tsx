@@ -34,7 +34,7 @@ interface Suggestion {
 
 export function QuickAdd({
   defaultProjectId = null,
-  defaultStatus = "backlog",
+  defaultStatus,
   defaultLocation = "inbox",
   placeholder = "Add a task... (# for project, @ for status)",
   className,
@@ -51,6 +51,8 @@ export function QuickAdd({
 
   const { data: projects } = useProjects();
   const createTask = useCreateTask();
+  const resolvedStatus =
+    defaultStatus ?? (defaultLocation === "inbox" ? "pending" : "backlog");
 
   const projectList: Project[] = useMemo(
     () => projects?.map((p) => ({ id: p.id, title: p.title })) || [],
@@ -142,7 +144,7 @@ export function QuickAdd({
     const parsed = parseTaskInput(
       input,
       projectList,
-      defaultStatus,
+      resolvedStatus,
       defaultLocation
     );
 
@@ -278,7 +280,7 @@ export function QuickAdd({
 // Compact version for inline use
 export function QuickAddInline({
   defaultProjectId = null,
-  defaultStatus = "backlog",
+  defaultStatus,
   defaultLocation = "inbox",
   placeholder = "Add a task...",
   className,
@@ -290,6 +292,8 @@ export function QuickAddInline({
 
   const { data: projects } = useProjects();
   const createTask = useCreateTask();
+  const resolvedStatus =
+    defaultStatus ?? (defaultLocation === "inbox" ? "pending" : "backlog");
 
   const projectList: Project[] = useMemo(
     () => projects?.map((p) => ({ id: p.id, title: p.title })) || [],
@@ -302,7 +306,7 @@ export function QuickAddInline({
     const parsed = parseTaskInput(
       input,
       projectList,
-      defaultStatus,
+      resolvedStatus,
       defaultLocation
     );
     const finalProjectId = parsed.project_id || defaultProjectId;

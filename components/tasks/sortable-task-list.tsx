@@ -171,6 +171,7 @@ interface SortableTaskListGroupedProps {
 }
 
 const statusOrder: TaskStatus[] = [
+  "pending",
   "active",
   "anytime",
   "backlog",
@@ -179,6 +180,7 @@ const statusOrder: TaskStatus[] = [
   "cancel",
 ];
 const statusLabels: Record<TaskStatus, string> = {
+  pending: "Pending",
   backlog: "Backlog",
   active: "Active",
   anytime: "Anytime",

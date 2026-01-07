@@ -20,7 +20,7 @@ export interface Project {
  *
  * Supported patterns:
  * - "tomorrow" or "today" → sets due_date and status
- * - "@anytime", "@inbox" → sets task_location, "@active" or "@backlog" → sets status
+ * - "@anytime", "@inbox" → sets task_location, "@active", "@backlog", "@pending" → sets status
  * - "#project-name" → looks up project by title (fuzzy match)
  * - Everything else becomes the task title
  *
@@ -42,14 +42,16 @@ export function parseTaskInput(
   let project_id: string | null = null;
   let projectMatch: string | null = null;
 
-  // Extract status/location tags (@active, @backlog, @anytime, @inbox)
-  const statusMatch = title.match(/@(active|backlog|anytime|inbox)\b/i);
+  // Extract status/location tags (@active, @backlog, @pending, @anytime, @inbox)
+  const statusMatch = title.match(/@(active|backlog|pending|anytime|inbox)\b/i);
   if (statusMatch) {
     const tag = statusMatch[1].toLowerCase();
     if (tag === "active") {
       status = "active";
     } else if (tag === "backlog") {
       status = "backlog";
+    } else if (tag === "pending") {
+      status = "pending";
     } else if (tag === "anytime") {
       task_location = "anytime";
     } else if (tag === "inbox") {
@@ -194,6 +196,7 @@ export function extractCurrentTag(
  * Status options for suggestions
  */
 export const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "pending", label: "Pending" },
   { value: "active", label: "Active" },
   { value: "backlog", label: "Backlog" },
   { value: "anytime", label: "Anytime" },

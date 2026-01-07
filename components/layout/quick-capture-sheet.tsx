@@ -62,7 +62,7 @@ export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
         notes: null,
         project_id: null,
         task_location: "inbox",
-        status: "backlog",
+        status: "pending",
         start_date: null,
         due_date: null,
       });

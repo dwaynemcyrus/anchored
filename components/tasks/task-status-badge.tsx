@@ -8,6 +8,10 @@ const statusConfig: Record<
   TaskStatus,
   { label: string; className: string }
 > = {
+  pending: {
+    label: "Pending",
+    className: "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300",
+  },
   backlog: {
     label: "Backlog",
     className: "bg-gray-100 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300",

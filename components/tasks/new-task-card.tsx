@@ -82,6 +82,11 @@ export function NewTaskCard({
     return "project";
   };
 
+  const statusForDestination = (next: Destination) => {
+    if (next.type === "inbox") return "pending";
+    return "backlog";
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedTitle = title.trim();
@@ -99,6 +104,7 @@ export function NewTaskCard({
         notes: null,
         project_id: destination.type === "project" ? destination.projectId : null,
         task_location: taskLocationForDestination(destination),
+        status: statusForDestination(destination),
         start_date: selectedStartDate ? selectedStartDate.toISOString() : null,
         due_date: selectedDueDate ? selectedDueDate.toISOString() : null,
       });
