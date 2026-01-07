@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import styles from "./pull-search.module.css";
 
@@ -44,6 +44,7 @@ export function PullSearch({
 }: PullSearchProps) {
   const [mode, setMode] = useState<SearchMode>("local");
   const modeLabel = useMemo(() => (mode === "local" ? "Local" : "Global"), [mode]);
+  const localInputRef = useRef<HTMLInputElement | null>(null);
 
   if (!isOpen && !isPulling) {
     return null;
@@ -135,7 +136,12 @@ export function PullSearch({
         onTouchStart={(event) => event.preventDefault()}
       >
         <div className={styles.localInputRow}>
-          <input className={styles.localField} placeholder="Search" autoFocus />
+          <input
+            ref={localInputRef}
+            className={styles.localField}
+            placeholder="Search"
+            autoFocus
+          />
         </div>
         <div className={styles.localBar}>
           <button
@@ -184,7 +190,15 @@ export function PullSearch({
               </button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
-              <DropdownMenu.Content className={styles.moreMenu} align="end" sideOffset={8}>
+              <DropdownMenu.Content
+                className={styles.moreMenu}
+                align="end"
+                sideOffset={8}
+                onCloseAutoFocus={(event) => {
+                  event.preventDefault();
+                  localInputRef.current?.focus();
+                }}
+              >
                 <DropdownMenu.Item
                   className={styles.moreItem}
                   onMouseDown={(event) => event.preventDefault()}
