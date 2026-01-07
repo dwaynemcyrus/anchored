@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { FloatingMenuButton } from "./floating-menu-button";
 import { PullSearch } from "./pull-search";
+import { PushOverlayStack } from "./push-overlay-stack";
 import { useSidebarStore } from "@/lib/stores/sidebar-store";
 import { useSearchUiStore } from "@/lib/stores/search-ui-store";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -240,12 +241,12 @@ export function AppShell({ children, userEmail }: AppShellProps) {
           searchScopeRef={mainRef}
         />
 
-        {/* Page content */}
-        <main className={layoutStyles.main}>
-          <div className={layoutStyles.container} ref={mainRef}>
-            <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
-          </div>
-        </main>
+      {/* Page content */}
+      <main className={layoutStyles.main}>
+        <PushOverlayStack searchScopeRef={mainRef}>
+          <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+        </PushOverlayStack>
+      </main>
       </div>
 
     </div>
