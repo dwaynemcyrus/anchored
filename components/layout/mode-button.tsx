@@ -10,7 +10,7 @@ import styles from "./mode-button.module.css";
 const SWIPE_THRESHOLD = 24;
 const MOVE_SLOP = 6;
 const HOLD_MOVE_SLOP = 10;
-const HOLD_DURATION_MS = 800;
+const HOLD_DURATION_MS = 500;
 const LONG_PRESS_MS = 500;
 const ANIMATION_MS = 350;
 
@@ -586,7 +586,12 @@ export function ModeButton() {
             className={`${styles.zone} ${styles.zoneLeft} ${activeZone === "left" ? styles.zoneActive : ""}`}
             style={
               zonePositions
-                ? { left: zonePositions.left.x, top: zonePositions.left.y }
+                ? {
+                    left: zonePositions.left.x,
+                    top: zonePositions.left.y,
+                    right: "auto",
+                    bottom: "auto",
+                  }
                 : undefined
             }
           >
@@ -597,7 +602,12 @@ export function ModeButton() {
             className={`${styles.zone} ${styles.zoneRight} ${activeZone === "right" ? styles.zoneActive : ""}`}
             style={
               zonePositions
-                ? { left: zonePositions.right.x, top: zonePositions.right.y }
+                ? {
+                    left: zonePositions.right.x,
+                    top: zonePositions.right.y,
+                    right: "auto",
+                    bottom: "auto",
+                  }
                 : undefined
             }
           >
@@ -608,7 +618,13 @@ export function ModeButton() {
             className={`${styles.zone} ${styles.zoneUp} ${activeZone === "up" ? styles.zoneActive : ""}`}
             style={
               zonePositions
-                ? { left: zonePositions.up.x, top: zonePositions.up.y }
+                ? {
+                    left: zonePositions.up.x,
+                    top: zonePositions.up.y,
+                    right: "auto",
+                    bottom: "auto",
+                    transform: "none",
+                  }
                 : undefined
             }
           >
