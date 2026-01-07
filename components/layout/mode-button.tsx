@@ -10,7 +10,7 @@ import styles from "./mode-button.module.css";
 const SWIPE_THRESHOLD = 24;
 const MOVE_SLOP = 6;
 const HOLD_MOVE_SLOP = 10;
-const HOLD_DURATION_MS = 3000;
+const HOLD_DURATION_MS = 800;
 const LONG_PRESS_MS = 500;
 const ANIMATION_MS = 350;
 
@@ -142,7 +142,7 @@ export function ModeButton() {
     const button = buttonWrapperRef.current?.getBoundingClientRect();
     if (!button) return;
     const zoneSize = 96;
-    const offset = 60;
+    const offset = 48;
     const leftX = button.left - offset - zoneSize;
     const rightX = button.right + offset;
     const upX = button.left + button.width / 2 - zoneSize / 2;
