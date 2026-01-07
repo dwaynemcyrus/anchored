@@ -30,6 +30,7 @@ const MODE_ROUTES = [
 
 type Point = { x: number; y: number };
 type HoldZone = "left" | "right" | "up" | null;
+type ZoneNotice = "mode" | "search" | "capture" | null;
 
 export function ModeButton() {
   const pathname = usePathname();
@@ -45,6 +46,7 @@ export function ModeButton() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isRitualNoticeOpen, setIsRitualNoticeOpen] = useState(false);
   const [isSearchNoticeOpen, setIsSearchNoticeOpen] = useState(false);
+  const [zoneNotice, setZoneNotice] = useState<ZoneNotice>(null);
   const startPointRef = useRef<Point | null>(null);
   const touchActiveRef = useRef(false);
   const swipedRef = useRef(false);
@@ -55,6 +57,7 @@ export function ModeButton() {
   const animationTimeoutRef = useRef<number | null>(null);
   const ritualNoticeTimeoutRef = useRef<number | null>(null);
   const searchNoticeTimeoutRef = useRef<number | null>(null);
+  const zoneNoticeTimeoutRef = useRef<number | null>(null);
   const bodyOverflowRef = useRef<string | null>(null);
   const leftZoneRef = useRef<HTMLDivElement | null>(null);
   const rightZoneRef = useRef<HTMLDivElement | null>(null);
@@ -109,6 +112,16 @@ export function ModeButton() {
     }, 6000);
   }, []);
 
+  const showZoneNotice = useCallback((next: ZoneNotice) => {
+    setZoneNotice(next);
+    if (zoneNoticeTimeoutRef.current) {
+      window.clearTimeout(zoneNoticeTimeoutRef.current);
+    }
+    zoneNoticeTimeoutRef.current = window.setTimeout(() => {
+      setZoneNotice(null);
+    }, 2000);
+  }, []);
+
   const resetHoldState = useCallback(() => {
     setIsHoldMode(false);
     setActiveZone(null);
@@ -129,6 +142,9 @@ export function ModeButton() {
       }
       if (searchNoticeTimeoutRef.current) {
         window.clearTimeout(searchNoticeTimeoutRef.current);
+      }
+      if (zoneNoticeTimeoutRef.current) {
+        window.clearTimeout(zoneNoticeTimeoutRef.current);
       }
       if (holdTimerRef.current) {
         window.clearTimeout(holdTimerRef.current);
@@ -296,15 +312,18 @@ export function ModeButton() {
     (zone: HoldZone) => {
       if (zone === "left") {
         openModeSheet();
+        showZoneNotice("mode");
       } else if (zone === "up") {
         openCaptureSheet();
+        showZoneNotice("capture");
       } else if (zone === "right") {
         if (!isSearchEnabled) {
           showSearchNotice();
         }
+        showZoneNotice("search");
       }
     },
-    [isSearchEnabled, openCaptureSheet, openModeSheet, showSearchNotice]
+    [isSearchEnabled, openCaptureSheet, openModeSheet, showSearchNotice, showZoneNotice]
   );
 
   const endPress = useCallback(
@@ -465,7 +484,7 @@ export function ModeButton() {
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className={`${styles.modeButton} ${isHoldMode ? styles.modeButtonHold : ""}`}
+                className={`${styles.modeButton} ${isHoldMode ? styles.modeButtonHold : ""} ${activeZone === "left" ? styles.modeButtonZoneLeft : ""} ${activeZone === "right" ? styles.modeButtonZoneRight : ""} ${activeZone === "up" ? styles.modeButtonZoneUp : ""}`}
                 aria-label="Mode. Tap to switch modes. Swipe up to capture."
                 aria-disabled={isAnimating}
                 onContextMenu={(event) => event.preventDefault()}
@@ -496,6 +515,24 @@ export function ModeButton() {
               className={styles.ritualNotice}
             >
               Search to be enabled
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip open={zoneNotice !== null}>
+            <TooltipTrigger asChild>
+              <span className={styles.noticeAnchor} aria-hidden="true" />
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              sideOffset={10}
+              className={styles.ritualNotice}
+            >
+              {zoneNotice === "mode"
+                ? "Mode zone"
+                : zoneNotice === "search"
+                  ? "Search zone"
+                  : zoneNotice === "capture"
+                    ? "Capture zone"
+                    : ""}
             </TooltipContent>
           </Tooltip>
           {isHoldMode && (

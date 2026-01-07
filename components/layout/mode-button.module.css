@@ -31,6 +31,21 @@
   touch-action: none;
 }
 
+.modeButtonZoneLeft {
+  color: #7dd3fc;
+  border-color: rgba(125, 211, 252, 0.7);
+}
+
+.modeButtonZoneRight {
+  color: #fda4af;
+  border-color: rgba(253, 164, 175, 0.7);
+}
+
+.modeButtonZoneUp {
+  color: #86efac;
+  border-color: rgba(134, 239, 172, 0.7);
+}
+
 .modeButton:focus-visible {
   outline: 2px solid #f4f4f4;
   outline-offset: 3px;
