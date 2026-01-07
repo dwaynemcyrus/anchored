@@ -54,13 +54,16 @@
 }
 
 .localClose {
-  width: 32px;
+  width: auto;
   height: 32px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(19, 19, 29, 0.8);
   color: #c7c1df;
-  font-size: 18px;
+  font-size: 12px;
+  padding: 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .localNav {

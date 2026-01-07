@@ -123,6 +123,7 @@ export function PullSearch({
         role="dialog"
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.preventDefault()}
       >
         <div className={styles.localInputRow}>
           <input className={styles.localField} placeholder="Search" autoFocus />
@@ -135,35 +136,58 @@ export function PullSearch({
               setMode("local");
               onClose();
             }}
+            onMouseDown={(event) => event.preventDefault()}
             aria-label="Close search"
           >
-            ×
+            Close
           </button>
           <div className={styles.localNav}>
-            <button type="button" className={styles.navButton} aria-label="Previous">
+            <button
+              type="button"
+              className={styles.navButton}
+              aria-label="Previous"
+              onMouseDown={(event) => event.preventDefault()}
+            >
               ‹
             </button>
-            <button type="button" className={styles.navButton} aria-label="Next">
+            <button
+              type="button"
+              className={styles.navButton}
+              aria-label="Next"
+              onMouseDown={(event) => event.preventDefault()}
+            >
               ›
             </button>
           </div>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button type="button" className={styles.moreButton} aria-label="More">
+              <button
+                type="button"
+                className={styles.moreButton}
+                aria-label="More"
+                onMouseDown={(event) => event.preventDefault()}
+              >
                 More
               </button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
               <DropdownMenu.Content className={styles.moreMenu} align="end" sideOffset={8}>
-                <DropdownMenu.Item className={styles.moreItem}>
+                <DropdownMenu.Item
+                  className={styles.moreItem}
+                  onMouseDown={(event) => event.preventDefault()}
+                >
                   Replace
                 </DropdownMenu.Item>
-                <DropdownMenu.Item className={styles.moreItem}>
+                <DropdownMenu.Item
+                  className={styles.moreItem}
+                  onMouseDown={(event) => event.preventDefault()}
+                >
                   Ignore case
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   className={styles.moreItem}
                   onSelect={() => setMode("global")}
+                  onMouseDown={(event) => event.preventDefault()}
                 >
                   Global
                 </DropdownMenu.Item>
