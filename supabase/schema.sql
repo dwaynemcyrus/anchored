@@ -3,6 +3,8 @@
 -- Run this entire script in Supabase SQL Editor
 -- ============================================================================
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- ============================================================================
 -- 1. PROJECTS TABLE
 -- ============================================================================
@@ -27,6 +29,9 @@ CREATE TABLE projects (
 -- Indexes
 CREATE INDEX idx_projects_owner ON projects(owner_id);
 CREATE INDEX idx_projects_status ON projects(owner_id, status);
+CREATE INDEX idx_projects_title_trgm ON projects USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_projects_purpose_trgm ON projects USING GIN (purpose gin_trgm_ops);
+CREATE INDEX idx_projects_outcome_trgm ON projects USING GIN (outcome gin_trgm_ops);
 
 -- Enable RLS
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
@@ -109,6 +114,8 @@ CREATE INDEX idx_tasks_due ON tasks(due_date) WHERE due_date IS NOT NULL;
 CREATE INDEX idx_tasks_is_now ON tasks(owner_id, is_now);
 CREATE INDEX idx_tasks_now_slot ON tasks(owner_id, now_slot);
 CREATE INDEX idx_tasks_next_task ON tasks(owner_id, next_task);
+CREATE INDEX idx_tasks_title_trgm ON tasks USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_tasks_notes_trgm ON tasks USING GIN (notes gin_trgm_ops);
 
 -- Enable RLS
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
@@ -439,6 +446,80 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.search_all(
+  search_query TEXT,
+  limit_count INTEGER DEFAULT 20
+)
+RETURNS TABLE (
+  result_id TEXT,
+  result_type TEXT,
+  title TEXT,
+  snippet TEXT,
+  updated_at TIMESTAMPTZ,
+  score REAL
+)
+LANGUAGE sql
+SECURITY INVOKER
+AS $$
+WITH q AS (
+  SELECT trim(search_query) AS term
+)
+SELECT *
+FROM (
+  SELECT
+    d.id::text AS result_id,
+    'document' AS result_type,
+    d.title,
+    COALESCE(NULLIF(d.summary, ''), LEFT(d.body_md, 160), '') AS snippet,
+    d.updated_at,
+    GREATEST(
+      similarity(d.title, q.term),
+      similarity(COALESCE(d.body_md, ''), q.term)
+    ) AS score
+  FROM documents d, q
+  WHERE d.user_id = auth.uid()
+    AND q.term <> ''
+    AND (d.title % q.term OR COALESCE(d.body_md, '') % q.term)
+
+  UNION ALL
+
+  SELECT
+    t.id::text AS result_id,
+    'task' AS result_type,
+    t.title,
+    COALESCE(LEFT(t.notes, 160), '') AS snippet,
+    t.updated_at,
+    GREATEST(
+      similarity(t.title, q.term),
+      similarity(COALESCE(t.notes, ''), q.term)
+    ) AS score
+  FROM tasks t, q
+  WHERE t.owner_id = auth.uid()
+    AND q.term <> ''
+    AND (t.title % q.term OR COALESCE(t.notes, '') % q.term)
+
+  UNION ALL
+
+  SELECT
+    p.id::text AS result_id,
+    'project' AS result_type,
+    p.title,
+    COALESCE(LEFT(p.purpose, 160), LEFT(p.outcome, 160), '') AS snippet,
+    p.updated_at,
+    GREATEST(
+      similarity(p.title, q.term),
+      similarity(COALESCE(p.purpose, ''), q.term),
+      similarity(COALESCE(p.outcome, ''), q.term)
+    ) AS score
+  FROM projects p, q
+  WHERE p.owner_id = auth.uid()
+    AND q.term <> ''
+    AND (p.title % q.term OR COALESCE(p.purpose, '') % q.term OR COALESCE(p.outcome, '') % q.term)
+) results
+ORDER BY score DESC, updated_at DESC
+LIMIT limit_count;
+$$;
+
 -- ============================================================================
 -- 9. DOCUMENTS TABLE - Digital Garden Content System
 -- ============================================================================
@@ -473,6 +554,8 @@ CREATE INDEX idx_documents_status ON documents(status);
 CREATE INDEX idx_documents_published_at ON documents(published_at DESC) WHERE published_at IS NOT NULL;
 CREATE INDEX idx_documents_collection_status_visibility ON documents(collection, status, visibility);
 CREATE INDEX idx_documents_user_collection ON documents(user_id, collection);
+CREATE INDEX idx_documents_title_trgm ON documents USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_documents_body_trgm ON documents USING GIN (body_md gin_trgm_ops);
 
 -- Constraints
 ALTER TABLE documents

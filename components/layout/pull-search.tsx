@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import {
+  applyLocalSearch,
+  clearLocalSearchHighlights,
+  setActiveMatch,
+} from "@/lib/utils/local-search";
+import { createClient } from "@/lib/supabase/client";
 import styles from "./pull-search.module.css";
 
 type SearchMode = "local" | "global";
@@ -12,28 +18,17 @@ interface PullSearchProps {
   isPulling: boolean;
   pullProgress: number;
   isArmed: boolean;
+  searchScopeRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const mockResults = [
-  {
-    id: "result-1",
-    title: "Dwayne M. Cyrus Platform — Project Scope & Architecture v4.2",
-    snippet: "… writing happens. Focus: Editor quality over features.",
-    date: "27 Dec 2025",
-  },
-  {
-    id: "result-2",
-    title: "Phase 2 — ANCHORED: WRITING SURFACE",
-    snippet: "… writing happens per completed period 5. User flow.",
-    date: "Jan 2",
-  },
-  {
-    id: "result-3",
-    title: "Master habit schema",
-    snippet: "… writing happens in getanchored.app. No context.",
-    date: "31 Dec 2025",
-  },
-];
+type GlobalResult = {
+  result_id: string;
+  result_type: "document" | "task" | "project";
+  title: string;
+  snippet: string | null;
+  updated_at: string | null;
+  score: number | null;
+};
 
 export function PullSearch({
   isOpen,
@@ -41,11 +36,96 @@ export function PullSearch({
   isPulling,
   pullProgress,
   isArmed,
+  searchScopeRef,
 }: PullSearchProps) {
   const [mode, setMode] = useState<SearchMode>("local");
-  const modeLabel = useMemo(() => (mode === "local" ? "Local" : "Global"), [mode]);
   const localInputRef = useRef<HTMLInputElement | null>(null);
   const focusLockRef = useRef<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [matchCount, setMatchCount] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const matchesRef = useRef<HTMLElement[]>([]);
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [globalResults, setGlobalResults] = useState<GlobalResult[]>([]);
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [globalCount, setGlobalCount] = useState(0);
+  const debounceRef = useRef<number | null>(null);
+  const requestIdRef = useRef(0);
+
+  const displayResults = useMemo(() => {
+    if (!globalQuery.trim()) return [];
+    return globalResults;
+  }, [globalQuery, globalResults]);
+
+  useEffect(() => {
+    if (mode !== "global" || !isOpen) return;
+    const trimmed = globalQuery.trim();
+    if (!trimmed) {
+      setGlobalResults([]);
+      setGlobalCount(0);
+      setGlobalLoading(false);
+      return;
+    }
+
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+
+    const requestId = ++requestIdRef.current;
+    debounceRef.current = window.setTimeout(async () => {
+      setGlobalLoading(true);
+      const supabase = createClient();
+      const { data, error } = await (supabase.rpc as any)(
+        "search_all",
+        { search_query: trimmed, limit_count: 20 }
+      ) as { data: GlobalResult[] | null; error: { message: string } | null };
+
+      if (requestIdRef.current !== requestId) return;
+      if (error) {
+        setGlobalResults([]);
+        setGlobalCount(0);
+        setGlobalLoading(false);
+        return;
+      }
+      setGlobalResults(data ?? []);
+      setGlobalCount(data?.length ?? 0);
+      setGlobalLoading(false);
+    }, 220);
+
+    return () => {
+      if (debounceRef.current) {
+        window.clearTimeout(debounceRef.current);
+      }
+    };
+  }, [globalQuery, isOpen, mode]);
+
+  useEffect(() => {
+    if (!isOpen || mode !== "local") return;
+    const root = searchScopeRef.current;
+    if (!root) return;
+    const matches = applyLocalSearch(root, query);
+    matchesRef.current = matches;
+    setMatchCount(matches.length);
+    const nextIndex = matches.length
+      ? Math.min(activeIndex, matches.length - 1)
+      : 0;
+    setActiveIndex(nextIndex);
+    if (matches.length > 0) {
+      setActiveMatch(matches, nextIndex);
+    }
+  }, [activeIndex, isOpen, mode, query, searchScopeRef]);
+
+  useEffect(() => {
+    if (!isOpen || mode !== "local") return;
+    const root = searchScopeRef.current;
+    if (!root) return;
+    return () => {
+      clearLocalSearchHighlights(root);
+      matchesRef.current = [];
+      setMatchCount(0);
+      setActiveIndex(0);
+    };
+  }, [isOpen, mode, searchScopeRef]);
 
   useEffect(() => {
     if (!isOpen || mode !== "local") return;
@@ -109,11 +189,14 @@ export function PullSearch({
               className={styles.globalField}
               placeholder="Search"
               autoFocus
+              value={globalQuery}
+              onChange={(event) => setGlobalQuery(event.target.value)}
             />
             <button
               type="button"
               className={styles.globalClear}
               aria-label="Clear"
+              onClick={() => setGlobalQuery("")}
             >
               ×
             </button>
@@ -126,13 +209,21 @@ export function PullSearch({
             Local
           </button>
         </div>
+        <div className={styles.globalMeta}>
+          <span>{globalQuery.trim() ? `${globalCount} results` : "Start typing to search"}</span>
+          {globalLoading ? <span className={styles.globalLoading}>Searching…</span> : null}
+        </div>
         <div className={styles.globalResults}>
-          {mockResults.map((result) => (
-            <button key={result.id} className={styles.resultRow} type="button">
+          {displayResults.map((result) => (
+            <button
+              key={`${result.result_type}-${result.result_id}`}
+              className={styles.resultRow}
+              type="button"
+            >
               <div className={styles.resultTitle}>{result.title}</div>
               <div className={styles.resultMeta}>
-                <span className={styles.resultDate}>{result.date}</span>
-                <span className={styles.resultSnippet}>{result.snippet}</span>
+                <span className={styles.resultType}>{result.result_type}</span>
+                <span className={styles.resultSnippet}>{result.snippet ?? ""}</span>
               </div>
             </button>
           ))}
@@ -161,6 +252,8 @@ export function PullSearch({
             className={styles.localField}
             placeholder="Search"
             autoFocus
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
           />
         </div>
         <div className={styles.localBar}>
@@ -180,6 +273,13 @@ export function PullSearch({
               type="button"
               className={styles.navButton}
               aria-label="Previous"
+              onClick={() => {
+                if (matchCount === 0) return;
+                const nextIndex =
+                  (activeIndex - 1 + matchCount) % matchCount;
+                setActiveIndex(nextIndex);
+                setActiveMatch(matchesRef.current, nextIndex);
+              }}
             >
               ‹
             </button>
@@ -187,9 +287,18 @@ export function PullSearch({
               type="button"
               className={styles.navButton}
               aria-label="Next"
+              onClick={() => {
+                if (matchCount === 0) return;
+                const nextIndex = (activeIndex + 1) % matchCount;
+                setActiveIndex(nextIndex);
+                setActiveMatch(matchesRef.current, nextIndex);
+              }}
             >
               ›
             </button>
+          </div>
+          <div className={styles.matchCount}>
+            {matchCount === 0 ? "0/0" : `${activeIndex + 1}/${matchCount}`}
           </div>
           <DropdownMenu.Root
             onOpenChange={(open) => {

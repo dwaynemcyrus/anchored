@@ -20,6 +20,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
   const pathname = usePathname();
   const { isOpen, close } = useSidebarStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const mainRef = useRef<HTMLDivElement | null>(null);
   const { setSearchOpen } = useSearchUiStore();
   const [isPulling, setIsPulling] = useState(false);
   const [pullOffset, setPullOffset] = useState(0);
@@ -236,11 +237,12 @@ export function AppShell({ children, userEmail }: AppShellProps) {
           isPulling={isPulling}
           pullProgress={Math.min(1, pullOffset / 72)}
           isArmed={isArmed}
+          searchScopeRef={mainRef}
         />
 
         {/* Page content */}
         <main className={layoutStyles.main}>
-          <div className={layoutStyles.container}>
+          <div className={layoutStyles.container} ref={mainRef}>
             <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
           </div>
         </main>

@@ -47,7 +47,7 @@
 
 .localBar {
   display: grid;
-  grid-template-columns: 32px 1fr auto;
+  grid-template-columns: 60px 1fr auto auto;
   align-items: center;
   gap: 10px;
   margin-top: 10px;
@@ -70,6 +70,12 @@
   display: inline-flex;
   justify-self: center;
   gap: 6px;
+}
+
+.matchCount {
+  font-size: 12px;
+  color: #bfb8d9;
+  letter-spacing: 0.02em;
 }
 
 .navButton {
@@ -127,6 +133,17 @@
   border: none;
   color: #f4f2ff;
   font-size: 14px;
+}
+
+:global(.localSearchHighlight) {
+  background: rgba(240, 183, 168, 0.5);
+  border-radius: 4px;
+  padding: 0 1px;
+}
+
+:global(.localSearchHighlightActive) {
+  background: rgba(240, 183, 168, 0.9);
+  color: #1b1420;
 }
 
 .localField:focus {
@@ -215,6 +232,19 @@
   overflow-y: auto;
 }
 
+.globalMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #b8b2d6;
+  margin-bottom: 12px;
+}
+
+.globalLoading {
+  color: #f0b7a8;
+}
+
 .resultRow {
   text-align: left;
   border: none;
@@ -235,6 +265,13 @@
   gap: 8px;
   font-size: 12px;
   color: #b8b2d6;
+}
+
+.resultType {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  color: #e6d2c7;
 }
 
 .resultDate {
