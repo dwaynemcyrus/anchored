@@ -124,6 +124,7 @@ export function PullSearch({
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
       >
         <div className={styles.localInputRow}>
           <input className={styles.localField} placeholder="Search" autoFocus />
@@ -137,6 +138,7 @@ export function PullSearch({
               onClose();
             }}
             onMouseDown={(event) => event.preventDefault()}
+            onTouchStart={(event) => event.preventDefault()}
             aria-label="Close search"
           >
             Close
@@ -147,6 +149,7 @@ export function PullSearch({
               className={styles.navButton}
               aria-label="Previous"
               onMouseDown={(event) => event.preventDefault()}
+              onTouchStart={(event) => event.preventDefault()}
             >
               ‹
             </button>
@@ -155,6 +158,7 @@ export function PullSearch({
               className={styles.navButton}
               aria-label="Next"
               onMouseDown={(event) => event.preventDefault()}
+              onTouchStart={(event) => event.preventDefault()}
             >
               ›
             </button>
@@ -166,6 +170,7 @@ export function PullSearch({
                 className={styles.moreButton}
                 aria-label="More"
                 onMouseDown={(event) => event.preventDefault()}
+                onTouchStart={(event) => event.preventDefault()}
               >
                 More
               </button>
@@ -175,12 +180,14 @@ export function PullSearch({
                 <DropdownMenu.Item
                   className={styles.moreItem}
                   onMouseDown={(event) => event.preventDefault()}
+                  onTouchStart={(event) => event.preventDefault()}
                 >
                   Replace
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   className={styles.moreItem}
                   onMouseDown={(event) => event.preventDefault()}
+                  onTouchStart={(event) => event.preventDefault()}
                 >
                   Ignore case
                 </DropdownMenu.Item>
@@ -188,6 +195,7 @@ export function PullSearch({
                   className={styles.moreItem}
                   onSelect={() => setMode("global")}
                   onMouseDown={(event) => event.preventDefault()}
+                  onTouchStart={(event) => event.preventDefault()}
                 >
                   Global
                 </DropdownMenu.Item>
