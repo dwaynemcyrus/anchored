@@ -6,6 +6,7 @@ import { Sidebar } from "./sidebar";
 import { FloatingMenuButton } from "./floating-menu-button";
 import { PullSearch } from "./pull-search";
 import { useSidebarStore } from "@/lib/stores/sidebar-store";
+import { useSearchUiStore } from "@/lib/stores/search-ui-store";
 import { ErrorBoundary } from "@/components/error-boundary";
 import styles from "./mobile-drawer.module.css";
 import layoutStyles from "./app-shell.module.css";
@@ -19,6 +20,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
   const pathname = usePathname();
   const { isOpen, close } = useSidebarStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { setSearchOpen } = useSearchUiStore();
   const [isPulling, setIsPulling] = useState(false);
   const [pullOffset, setPullOffset] = useState(0);
   const [isArmed, setIsArmed] = useState(false);
@@ -41,6 +43,10 @@ export function AppShell({ children, userEmail }: AppShellProps) {
     setPullOffset(0);
     setIsArmed(false);
   }, [isSearchOpen]);
+
+  useEffect(() => {
+    setSearchOpen(isSearchOpen);
+  }, [isSearchOpen, setSearchOpen]);
 
   useEffect(() => {
     const PULL_THRESHOLD = 72;

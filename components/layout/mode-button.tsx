@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRitualModeStore } from "@/lib/stores/ritual-mode-store";
+import { useSearchUiStore } from "@/lib/stores/search-ui-store";
 import { QuickCaptureSheet } from "./quick-capture-sheet";
 import styles from "./mode-button.module.css";
 
@@ -41,6 +42,7 @@ export function ModeButton() {
   const pathname = usePathname();
   const router = useRouter();
   const { isRitualMode } = useRitualModeStore();
+  const { isSearchOpen } = useSearchUiStore();
   const isSearchEnabled = false;
   const isSwipeEnabled = false;
   const [isModeOpen, setIsModeOpen] = useState(false);
@@ -501,8 +503,9 @@ export function ModeButton() {
     };
   }, [beginPress, cancelPress, endPress, movePress]);
 
-  const shouldRender = shouldShow || isModeOpen || isCaptureOpen;
-  const showButton = shouldShow && !isCaptureOpen && !isModeOpen;
+  const shouldRender = (shouldShow || isModeOpen || isCaptureOpen) && !isSearchOpen;
+  const showButton =
+    shouldShow && !isCaptureOpen && !isModeOpen && !isSearchOpen;
 
   if (!shouldRender) {
     return null;
