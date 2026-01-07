@@ -147,7 +147,7 @@ export function ModeButton() {
     const rightX = button.right + offset;
     const upX = button.left + button.width / 2 - zoneSize / 2;
     const upY = button.top - offset - zoneSize;
-    const baseY = button.top + button.height / 2 - zoneSize / 2;
+    const baseY = button.top + button.height / 2 - zoneSize / 2 - 24;
     setZonePositions({
       left: { x: leftX, y: baseY },
       right: { x: rightX, y: baseY },
