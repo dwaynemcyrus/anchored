@@ -183,10 +183,11 @@ export function PullSearch({
           </div>
           <DropdownMenu.Root
             onOpenChange={(open) => {
-              if (!open) return;
-              setTimeout(() => {
-                localInputRef.current?.focus();
-              }, 0);
+              if (open) {
+                requestAnimationFrame(() => {
+                  localInputRef.current?.focus();
+                });
+              }
             }}
           >
             <DropdownMenu.Trigger asChild>
