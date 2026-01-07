@@ -67,6 +67,9 @@ export function PullSearch({
     return (
       <div className={styles.globalRoot} role="dialog" aria-modal="true">
         <div className={styles.globalHeader}>
+          <button type="button" className={styles.globalCancel} onClick={onClose}>
+            Cancel
+          </button>
           <div className={styles.globalInput}>
             <span className={styles.globalIcon} aria-hidden="true">
               ⌕
@@ -84,8 +87,12 @@ export function PullSearch({
               ×
             </button>
           </div>
-          <button type="button" className={styles.globalCancel} onClick={onClose}>
-            Cancel
+          <button
+            type="button"
+            className={styles.globalMode}
+            onClick={() => setMode("local")}
+          >
+            Local
           </button>
         </div>
         <div className={styles.globalResults}>
@@ -104,51 +111,66 @@ export function PullSearch({
   }
 
   return (
-    <div className={styles.localRoot} role="dialog" aria-modal="true">
-      <div className={styles.localInputRow}>
-        <input className={styles.localField} placeholder="Search" autoFocus />
-      </div>
-      <div className={styles.localBar}>
-        <button
-          type="button"
-          className={styles.localClose}
-          onClick={onClose}
-          aria-label="Close search"
-        >
-          ×
-        </button>
-        <button
-          type="button"
-          className={styles.localMode}
-          onClick={() => setMode("global")}
-        >
-          {modeLabel}
-        </button>
-        <div className={styles.localNav}>
-          <button type="button" className={styles.navButton} aria-label="Previous">
-            ‹
-          </button>
-          <button type="button" className={styles.navButton} aria-label="Next">
-            ›
-          </button>
+    <div
+      className={styles.localOverlay}
+      onClick={() => {
+        setMode("local");
+        onClose();
+      }}
+    >
+      <div
+        className={styles.localRoot}
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className={styles.localInputRow}>
+          <input className={styles.localField} placeholder="Search" autoFocus />
         </div>
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button type="button" className={styles.moreButton} aria-label="More">
-              ⋯
+        <div className={styles.localBar}>
+          <button
+            type="button"
+            className={styles.localClose}
+            onClick={() => {
+              setMode("local");
+              onClose();
+            }}
+            aria-label="Close search"
+          >
+            ×
+          </button>
+          <div className={styles.localNav}>
+            <button type="button" className={styles.navButton} aria-label="Previous">
+              ‹
             </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content className={styles.moreMenu} align="end" sideOffset={8}>
-              <DropdownMenu.Item className={styles.moreItem}>
-                Replace
-              </DropdownMenu.Item>
-              <DropdownMenu.Item className={styles.moreItem}>
-                Ignore case
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
+            <button type="button" className={styles.navButton} aria-label="Next">
+              ›
+            </button>
+          </div>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button type="button" className={styles.moreButton} aria-label="More">
+                More
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content className={styles.moreMenu} align="end" sideOffset={8}>
+                <DropdownMenu.Item className={styles.moreItem}>
+                  Replace
+                </DropdownMenu.Item>
+                <DropdownMenu.Item className={styles.moreItem}>
+                  Ignore case
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className={styles.moreItem}
+                  onSelect={() => setMode("global")}
+                >
+                  Global
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </div>
       </div>
     </div>
   );

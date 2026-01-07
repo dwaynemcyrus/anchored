@@ -1,3 +1,10 @@
+.localOverlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 1600;
+}
+
 .localRoot {
   position: fixed;
   left: 50%;
@@ -9,7 +16,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
   padding: 14px;
-  z-index: 1600;
+  z-index: 1601;
 }
 
 .pullIndicator {
@@ -40,10 +47,10 @@
 
 .localBar {
   display: grid;
-  grid-template-columns: 32px 1fr 72px 32px;
+  grid-template-columns: 32px 1fr auto;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .localClose {
@@ -56,21 +63,9 @@
   font-size: 18px;
 }
 
-.localMode {
-  justify-self: center;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(24, 24, 38, 0.9);
-  color: #d6d0f2;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .localNav {
   display: inline-flex;
-  justify-self: end;
+  justify-self: center;
   gap: 6px;
 }
 
@@ -85,13 +80,15 @@
 }
 
 .moreButton {
-  width: 32px;
   height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(19, 19, 29, 0.8);
   color: #c7c1df;
-  font-size: 18px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .moreMenu {
@@ -189,6 +186,15 @@
 }
 
 .globalCancel {
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.globalMode {
   border: none;
   background: rgba(255, 255, 255, 0.12);
   color: inherit;
