@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { FloatingMenuButton } from "./floating-menu-button";
+import { PullSearch } from "./pull-search";
 import { useSidebarStore } from "@/lib/stores/sidebar-store";
 import { ErrorBoundary } from "@/components/error-boundary";
 import styles from "./mobile-drawer.module.css";
@@ -17,6 +18,7 @@ interface AppShellProps {
 export function AppShell({ children, userEmail }: AppShellProps) {
   const pathname = usePathname();
   const { isOpen, close } = useSidebarStore();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -66,6 +68,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
       {/* Main content area */}
       <div className={layoutStyles.content}>
         <FloatingMenuButton />
+        <PullSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
         {/* Page content */}
         <main className={layoutStyles.main}>
