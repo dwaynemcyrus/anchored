@@ -32,10 +32,12 @@ export function ModeButton() {
   const pathname = usePathname();
   const router = useRouter();
   const { isRitualMode } = useRitualModeStore();
+  const isSearchEnabled = false;
   const [isModeOpen, setIsModeOpen] = useState(false);
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRitualNoticeOpen, setIsRitualNoticeOpen] = useState(false);
+  const [isSearchNoticeOpen, setIsSearchNoticeOpen] = useState(false);
   const startPointRef = useRef<Point | null>(null);
   const swipedRef = useRef(false);
   const movedRef = useRef(false);
@@ -43,6 +45,7 @@ export function ModeButton() {
   const longPressTriggeredRef = useRef(false);
   const animationTimeoutRef = useRef<number | null>(null);
   const ritualNoticeTimeoutRef = useRef<number | null>(null);
+  const searchNoticeTimeoutRef = useRef<number | null>(null);
 
   const shouldShow = MODE_ROUTES.some((route) =>
     route === "/" ? pathname === "/" : pathname.startsWith(route)
@@ -75,6 +78,16 @@ export function ModeButton() {
     }, 2000);
   }, []);
 
+  const showSearchNotice = useCallback(() => {
+    setIsSearchNoticeOpen(true);
+    if (searchNoticeTimeoutRef.current) {
+      window.clearTimeout(searchNoticeTimeoutRef.current);
+    }
+    searchNoticeTimeoutRef.current = window.setTimeout(() => {
+      setIsSearchNoticeOpen(false);
+    }, 6000);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (animationTimeoutRef.current) {
@@ -82,6 +95,9 @@ export function ModeButton() {
       }
       if (ritualNoticeTimeoutRef.current) {
         window.clearTimeout(ritualNoticeTimeoutRef.current);
+      }
+      if (searchNoticeTimeoutRef.current) {
+        window.clearTimeout(searchNoticeTimeoutRef.current);
       }
     };
   }, []);
@@ -146,6 +162,18 @@ export function ModeButton() {
       swipedRef.current = true;
       clearLongPressTimer();
       openCaptureSheet();
+      return;
+    }
+
+    if (dy >= SWIPE_THRESHOLD) {
+      swipedRef.current = true;
+      clearLongPressTimer();
+      if (isRitualMode) {
+        return;
+      }
+      if (!isSearchEnabled) {
+        showSearchNotice();
+      }
     }
   };
 
@@ -225,6 +253,18 @@ export function ModeButton() {
               className={styles.ritualNotice}
             >
               disabled in ritual mode. Quick Capture available.
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip open={isSearchNoticeOpen}>
+            <TooltipTrigger asChild>
+              <span className={styles.noticeAnchor} aria-hidden="true" />
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              sideOffset={10}
+              className={styles.ritualNotice}
+            >
+              Search to be enabled
             </TooltipContent>
           </Tooltip>
         </div>
