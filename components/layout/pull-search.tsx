@@ -45,6 +45,7 @@ export function PullSearch({
   const [mode, setMode] = useState<SearchMode>("local");
   const modeLabel = useMemo(() => (mode === "local" ? "Local" : "Global"), [mode]);
   const localInputRef = useRef<HTMLInputElement | null>(null);
+  const focusLockRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isOpen || mode !== "local") return;
@@ -65,6 +66,15 @@ export function PullSearch({
       window.scrollTo(0, scrollY);
     };
   }, [isOpen, mode]);
+
+  useEffect(() => {
+    return () => {
+      if (focusLockRef.current) {
+        window.clearInterval(focusLockRef.current);
+        focusLockRef.current = null;
+      }
+    };
+  }, []);
 
   if (!isOpen && !isPulling) {
     return null;
@@ -184,6 +194,18 @@ export function PullSearch({
           <DropdownMenu.Root
             onOpenChange={(open) => {
               if (open) {
+                if (focusLockRef.current) {
+                  window.clearInterval(focusLockRef.current);
+                }
+                focusLockRef.current = window.setInterval(() => {
+                  localInputRef.current?.focus();
+                }, 120);
+                requestAnimationFrame(() => {
+                  localInputRef.current?.focus();
+                });
+              } else if (focusLockRef.current) {
+                window.clearInterval(focusLockRef.current);
+                focusLockRef.current = null;
                 requestAnimationFrame(() => {
                   localInputRef.current?.focus();
                 });
