@@ -46,6 +46,15 @@ export function PullSearch({
   const modeLabel = useMemo(() => (mode === "local" ? "Local" : "Global"), [mode]);
   const localInputRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    if (!isOpen || mode !== "local") return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, mode]);
+
   if (!isOpen && !isPulling) {
     return null;
   }
@@ -110,14 +119,6 @@ export function PullSearch({
       </div>
     );
   }
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
 
   return (
     <div
