@@ -12,6 +12,32 @@
   z-index: 1600;
 }
 
+.pullIndicator {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 20px);
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(24, 24, 38, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cfc8f0;
+  z-index: 1600;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.pullIndicatorArmed {
+  background: #f0b7a8;
+  color: #2b1f26;
+}
+
+.pullIcon {
+  font-size: 18px;
+}
+
 .localBar {
   display: grid;
   grid-template-columns: 32px 1fr 72px 32px;

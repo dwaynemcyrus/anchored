@@ -9,6 +9,9 @@ type SearchMode = "local" | "global";
 interface PullSearchProps {
   isOpen: boolean;
   onClose: () => void;
+  isPulling: boolean;
+  pullProgress: number;
+  isArmed: boolean;
 }
 
 const mockResults = [
@@ -32,12 +35,32 @@ const mockResults = [
   },
 ];
 
-export function PullSearch({ isOpen, onClose }: PullSearchProps) {
+export function PullSearch({
+  isOpen,
+  onClose,
+  isPulling,
+  pullProgress,
+  isArmed,
+}: PullSearchProps) {
   const [mode, setMode] = useState<SearchMode>("local");
   const modeLabel = useMemo(() => (mode === "local" ? "Local" : "Global"), [mode]);
 
-  if (!isOpen) {
+  if (!isOpen && !isPulling) {
     return null;
+  }
+
+  if (!isOpen && isPulling) {
+    return (
+      <div
+        className={`${styles.pullIndicator} ${isArmed ? styles.pullIndicatorArmed : ""}`}
+        style={{
+          transform: `translateX(-50%) scale(${0.6 + pullProgress * 0.4})`,
+        }}
+        aria-hidden="true"
+      >
+        <span className={styles.pullIcon}>⌕</span>
+      </div>
+    );
   }
 
   if (mode === "global") {
