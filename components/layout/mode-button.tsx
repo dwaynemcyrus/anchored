@@ -9,6 +9,8 @@ import styles from "./mode-button.module.css";
 
 const SWIPE_THRESHOLD = 24;
 const MOVE_SLOP = 6;
+const HOLD_MOVE_SLOP = 10;
+const HOLD_DURATION_MS = 3000;
 const LONG_PRESS_MS = 500;
 const ANIMATION_MS = 350;
 
@@ -34,14 +36,17 @@ export function ModeButton() {
   const router = useRouter();
   const { isRitualMode } = useRitualModeStore();
   const isSearchEnabled = false;
+  const isSwipeEnabled = false;
   const [isModeOpen, setIsModeOpen] = useState(false);
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHoldMode, setIsHoldMode] = useState(false);
   const [activeZone, setActiveZone] = useState<HoldZone>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isRitualNoticeOpen, setIsRitualNoticeOpen] = useState(false);
   const [isSearchNoticeOpen, setIsSearchNoticeOpen] = useState(false);
   const startPointRef = useRef<Point | null>(null);
+  const touchActiveRef = useRef(false);
   const swipedRef = useRef(false);
   const movedRef = useRef(false);
   const longPressRef = useRef<number | null>(null);
@@ -50,9 +55,11 @@ export function ModeButton() {
   const animationTimeoutRef = useRef<number | null>(null);
   const ritualNoticeTimeoutRef = useRef<number | null>(null);
   const searchNoticeTimeoutRef = useRef<number | null>(null);
+  const bodyOverflowRef = useRef<string | null>(null);
   const leftZoneRef = useRef<HTMLDivElement | null>(null);
   const rightZoneRef = useRef<HTMLDivElement | null>(null);
   const upZoneRef = useRef<HTMLDivElement | null>(null);
+  const buttonWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const shouldShow = MODE_ROUTES.some((route) =>
     route === "/" ? pathname === "/" : pathname.startsWith(route)
@@ -62,6 +69,13 @@ export function ModeButton() {
     if (longPressRef.current) {
       window.clearTimeout(longPressRef.current);
       longPressRef.current = null;
+    }
+  }, []);
+
+  const clearHoldTimer = useCallback(() => {
+    if (holdTimerRef.current) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
     }
   }, []);
 
@@ -93,6 +107,16 @@ export function ModeButton() {
     searchNoticeTimeoutRef.current = window.setTimeout(() => {
       setIsSearchNoticeOpen(false);
     }, 6000);
+  }, []);
+
+  const resetHoldState = useCallback(() => {
+    setIsHoldMode(false);
+    setActiveZone(null);
+    setDragOffset({ x: 0, y: 0 });
+    if (bodyOverflowRef.current !== null) {
+      document.body.style.overflow = bodyOverflowRef.current;
+      bodyOverflowRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -138,79 +162,222 @@ export function ModeButton() {
     queueAnimation();
   }, [isCaptureOpen, queueAnimation]);
 
+  const hitTestZone = useCallback((point: Point): HoldZone => {
+    const left = leftZoneRef.current?.getBoundingClientRect();
+    if (
+      left &&
+      point.x >= left.left &&
+      point.x <= left.right &&
+      point.y >= left.top &&
+      point.y <= left.bottom
+    ) {
+      return "left";
+    }
+    const right = rightZoneRef.current?.getBoundingClientRect();
+    if (
+      right &&
+      point.x >= right.left &&
+      point.x <= right.right &&
+      point.y >= right.top &&
+      point.y <= right.bottom
+    ) {
+      return "right";
+    }
+    const up = upZoneRef.current?.getBoundingClientRect();
+    if (
+      up &&
+      point.x >= up.left &&
+      point.x <= up.right &&
+      point.y >= up.top &&
+      point.y <= up.bottom
+    ) {
+      return "up";
+    }
+    return null;
+  }, []);
+
+  const enterHoldMode = useCallback(() => {
+    if (isRitualMode) return;
+    setIsHoldMode(true);
+    setActiveZone(null);
+    setDragOffset({ x: 0, y: 0 });
+    if (bodyOverflowRef.current === null) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+    }
+  }, [isRitualMode]);
+
+  const beginPress = useCallback(
+    (point: Point) => {
+      startPointRef.current = point;
+      swipedRef.current = false;
+      movedRef.current = false;
+      longPressTriggeredRef.current = false;
+      clearLongPressTimer();
+      clearHoldTimer();
+
+      if (isRitualMode) {
+        longPressRef.current = window.setTimeout(() => {
+          if (swipedRef.current || movedRef.current) return;
+          longPressTriggeredRef.current = true;
+          showRitualNotice();
+        }, LONG_PRESS_MS);
+        return;
+      }
+
+      holdTimerRef.current = window.setTimeout(() => {
+        enterHoldMode();
+      }, HOLD_DURATION_MS);
+    },
+    [clearHoldTimer, clearLongPressTimer, enterHoldMode, isRitualMode, showRitualNotice]
+  );
+
+  const movePress = useCallback(
+    (point: Point, event?: Event) => {
+      if (!startPointRef.current) return;
+      const dx = point.x - startPointRef.current.x;
+      const dy = point.y - startPointRef.current.y;
+
+      if (isHoldMode) {
+        event?.preventDefault();
+        setDragOffset({ x: dx, y: dy });
+        setActiveZone(hitTestZone(point));
+        return;
+      }
+
+      if (Math.abs(dx) > HOLD_MOVE_SLOP || Math.abs(dy) > HOLD_MOVE_SLOP) {
+        movedRef.current = true;
+        clearHoldTimer();
+      }
+
+      if (!isSwipeEnabled) {
+        return;
+      }
+
+      if (Math.abs(dx) > MOVE_SLOP || Math.abs(dy) > MOVE_SLOP) {
+        movedRef.current = true;
+        clearLongPressTimer();
+      }
+
+      if (dy <= -SWIPE_THRESHOLD) {
+        swipedRef.current = true;
+        clearHoldTimer();
+        clearLongPressTimer();
+        openCaptureSheet();
+        return;
+      }
+
+      if (dy >= SWIPE_THRESHOLD) {
+        swipedRef.current = true;
+        clearHoldTimer();
+        clearLongPressTimer();
+        if (isRitualMode) {
+          return;
+        }
+        if (!isSearchEnabled) {
+          showSearchNotice();
+        }
+      }
+    },
+    [
+      clearHoldTimer,
+      clearLongPressTimer,
+      hitTestZone,
+      isHoldMode,
+      isRitualMode,
+      isSearchEnabled,
+      isSwipeEnabled,
+      openCaptureSheet,
+      showSearchNotice,
+    ]
+  );
+
+  const completeHoldAction = useCallback(
+    (zone: HoldZone) => {
+      if (zone === "left") {
+        openModeSheet();
+      } else if (zone === "up") {
+        openCaptureSheet();
+      } else if (zone === "right") {
+        if (!isSearchEnabled) {
+          showSearchNotice();
+        }
+      }
+    },
+    [isSearchEnabled, openCaptureSheet, openModeSheet, showSearchNotice]
+  );
+
+  const endPress = useCallback(
+    (point: Point) => {
+      if (!startPointRef.current) return;
+      clearHoldTimer();
+      clearLongPressTimer();
+
+      if (isHoldMode) {
+        const zone = hitTestZone(point);
+        resetHoldState();
+        if (zone) {
+          completeHoldAction(zone);
+        }
+        startPointRef.current = null;
+        return;
+      }
+
+      const shouldTap =
+        !swipedRef.current && !movedRef.current && !longPressTriggeredRef.current;
+
+      startPointRef.current = null;
+
+      if (!shouldTap) return;
+      if (isRitualMode) {
+        showRitualNotice();
+        return;
+      }
+      openModeSheet();
+    },
+    [
+      clearHoldTimer,
+      clearLongPressTimer,
+      completeHoldAction,
+      hitTestZone,
+      isHoldMode,
+      isRitualMode,
+      openModeSheet,
+      resetHoldState,
+      showRitualNotice,
+    ]
+  );
+
+  const cancelPress = useCallback(() => {
+    clearHoldTimer();
+    clearLongPressTimer();
+    resetHoldState();
+    startPointRef.current = null;
+  }, [clearHoldTimer, clearLongPressTimer, resetHoldState]);
+
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (touchActiveRef.current) return;
     if (isAnimating) return;
     if (event.button !== 0) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    startPointRef.current = { x: event.clientX, y: event.clientY };
-    swipedRef.current = false;
-    movedRef.current = false;
-    longPressTriggeredRef.current = false;
-
-    clearLongPressTimer();
-
-    if (isRitualMode) {
-      longPressRef.current = window.setTimeout(() => {
-        if (swipedRef.current || movedRef.current) return;
-        longPressTriggeredRef.current = true;
-        showRitualNotice();
-      }, LONG_PRESS_MS);
-    }
+    beginPress({ x: event.clientX, y: event.clientY });
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!startPointRef.current || swipedRef.current) return;
-    const dx = event.clientX - startPointRef.current.x;
-    const dy = event.clientY - startPointRef.current.y;
-
-    if (Math.abs(dx) > MOVE_SLOP || Math.abs(dy) > MOVE_SLOP) {
-      movedRef.current = true;
-      clearLongPressTimer();
-    }
-
-    if (dy <= -SWIPE_THRESHOLD) {
-      swipedRef.current = true;
-      clearLongPressTimer();
-      openCaptureSheet();
-      return;
-    }
-
-    if (dy >= SWIPE_THRESHOLD) {
-      swipedRef.current = true;
-      clearLongPressTimer();
-      if (isRitualMode) {
-        return;
-      }
-      if (!isSearchEnabled) {
-        showSearchNotice();
-      }
-    }
+    if (touchActiveRef.current) return;
+    movePress({ x: event.clientX, y: event.clientY }, event.nativeEvent);
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!startPointRef.current) return;
+    if (touchActiveRef.current) return;
     event.currentTarget.releasePointerCapture(event.pointerId);
-    clearLongPressTimer();
-
-    const shouldTap =
-      !swipedRef.current && !movedRef.current && !longPressTriggeredRef.current;
-
-    startPointRef.current = null;
-
-    if (!shouldTap) return;
-    if (isRitualMode) {
-      showRitualNotice();
-      return;
-    }
-    openModeSheet();
+    endPress({ x: event.clientX, y: event.clientY });
   };
 
   const handlePointerCancel = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (startPointRef.current) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    startPointRef.current = null;
-    clearLongPressTimer();
+    if (touchActiveRef.current) return;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    cancelPress();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -229,6 +396,51 @@ export function ModeButton() {
     router.replace(href);
   };
 
+  useEffect(() => {
+    const node = buttonWrapperRef.current;
+    if (!node) return;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      touchActiveRef.current = true;
+      const touch = event.touches[0];
+      beginPress({ x: touch.clientX, y: touch.clientY });
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      movePress({ x: touch.clientX, y: touch.clientY }, event);
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const touch = event.changedTouches[0];
+      if (touch) {
+        endPress({ x: touch.clientX, y: touch.clientY });
+      } else {
+        cancelPress();
+      }
+      touchActiveRef.current = false;
+    };
+
+    const handleTouchCancel = () => {
+      touchActiveRef.current = false;
+      cancelPress();
+    };
+
+    node.addEventListener("touchstart", handleTouchStart, { passive: true });
+    node.addEventListener("touchmove", handleTouchMove, { passive: false });
+    node.addEventListener("touchend", handleTouchEnd);
+    node.addEventListener("touchcancel", handleTouchCancel);
+
+    return () => {
+      node.removeEventListener("touchstart", handleTouchStart);
+      node.removeEventListener("touchmove", handleTouchMove);
+      node.removeEventListener("touchend", handleTouchEnd);
+      node.removeEventListener("touchcancel", handleTouchCancel);
+    };
+  }, [beginPress, cancelPress, endPress, movePress]);
+
   const shouldRender = shouldShow || isModeOpen || isCaptureOpen;
   const showButton = shouldShow && !isCaptureOpen && !isModeOpen;
 
@@ -239,12 +451,21 @@ export function ModeButton() {
   return (
     <>
       {showButton && (
-        <div className={styles.buttonWrapper}>
+        <div
+          ref={buttonWrapperRef}
+          className={styles.buttonWrapper}
+          style={
+            {
+              "--mode-drag-x": `${dragOffset.x}px`,
+              "--mode-drag-y": `${dragOffset.y}px`,
+            } as React.CSSProperties
+          }
+        >
           <Tooltip open={isRitualNoticeOpen}>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className={styles.modeButton}
+                className={`${styles.modeButton} ${isHoldMode ? styles.modeButtonHold : ""}`}
                 aria-label="Mode. Tap to switch modes. Swipe up to capture."
                 aria-disabled={isAnimating}
                 onContextMenu={(event) => event.preventDefault()}
