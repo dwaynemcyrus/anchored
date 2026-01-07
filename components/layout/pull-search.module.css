@@ -1,7 +1,7 @@
 .localRoot {
   position: fixed;
   left: 50%;
-  top: 28%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
   transform: translateX(-50%);
   width: min(520px, calc(100% - 32px));
   background: rgba(32, 32, 44, 0.96);
@@ -118,11 +118,6 @@
   border-radius: 14px;
   background: rgba(24, 24, 38, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.localSearchIcon {
-  color: #9f98be;
-  font-size: 16px;
 }
 
 .localField {

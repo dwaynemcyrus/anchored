@@ -105,6 +105,9 @@ export function PullSearch({
 
   return (
     <div className={styles.localRoot} role="dialog" aria-modal="true">
+      <div className={styles.localInputRow}>
+        <input className={styles.localField} placeholder="Search" autoFocus />
+      </div>
       <div className={styles.localBar}>
         <button
           type="button"
@@ -146,12 +149,6 @@ export function PullSearch({
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
-      </div>
-      <div className={styles.localInputRow}>
-        <span className={styles.localSearchIcon} aria-hidden="true">
-          ⌕
-        </span>
-        <input className={styles.localField} placeholder="Search" autoFocus />
       </div>
     </div>
   );
