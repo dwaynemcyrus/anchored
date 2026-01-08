@@ -1,0 +1,48 @@
+.stackRoot {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.singleLayer {
+  height: 100%;
+  overflow: hidden;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.panel {
+  pointer-events: auto;
+  height: 100%;
+  width: 100%;
+  background: var(--background);
+  overflow: auto;
+  touch-action: pan-y;
+}
+
+.panelTop {
+  box-shadow: -12px 0 24px rgba(0, 0, 0, 0.2);
+}
+
+.panelDragging {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    width: clamp(384px, 70vw, 640px);
+  }
+}
