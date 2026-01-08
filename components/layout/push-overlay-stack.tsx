@@ -49,6 +49,8 @@ export function PushOverlayStack({
   const [isDragging, setIsDragging] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
   const prevDepthRef = useRef<number | null>(null);
+  const nodeCacheRef = useRef<Map<string, React.ReactNode>>(new Map());
+  const pathOrderRef = useRef<string[]>([]);
   const dragStartXRef = useRef(0);
   const dragActiveRef = useRef(false);
   const dismissTimeoutRef = useRef<number | null>(null);
@@ -61,9 +63,21 @@ export function PushOverlayStack({
       return;
     }
 
-    setLayers((prev) => {
-      const trimmed = prev.filter((layer) => layer.depth < routeInfo.depth);
-      return [...trimmed, { path: pathname, depth: routeInfo.depth, node: children }];
+    nodeCacheRef.current.set(pathname, children);
+    if (pathOrderRef.current[pathOrderRef.current.length - 1] !== pathname) {
+      pathOrderRef.current = [...pathOrderRef.current, pathname];
+    }
+
+    setLayers(() => {
+      const nextLayers: Layer[] = [];
+      for (const path of pathOrderRef.current) {
+        const info = getRouteInfo(path);
+        if (!info || info.depth > routeInfo.depth) continue;
+        const node = nodeCacheRef.current.get(path);
+        if (!node) continue;
+        nextLayers.push({ path, depth: info.depth, node });
+      }
+      return nextLayers;
     });
 
     if (prevDepthRef.current !== null && routeInfo.depth > prevDepthRef.current) {
