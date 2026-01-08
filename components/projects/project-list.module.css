@@ -44,6 +44,8 @@
   gap: 6px;
   cursor: pointer;
   outline: none;
+  text-decoration: none;
+  color: inherit;
 }
 
 .linkArea:focus-visible {
