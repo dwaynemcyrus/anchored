@@ -240,12 +240,12 @@ export function AppShell({ children, userEmail }: AppShellProps) {
           searchScopeRef={mainRef}
         />
 
-        {/* Page content */}
-        <main className={layoutStyles.main}>
-          <div className={layoutStyles.container} ref={mainRef}>
-            <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
-          </div>
-        </main>
+      {/* Page content */}
+      <main className={layoutStyles.main}>
+        <div className={layoutStyles.container} ref={mainRef}>
+          <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+        </div>
+      </main>
       </div>
 
     </div>

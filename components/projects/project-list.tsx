@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { ProjectWithTaskCount } from "@/lib/hooks/use-projects";
 import styles from "./project-list.module.css";
 
@@ -35,8 +35,6 @@ interface ProjectListProps {
 }
 
 export function ProjectList({ projects }: ProjectListProps) {
-  const router = useRouter();
-
   if (projects.length === 0) {
     return <div className={styles.state}>No projects yet.</div>;
   }
@@ -69,17 +67,9 @@ export function ProjectList({ projects }: ProjectListProps) {
             <div className={styles.sectionList}>
               {items.map((project) => (
                 <div key={project.id} className={styles.item}>
-                  <div
+                  <Link
+                    href={`/projects/${project.id}`}
                     className={styles.linkArea}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => router.push(`/projects/${project.id}`)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        router.push(`/projects/${project.id}`);
-                      }
-                    }}
                   >
                     <div className={styles.title}>{project.title}</div>
                     <div className={styles.metaRow}>
@@ -91,7 +81,7 @@ export function ProjectList({ projects }: ProjectListProps) {
                         {statusLabels[project.status as ProjectStatus] || "Status"}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               ))}
             </div>
