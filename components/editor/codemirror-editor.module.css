@@ -99,3 +99,246 @@
   background: var(--muted);
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Rendered Block Widgets
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorContainer :global(.cm-rendered-block) {
+  padding: 0.25rem 0;
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure tap targets are large enough on mobile */
+@media (pointer: coarse) {
+  .editorContainer :global(.cm-rendered-block) {
+    min-height: 44px;
+  }
+}
+
+/* Rendered headings */
+.editorContainer :global(.cm-rendered-heading) h1,
+.editorContainer :global(.cm-rendered-block) h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.3;
+}
+
+.editorContainer :global(.cm-rendered-heading) h2,
+.editorContainer :global(.cm-rendered-block) h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.3;
+}
+
+.editorContainer :global(.cm-rendered-heading) h3,
+.editorContainer :global(.cm-rendered-block) h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.3;
+}
+
+.editorContainer :global(.cm-rendered-heading) h4,
+.editorContainer :global(.cm-rendered-heading) h5,
+.editorContainer :global(.cm-rendered-heading) h6,
+.editorContainer :global(.cm-rendered-block) h4,
+.editorContainer :global(.cm-rendered-block) h5,
+.editorContainer :global(.cm-rendered-block) h6 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.3;
+}
+
+/* Rendered paragraphs */
+.editorContainer :global(.cm-rendered-paragraph) p,
+.editorContainer :global(.cm-rendered-block) p {
+  margin: 0.25em 0;
+  line-height: 1.7;
+}
+
+/* Rendered lists */
+.editorContainer :global(.cm-rendered-list) ul,
+.editorContainer :global(.cm-rendered-list) ol,
+.editorContainer :global(.cm-rendered-block) ul,
+.editorContainer :global(.cm-rendered-block) ol {
+  margin: 0.25em 0;
+  padding-left: 1.5em;
+}
+
+.editorContainer :global(.cm-rendered-list) li,
+.editorContainer :global(.cm-rendered-block) li {
+  margin: 0.15em 0;
+  line-height: 1.6;
+}
+
+/* Task list checkboxes */
+.editorContainer :global(.cm-rendered-block) .task-list-item {
+  list-style: none;
+  margin-left: -1.5em;
+  padding-left: 0;
+}
+
+.editorContainer :global(.cm-rendered-block) .task-list-item-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.5em;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+@media (pointer: coarse) {
+  .editorContainer :global(.cm-rendered-block) .task-list-item-checkbox {
+    width: 24px;
+    height: 24px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Rendered blockquotes */
+.editorContainer :global(.cm-rendered-blockquote) blockquote,
+.editorContainer :global(.cm-rendered-block) blockquote {
+  margin: 0.5em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--border);
+  background: var(--muted);
+  border-radius: 0 8px 8px 0;
+  color: var(--muted-foreground);
+}
+
+/* Rendered code blocks */
+.editorContainer :global(.cm-rendered-codeBlock) pre,
+.editorContainer :global(.cm-rendered-block) pre {
+  margin: 0.5em 0;
+  padding: 1em;
+  background: var(--muted);
+  border-radius: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.editorContainer :global(.cm-rendered-codeBlock) code,
+.editorContainer :global(.cm-rendered-block) pre code {
+  background: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+/* Inline code */
+.editorContainer :global(.cm-rendered-block) code {
+  background: var(--muted);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+/* Rendered tables */
+.editorContainer :global(.cm-rendered-table) table,
+.editorContainer :global(.cm-rendered-block) table {
+  width: 100%;
+  margin: 0.5em 0;
+  border-collapse: collapse;
+}
+
+.editorContainer :global(.cm-rendered-table) th,
+.editorContainer :global(.cm-rendered-table) td,
+.editorContainer :global(.cm-rendered-block) th,
+.editorContainer :global(.cm-rendered-block) td {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.editorContainer :global(.cm-rendered-table) th,
+.editorContainer :global(.cm-rendered-block) th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+/* Links in rendered blocks */
+.editorContainer :global(.cm-rendered-block) a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.editorContainer :global(.cm-rendered-block) a:hover {
+  opacity: 0.8;
+}
+
+/* Wiki links */
+.editorContainer :global(.cm-rendered-block) a.wiki-link {
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--primary);
+}
+
+/* Callouts */
+.editorContainer :global(.cm-rendered-block) .callout {
+  margin: 0.5em 0;
+  padding: 0.75em 1em;
+  border-radius: 8px;
+  border-left: 4px solid var(--border);
+  background: var(--muted);
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-title {
+  font-weight: 600;
+  margin-bottom: 0.25em;
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-content {
+  color: var(--foreground);
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-note {
+  border-left-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-tip {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.editorContainer :global(.cm-rendered-block) .callout-danger {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Horizontal rules */
+.editorContainer :global(.cm-rendered-horizontalRule) hr,
+.editorContainer :global(.cm-rendered-block) hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+/* Strong and emphasis */
+.editorContainer :global(.cm-rendered-block) strong {
+  font-weight: 700;
+}
+
+.editorContainer :global(.cm-rendered-block) em {
+  font-style: italic;
+}
+
+/* Strikethrough */
+.editorContainer :global(.cm-rendered-block) del,
+.editorContainer :global(.cm-rendered-block) s {
+  text-decoration: line-through;
+}
