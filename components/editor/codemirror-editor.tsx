@@ -6,6 +6,9 @@ import { EditorView, keymap, placeholder as placeholderExt } from "@codemirror/v
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
+import { activeBlockExtension } from "@/lib/editor/active-block-plugin";
+import { blockDecorationExtension } from "@/lib/editor/block-decoration-plugin";
+import { checkboxToggleExtension } from "@/lib/editor/checkbox-toggle-plugin";
 import styles from "./codemirror-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,6 +21,8 @@ export type CodeMirrorEditorProps = {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  /** Enable rendered markdown mode (default: true) */
+  renderMode?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +73,7 @@ export function CodeMirrorEditor({
   placeholder = "",
   className = "",
   autoFocus = false,
+  renderMode = true,
 }: CodeMirrorEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -111,6 +117,15 @@ export function CodeMirrorEditor({
 
       // Update listener for onChange
       createUpdateListener(),
+
+      // Rendered markdown mode extensions
+      ...(renderMode
+        ? [
+            activeBlockExtension(),
+            blockDecorationExtension(),
+            checkboxToggleExtension(),
+          ]
+        : []),
     ];
 
     const state = EditorState.create({

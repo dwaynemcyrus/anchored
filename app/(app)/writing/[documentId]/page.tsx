@@ -10,12 +10,11 @@ import {
 } from "@/lib/hooks/use-documents";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
-import { MarkdownEditor } from "@/components/editor/markdown-editor";
+import { CodeMirrorEditor } from "@/components/editor/codemirror-editor";
 import {
   FrontmatterPanel,
   FrontmatterState,
 } from "@/components/editor/frontmatter-panel";
-import { PreviewPane } from "@/components/editor/preview-pane";
 import styles from "./page.module.css";
 
 const emptyFrontmatter: FrontmatterState = {
@@ -63,7 +62,6 @@ export default function WritingEditorPage() {
   const [frontmatter, setFrontmatter] =
     useState<FrontmatterState>(emptyFrontmatter);
   const [bodyMd, setBodyMd] = useState("");
-  const [showPreview, setShowPreview] = useState(true);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -248,13 +246,6 @@ export default function WritingEditorPage() {
           <button
             type="button"
             className={styles.secondaryButton}
-            onClick={() => setShowPreview((prev) => !prev)}
-          >
-            {showPreview ? "Hide preview" : "Show preview"}
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
             onClick={handleSnapshot}
             disabled={createSnapshot.isPending || updateDocument.isPending}
           >
@@ -276,17 +267,12 @@ export default function WritingEditorPage() {
       </div>
 
       <div className={styles.main}>
-        <div
-          className={`${styles.workspace} ${
-            showPreview ? styles.workspaceSplit : ""
-          }`}
-        >
-          <MarkdownEditor
+        <div className={styles.workspace}>
+          <CodeMirrorEditor
             value={bodyMd}
             onChange={setBodyMd}
             placeholder="Start writing..."
           />
-          {showPreview && <PreviewPane value={bodyMd} />}
         </div>
 
         <FrontmatterPanel value={frontmatter} onChange={setFrontmatter} />
