@@ -342,3 +342,57 @@
 .editorContainer :global(.cm-rendered-block) s {
   text-decoration: line-through;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Code Block Copy Button
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorContainer :global(.cm-code-copy-btn) {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  padding: 0.35em 0.75em;
+  font-size: 0.75rem;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  z-index: 1;
+}
+
+/* Show on hover/touch */
+.editorContainer :global(.cm-rendered-block) pre:hover :global(.cm-code-copy-btn),
+.editorContainer :global(.cm-rendered-block) pre:focus-within :global(.cm-code-copy-btn) {
+  opacity: 1;
+}
+
+/* Always visible on touch devices */
+@media (pointer: coarse) {
+  .editorContainer :global(.cm-code-copy-btn) {
+    opacity: 1;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.editorContainer :global(.cm-code-copy-btn):hover {
+  background: var(--muted);
+}
+
+.editorContainer :global(.cm-code-copy-btn):active {
+  transform: scale(0.95);
+}
+
+/* Success state */
+.editorContainer :global(.cm-code-copy-btn.cm-code-copy-success) {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: #10b981;
+}

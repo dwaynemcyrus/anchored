@@ -95,6 +95,11 @@ export class RenderedBlockWidget extends WidgetType {
     // Add type-specific classes
     wrapper.classList.add(`cm-rendered-${this.block.type}`);
 
+    // Add copy button to code blocks
+    if (this.block.type === "codeBlock") {
+      this.addCodeCopyButton(wrapper);
+    }
+
     // Cache the result (without event handlers)
     if (!cached) {
       setCachedWidget(this.cacheKey, { html, element: wrapper.cloneNode(true) as HTMLElement });
@@ -185,6 +190,88 @@ export class RenderedBlockWidget extends WidgetType {
       return { x: touch.clientX, y: touch.clientY };
     }
     return { x: event.clientX, y: event.clientY };
+  }
+
+  private addCodeCopyButton(wrapper: HTMLElement): void {
+    const preElement = wrapper.querySelector("pre");
+    if (!preElement) return;
+
+    // Make pre relative for absolute positioning of button
+    preElement.style.position = "relative";
+
+    // Extract code text (strip the language info line from fenced code)
+    const codeElement = preElement.querySelector("code");
+    const codeText = codeElement?.textContent ?? preElement.textContent ?? "";
+
+    // Create copy button
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "cm-code-copy-btn";
+    copyBtn.textContent = "Copy";
+    copyBtn.setAttribute("aria-label", "Copy code to clipboard");
+
+    // Handle click
+    copyBtn.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        await this.copyToClipboard(codeText);
+        copyBtn.textContent = "Copied!";
+        copyBtn.classList.add("cm-code-copy-success");
+
+        // Reset after delay
+        setTimeout(() => {
+          copyBtn.textContent = "Copy";
+          copyBtn.classList.remove("cm-code-copy-success");
+        }, 2000);
+      } catch {
+        copyBtn.textContent = "Failed";
+        setTimeout(() => {
+          copyBtn.textContent = "Copy";
+        }, 2000);
+      }
+    });
+
+    // Prevent pointerdown from activating edit mode
+    copyBtn.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+
+    preElement.appendChild(copyBtn);
+  }
+
+  private async copyToClipboard(text: string): Promise<void> {
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    // Fallback for older browsers / iOS Safari
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    textarea.setAttribute("readonly", "");
+    document.body.appendChild(textarea);
+
+    // iOS Safari specific handling
+    const range = document.createRange();
+    range.selectNodeContents(textarea);
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    textarea.setSelectionRange(0, text.length);
+
+    try {
+      document.execCommand("copy");
+    } finally {
+      document.body.removeChild(textarea);
+    }
   }
 
   get estimatedHeight(): number {
