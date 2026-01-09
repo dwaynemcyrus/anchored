@@ -43,6 +43,30 @@
   }
 }
 
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .editorContainer :global(.cm-scroller) {
+    /* Smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .editorContainer :global(.cm-content) {
+    /* Prevent iOS zoom on input focus */
+    font-size: 16px;
+  }
+
+  .editorContainer :global(.cm-editor) {
+    /* Prevent text selection issues on iOS */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Fix iOS selection handles */
+  .editorContainer :global(.cm-selectionBackground) {
+    background: rgba(0, 122, 255, 0.3) !important;
+  }
+}
+
 /* Markdown syntax highlighting overrides */
 .editorContainer :global(.cm-header) {
   font-weight: 700;
