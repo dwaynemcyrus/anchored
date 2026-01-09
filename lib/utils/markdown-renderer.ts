@@ -329,6 +329,21 @@ export function renderInline(text: string): string {
 }
 
 /**
+ * Render a single line of markdown to HTML with caching.
+ */
+export function renderInlineLine(text: string): string {
+  const cacheKey = getCacheKey(text, "line");
+  const cached = getCachedRender(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const html = renderInline(text);
+  setCachedRender(cacheKey, html);
+  return html;
+}
+
+/**
  * Clear the render cache.
  * Useful when switching documents or for memory management.
  */

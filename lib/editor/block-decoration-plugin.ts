@@ -14,8 +14,8 @@ import {
 } from "@codemirror/view";
 import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import type { EditorState } from "@codemirror/state";
-import { blocksStateField } from "./active-block-plugin";
-import { createRenderedBlockWidget } from "./rendered-block-widget";
+import { allBlocksFacet, activeBlockFacet, activeLineFacet } from "./active-line-plugin";
+import { createRenderedLineWidget } from "./rendered-line-widget";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration
@@ -39,14 +39,9 @@ export const updateViewportEffect = StateEffect.define<ViewportRange>();
 function buildDecorations(state: EditorState, viewport: ViewportRange): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
 
-  // Get blocks and active block from state
-  const blocksState = state.field(blocksStateField, false);
-  if (!blocksState) {
-    return builder.finish();
-  }
-
-  const { blocks, activeBlock } = blocksState;
-  const activeBlockId = activeBlock?.id ?? null;
+  const activeLine = state.facet(activeLineFacet);
+  const blocks = state.facet(allBlocksFacet);
+  const activeBlock = state.facet(activeBlockFacet);
 
   // Get viewport range with buffer (in document positions)
   const bufferLines = Math.ceil(VIEWPORT_BUFFER_PX / 24); // ~24px per line
@@ -60,32 +55,44 @@ function buildDecorations(state: EditorState, viewport: ViewportRange): Decorati
   const rangeFrom = state.doc.line(fromLine).from;
   const rangeTo = state.doc.line(toLine).to;
 
-  // Filter blocks to those in viewport range
-  const visibleBlocks = blocks.filter(
-    (block) => block.to >= rangeFrom && block.from <= rangeTo
-  );
+  // Build decorations per visible line
+  for (let lineNumber = fromLine; lineNumber <= toLine; lineNumber += 1) {
+    const line = state.doc.line(lineNumber);
+    const text = line.text;
 
-  // Build decorations for inactive blocks only
-  for (const block of visibleBlocks) {
-    // Skip the active block - show raw markdown
-    if (block.id === activeBlockId) {
+    if (lineNumber === activeLine) {
       continue;
     }
 
-    // Skip empty blocks
-    if (block.text.trim().length === 0) {
+    if (text.trim().length === 0) {
       continue;
     }
 
-    // Create widget decoration that replaces the block text
-    const widget = createRenderedBlockWidget(block);
+    // If the active block is a block construct, keep its lines raw.
+    if (
+      activeBlock &&
+      line.from >= activeBlock.from &&
+      line.to <= activeBlock.to &&
+      activeBlock.type !== "paragraph" &&
+      activeBlock.type !== "heading" &&
+      activeBlock.type !== "listItem"
+    ) {
+      continue;
+    }
+
+    const widget = createRenderedLineWidget({
+      lineNumber,
+      from: line.from,
+      to: line.to,
+      text,
+      blocks,
+    });
     const decoration = Decoration.replace({
       widget,
       inclusive: false,
-      block: true,
     });
 
-    builder.add(block.from, block.to, decoration);
+    builder.add(line.from, line.to, decoration);
   }
 
   return builder.finish();

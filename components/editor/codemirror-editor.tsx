@@ -6,10 +6,10 @@ import { EditorView, keymap, placeholder as placeholderExt } from "@codemirror/v
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
-import { activeBlockExtension } from "@/lib/editor/active-block-plugin";
 import { blockDecorationExtension } from "@/lib/editor/block-decoration-plugin";
 import { checkboxToggleExtension } from "@/lib/editor/checkbox-toggle-plugin";
 import { wikiLinkCompletion } from "@/lib/editor/wiki-link-completion";
+import { activeLineExtension } from "@/lib/editor/active-line-plugin";
 import styles from "./codemirror-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ export function CodeMirrorEditor({
       // Rendered markdown mode extensions
       ...(renderMode
         ? [
-            activeBlockExtension(),
+            activeLineExtension(),
             blockDecorationExtension(),
             checkboxToggleExtension(),
           ]
