@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { EditorState, Transaction } from "@codemirror/state";
+import { EditorSelection, EditorState, Transaction } from "@codemirror/state";
 import { EditorView, keymap, placeholder as placeholderExt } from "@codemirror/view";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
@@ -40,7 +40,7 @@ const editorTheme = EditorView.theme({
   },
   ".cm-scroller": {
     fontFamily: "inherit",
-    overflow: "auto",
+    overflow: "visible",
   },
   ".cm-content": {
     padding: "1.25rem",
@@ -168,6 +168,17 @@ export function CodeMirrorEditor({
     isExternalUpdate.current = true;
 
     // Replace entire document content
+    const maxPos = value.length;
+    const nextRanges = view.state.selection.ranges.map((range) => {
+      const anchor = Math.min(range.anchor, maxPos);
+      const head = Math.min(range.head, maxPos);
+      return EditorSelection.range(anchor, head);
+    });
+    const nextSelection = EditorSelection.create(
+      nextRanges,
+      Math.min(view.state.selection.mainIndex, nextRanges.length - 1)
+    );
+
     view.dispatch({
       changes: {
         from: 0,
@@ -175,7 +186,7 @@ export function CodeMirrorEditor({
         insert: value,
       },
       // Preserve selection if possible
-      selection: view.state.selection,
+      selection: nextSelection,
       annotations: [Transaction.userEvent.of("external")],
     });
 

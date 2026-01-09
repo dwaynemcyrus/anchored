@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 1.5rem;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 1rem;
 }
 
@@ -162,6 +162,15 @@
   padding: 1.5rem;
   text-align: center;
   color: var(--muted-foreground);
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 24px;
+  touch-action: pan-y;
 }
 
 @media (max-width: 900px) {

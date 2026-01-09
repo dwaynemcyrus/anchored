@@ -15,6 +15,13 @@ import {
   FrontmatterPanel,
   FrontmatterState,
 } from "@/components/editor/frontmatter-panel";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import styles from "./page.module.css";
 
 const emptyFrontmatter: FrontmatterState = {
@@ -243,6 +250,19 @@ export default function WritingEditorPage() {
           </p>
         </div>
         <div className={styles.actions}>
+          <Sheet>
+            <SheetTrigger asChild>
+              <button type="button" className={styles.propsButton}>
+                Props
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className={styles.propsSheet}>
+              <SheetHeader>
+                <SheetTitle>Properties</SheetTitle>
+              </SheetHeader>
+              <FrontmatterPanel value={frontmatter} onChange={setFrontmatter} />
+            </SheetContent>
+          </Sheet>
           <button
             type="button"
             className={styles.secondaryButton}
@@ -262,21 +282,21 @@ export default function WritingEditorPage() {
         </div>
       </header>
 
-      <div className={styles.statusBar}>
-        {updateDocument.isPending ? "Saving..." : "Saved"}
-      </div>
-
-      <div className={styles.main}>
-        <div className={styles.workspace}>
-          <CodeMirrorEditor
-            value={bodyMd}
-            onChange={setBodyMd}
-            placeholder="Start writing..."
-          />
+      <section className={styles.scroll}>
+        <div className={styles.statusBar}>
+          {updateDocument.isPending ? "Saving..." : "Saved"}
         </div>
 
-        <FrontmatterPanel value={frontmatter} onChange={setFrontmatter} />
-      </div>
+        <div className={styles.main}>
+          <div className={styles.workspace}>
+            <CodeMirrorEditor
+              value={bodyMd}
+              onChange={setBodyMd}
+              placeholder="Start writing..."
+            />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

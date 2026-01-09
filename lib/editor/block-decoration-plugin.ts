@@ -5,9 +5,15 @@
  * Only processes blocks within the viewport (plus buffer) for performance.
  */
 
-import { ViewPlugin, Decoration, type DecorationSet, type ViewUpdate } from "@codemirror/view";
-import type { EditorView } from "@codemirror/view";
-import { RangeSetBuilder } from "@codemirror/state";
+import {
+  Decoration,
+  type DecorationSet,
+  EditorView,
+  ViewPlugin,
+  type ViewUpdate,
+} from "@codemirror/view";
+import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
+import type { EditorState } from "@codemirror/state";
 import { blocksStateField } from "./active-block-plugin";
 import { createRenderedBlockWidget } from "./rendered-block-widget";
 
@@ -18,13 +24,20 @@ import { createRenderedBlockWidget } from "./rendered-block-widget";
 // Buffer size: render blocks within viewport + this many pixels above/below
 const VIEWPORT_BUFFER_PX = 500;
 
+type ViewportRange = {
+  from: number;
+  to: number;
+};
+
+// Viewport effect to keep decorations scoped to the visible range.
+export const updateViewportEffect = StateEffect.define<ViewportRange>();
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Decoration Builder
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildDecorations(view: EditorView): DecorationSet {
+function buildDecorations(state: EditorState, viewport: ViewportRange): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
-  const state = view.state;
 
   // Get blocks and active block from state
   const blocksState = state.field(blocksStateField, false);
@@ -36,15 +49,16 @@ function buildDecorations(view: EditorView): DecorationSet {
   const activeBlockId = activeBlock?.id ?? null;
 
   // Get viewport range with buffer (in document positions)
-  const viewport = view.viewport;
   const bufferLines = Math.ceil(VIEWPORT_BUFFER_PX / 24); // ~24px per line
-  const fromLine = Math.max(1, view.state.doc.lineAt(viewport.from).number - bufferLines);
+  const clampedFrom = Math.max(0, Math.min(viewport.from, state.doc.length));
+  const clampedTo = Math.max(0, Math.min(viewport.to, state.doc.length));
+  const fromLine = Math.max(1, state.doc.lineAt(clampedFrom).number - bufferLines);
   const toLine = Math.min(
-    view.state.doc.lines,
-    view.state.doc.lineAt(viewport.to).number + bufferLines
+    state.doc.lines,
+    state.doc.lineAt(clampedTo).number + bufferLines
   );
-  const rangeFrom = view.state.doc.line(fromLine).from;
-  const rangeTo = view.state.doc.line(toLine).to;
+  const rangeFrom = state.doc.line(fromLine).from;
+  const rangeTo = state.doc.line(toLine).to;
 
   // Filter blocks to those in viewport range
   const visibleBlocks = blocks.filter(
@@ -78,50 +92,80 @@ function buildDecorations(view: EditorView): DecorationSet {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// StateField
+// ─────────────────────────────────────────────────────────────────────────────
+
+type BlockDecorationsState = {
+  viewport: ViewportRange;
+  decorations: DecorationSet;
+};
+
+const blockDecorationsField = StateField.define<BlockDecorationsState>({
+  create(state) {
+    const viewport = { from: 0, to: state.doc.length };
+    return {
+      viewport,
+      decorations: buildDecorations(state, viewport),
+    };
+  },
+  update(value, tr) {
+    let nextViewport = value.viewport;
+    let viewportChanged = false;
+
+    for (const effect of tr.effects) {
+      if (effect.is(updateViewportEffect)) {
+        nextViewport = effect.value;
+        viewportChanged = true;
+      }
+    }
+
+    if (tr.docChanged || tr.selection || viewportChanged) {
+      return {
+        viewport: nextViewport,
+        decorations: buildDecorations(tr.state, nextViewport),
+      };
+    }
+
+    return value;
+  },
+  provide: (field) => EditorView.decorations.from(field, (value) => value.decorations),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // View Plugin
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * ViewPlugin that manages block decorations.
- * Rebuilds decorations when:
- * - Document changes
- * - Selection changes (active block may change)
- * - Viewport changes (for performance optimization)
- */
-export const blockDecorationPlugin = ViewPlugin.fromClass(
+const viewportSyncPlugin = ViewPlugin.fromClass(
   class {
-    decorations: DecorationSet;
+    private lastViewport: ViewportRange;
+    private pendingDispatch = false;
 
     constructor(view: EditorView) {
-      this.decorations = buildDecorations(view);
+      this.lastViewport = view.viewport;
+      this.scheduleViewportSync(view);
     }
 
     update(update: ViewUpdate) {
-      // Rebuild decorations if document, selection, or viewport changed
-      if (
-        update.docChanged ||
-        update.selectionSet ||
-        update.viewportChanged ||
-        update.geometryChanged
-      ) {
-        this.decorations = buildDecorations(update.view);
-      }
+      if (!update.viewportChanged) return;
+      this.scheduleViewportSync(update.view);
     }
-  },
-  {
-    decorations: (v) => v.decorations,
 
-    eventHandlers: {
-      // Prevent default behavior for pointer events on widgets
-      pointerdown: (event) => {
-        const target = event.target as HTMLElement;
-        if (target.closest(".cm-rendered-block")) {
-          // Widget will handle the event
-          return true;
+    private scheduleViewportSync(view: EditorView) {
+      if (this.pendingDispatch) return;
+      this.pendingDispatch = true;
+      requestAnimationFrame(() => {
+        this.pendingDispatch = false;
+        const nextViewport = view.viewport;
+        if (
+          this.lastViewport.from === nextViewport.from &&
+          this.lastViewport.to === nextViewport.to
+        ) {
+          return;
         }
-        return false;
-      },
-    },
+        this.lastViewport = nextViewport;
+        view.dispatch({ effects: updateViewportEffect.of(nextViewport) });
+      });
+    }
   }
 );
 
@@ -134,5 +178,5 @@ export const blockDecorationPlugin = ViewPlugin.fromClass(
  * Requires activeBlockExtension to be included first.
  */
 export function blockDecorationExtension() {
-  return [blockDecorationPlugin];
+  return [blockDecorationsField, viewportSyncPlugin];
 }

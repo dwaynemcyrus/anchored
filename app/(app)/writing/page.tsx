@@ -147,40 +147,42 @@ export default function WritingPage() {
         </div>
       </section>
 
-      <section className={styles.list}>
-        {isLoading && <div className={styles.empty}>Loading documents…</div>}
-        {!isLoading && documents.length === 0 && (
-          <div className={styles.empty}>No documents yet.</div>
-        )}
-        {!isLoading &&
-          documents.map((doc) => {
-            const updatedAt = doc.updated_at
-              ? format(new Date(doc.updated_at), "MMM d, yyyy")
-              : "—";
-            return (
-              <Link
-                key={doc.id}
-                href={`/writing/${doc.id}`}
-                className={styles.card}
-              >
-                <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>{doc.title}</h2>
-                  <div className={styles.badges}>
-                    <span className={styles.badge}>{doc.status}</span>
-                    <span className={styles.badgeSecondary}>
-                      {doc.visibility}
-                    </span>
+      <section className={styles.scroll}>
+        <div className={styles.list}>
+          {isLoading && <div className={styles.empty}>Loading documents…</div>}
+          {!isLoading && documents.length === 0 && (
+            <div className={styles.empty}>No documents yet.</div>
+          )}
+          {!isLoading &&
+            documents.map((doc) => {
+              const updatedAt = doc.updated_at
+                ? format(new Date(doc.updated_at), "MMM d, yyyy")
+                : "—";
+              return (
+                <Link
+                  key={doc.id}
+                  href={`/writing/${doc.id}`}
+                  className={styles.card}
+                >
+                  <div className={styles.cardHeader}>
+                    <h2 className={styles.cardTitle}>{doc.title}</h2>
+                    <div className={styles.badges}>
+                      <span className={styles.badge}>{doc.status}</span>
+                      <span className={styles.badgeSecondary}>
+                        {doc.visibility}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <p className={styles.cardMeta}>
-                  {doc.collection} · Updated {updatedAt}
-                </p>
-                {doc.summary && (
-                  <p className={styles.cardSummary}>{doc.summary}</p>
-                )}
-              </Link>
-            );
-          })}
+                  <p className={styles.cardMeta}>
+                    {doc.collection} · Updated {updatedAt}
+                  </p>
+                  {doc.summary && (
+                    <p className={styles.cardSummary}>{doc.summary}</p>
+                  )}
+                </Link>
+              );
+            })}
+        </div>
       </section>
     </div>
   );

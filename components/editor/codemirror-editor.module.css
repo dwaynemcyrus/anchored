@@ -22,8 +22,7 @@
 
 /* Single scroll container - prevent nested scrolling */
 .editorContainer :global(.cm-scroller) {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 /* Mobile touch optimization */
@@ -46,8 +45,7 @@
 /* iOS Safari specific fixes */
 @supports (-webkit-touch-callout: none) {
   .editorContainer :global(.cm-scroller) {
-    /* Smooth momentum scrolling on iOS */
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .editorContainer :global(.cm-content) {
