@@ -9,6 +9,7 @@ import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
 import { activeBlockExtension } from "@/lib/editor/active-block-plugin";
 import { blockDecorationExtension } from "@/lib/editor/block-decoration-plugin";
 import { checkboxToggleExtension } from "@/lib/editor/checkbox-toggle-plugin";
+import { wikiLinkCompletion } from "@/lib/editor/wiki-link-completion";
 import styles from "./codemirror-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +118,9 @@ export function CodeMirrorEditor({
 
       // Update listener for onChange
       createUpdateListener(),
+
+      // Wiki-link autocomplete (always enabled)
+      wikiLinkCompletion(),
 
       // Rendered markdown mode extensions
       ...(renderMode
