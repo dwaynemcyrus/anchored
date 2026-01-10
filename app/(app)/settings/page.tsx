@@ -15,6 +15,11 @@ export default function SettingsPage() {
               Tasks
             </a>
           </div>
+          <div>
+            <a href="/writing-v2" className="text-sm underline">
+              Writing V2
+            </a>
+          </div>
           <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
             Settings coming soon
           </div>
