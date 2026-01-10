@@ -152,27 +152,18 @@ export const checkboxTogglePlugin = ViewPlugin.fromClass(
         event.preventDefault();
         event.stopPropagation();
 
-        // Find the rendered block container
-        const blockElement = target.closest(".cm-rendered-block");
-        if (!blockElement) return;
+        // Find the rendered line container
+        const lineElement = target.closest("[data-rendered-line='true']");
+        if (!lineElement) return;
 
-        // Get block position from data attribute
-        const blockFrom = parseInt(
-          blockElement.getAttribute("data-block-from") || "0",
+        const lineFrom = parseInt(
+          lineElement.getAttribute("data-line-from") || "0",
           10
         );
 
-        // Find which checkbox was clicked (by index within the block)
-        const allCheckboxes = blockElement.querySelectorAll(
-          ".task-list-item-checkbox"
-        );
-        let checkboxIndex = -1;
-        allCheckboxes.forEach((cb, idx) => {
-          if (cb === target) checkboxIndex = idx;
-        });
-
-        if (checkboxIndex >= 0) {
-          handleCheckboxClick(this.view, blockFrom, checkboxIndex);
+        if (lineFrom > 0) {
+          const line = this.view.state.doc.lineAt(lineFrom);
+          toggleCheckboxAtLine(this.view, line.number);
         }
       }
     }

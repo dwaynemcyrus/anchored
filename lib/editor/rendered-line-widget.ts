@@ -7,7 +7,7 @@
 import { WidgetType } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
 import type { Block } from "./block-detector";
-import { renderInlineLine } from "@/lib/utils/markdown-renderer";
+import { renderLineWithBlockSyntax } from "@/lib/utils/markdown-renderer";
 
 type LineWidgetInput = {
   lineNumber: number;
@@ -28,6 +28,10 @@ function findBlockForLine(blocks: Block[], from: number, to: number): Block | nu
 
 function isCodeBlock(block: Block | null): boolean {
   return block?.type === "codeBlock";
+}
+
+function isFenceLine(text: string): boolean {
+  return /^\s*(```|~~~)/.test(text);
 }
 
 export class RenderedLineWidget extends WidgetType {
@@ -60,12 +64,22 @@ export class RenderedLineWidget extends WidgetType {
     wrapper.setAttribute("data-line", String(this.lineNumber));
     wrapper.setAttribute("data-line-from", String(this.from));
 
-    const html = renderInlineLine(this.text);
-    wrapper.innerHTML = html;
-
     if (isCodeBlock(this.block)) {
       wrapper.classList.add("cm-rendered-line-code");
+      wrapper.classList.add("md-line", "md-code-line");
+      if (isFenceLine(this.text)) {
+        wrapper.classList.add("md-code-fence");
+        wrapper.innerHTML = "&nbsp;";
+      } else {
+        wrapper.textContent = this.text;
+      }
+    } else {
+      const result = renderLineWithBlockSyntax(this.text);
+      result.classes.forEach((className) => wrapper.classList.add(className));
+      wrapper.innerHTML = result.html;
     }
+
+    wrapper.setAttribute("data-rendered-line", "true");
 
     this.attachEventHandlers(wrapper, view);
     return wrapper;

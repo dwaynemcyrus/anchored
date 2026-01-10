@@ -133,6 +133,106 @@
   -webkit-user-select: none;
 }
 
+/* Rendered lines */
+.editorContainer :global(.cm-rendered-line) {
+  display: block;
+  padding: 0.1rem 0;
+  margin: 0;
+  line-height: 1.6;
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: normal;
+}
+
+.editorContainer :global(.cm-rendered-line.md-line) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-heading) {
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.editorContainer :global(.cm-rendered-line.md-h1) {
+  font-size: 1.7rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-h2) {
+  font-size: 1.45rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-h3) {
+  font-size: 1.2rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-h4),
+.editorContainer :global(.cm-rendered-line.md-h5),
+.editorContainer :global(.cm-rendered-line.md-h6) {
+  font-size: 1.05rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-quote) {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.editorContainer :global(.cm-rendered-line.md-list-item) {
+  padding-left: 0.25rem;
+}
+
+.editorContainer :global(.cm-rendered-line .md-list-marker) {
+  min-width: 1.5rem;
+  text-align: right;
+  color: var(--muted-foreground);
+}
+
+.editorContainer :global(.cm-rendered-line .md-list-content) {
+  flex: 1;
+}
+
+.editorContainer :global(.cm-rendered-line.md-hr) {
+  padding: 0.4rem 0;
+}
+
+.editorContainer :global(.cm-rendered-line.md-hr hr) {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.editorContainer :global(.cm-rendered-line) a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.editorContainer :global(.cm-rendered-line) code {
+  background: var(--muted);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.editorContainer :global(.cm-rendered-line-code) {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  white-space: pre;
+}
+
+.editorContainer :global(.cm-rendered-line.md-code-line) {
+  color: var(--foreground);
+  background: var(--muted);
+  border-radius: 6px;
+  padding: 0.15rem 0.35rem;
+}
+
+.editorContainer :global(.cm-rendered-line.md-code-fence) {
+  background: transparent;
+}
+
 /* Ensure tap targets are large enough on mobile */
 @media (pointer: coarse) {
   .editorContainer :global(.cm-rendered-block) {

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
+import { useCreateDocument } from "@/lib/hooks/use-documents";
 import styles from "./quick-capture-sheet.module.css";
 
 interface QuickCaptureSheetProps {
@@ -10,10 +12,12 @@ interface QuickCaptureSheetProps {
 }
 
 export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const createTask = useCreateTask();
+  const createDocument = useCreateDocument();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -44,6 +48,7 @@ export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
   }
 
   const isSaving = createTask.isPending;
+  const isCreatingDoc = createDocument.isPending;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,6 +75,23 @@ export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save action.");
+    }
+  };
+
+  const handleNewDocument = async () => {
+    try {
+      const doc = await createDocument.mutateAsync({
+        title: "Untitled",
+        collection: "notes",
+        visibility: "private",
+        status: "draft",
+        body_md: "",
+        metadata: {},
+      });
+      onClose();
+      router.push(`/writing-v2/${doc.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create document.");
     }
   };
 
@@ -103,6 +125,14 @@ export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
           onChange={(event) => setTitle(event.target.value)}
           disabled={isSaving}
         />
+        <button
+          type="button"
+          className={styles.secondaryAction}
+          onClick={handleNewDocument}
+          disabled={isCreatingDoc}
+        >
+          {isCreatingDoc ? "Creating document..." : "New document"}
+        </button>
         {error && <div className={styles.error}>{error}</div>}
         <div className={styles.footer}>
           <button

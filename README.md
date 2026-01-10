@@ -1,5 +1,6 @@
-## Release Note
-This is just to say a number of things have broken or just behave strange so I'm marking this as a stop point. Yep
+## Internal Notes
+I learned how to properly tag comits...9.12.2025 oh boy...
+FAB = Floating action bar1
 
 ***
 

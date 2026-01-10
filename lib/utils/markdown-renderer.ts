@@ -329,6 +329,107 @@ export function renderInline(text: string): string {
 }
 
 /**
+ * Render a single line of markdown with block syntax.
+ */
+export type LineRenderResult = {
+  html: string;
+  classes: string[];
+};
+
+export function renderLineWithBlockSyntax(text: string): LineRenderResult {
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    return {
+      html: "&nbsp;",
+      classes: ["md-line", "md-empty"],
+    };
+  }
+
+  const headingMatch = text.match(/^\s*(#{1,6})\s+(.*)$/);
+  if (headingMatch) {
+    const level = headingMatch[1].length;
+    const content = headingMatch[2];
+    const html = sanitize(
+      `<span class="md-heading-content">${renderInline(content)}</span>`
+    );
+    return {
+      html,
+      classes: ["md-line", "md-heading", `md-h${level}`],
+    };
+  }
+
+  if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+    return {
+      html: "<hr />",
+      classes: ["md-line", "md-hr"],
+    };
+  }
+
+  const quoteMatch = text.match(/^\s*>\s?(.*)$/);
+  if (quoteMatch) {
+    const content = quoteMatch[1];
+    const html = sanitize(
+      `<span class="md-quote-content">${renderInline(content)}</span>`
+    );
+    return {
+      html,
+      classes: ["md-line", "md-quote"],
+    };
+  }
+
+  const taskMatch = text.match(/^\s*[-*+]\s+\[([ xX])\]\s+(.*)$/);
+  if (taskMatch) {
+    const checked = taskMatch[1].toLowerCase() === "x";
+    const content = taskMatch[2];
+    const html = sanitize(
+      `<span class="task-list-item">` +
+        `<input type="checkbox" class="task-list-item-checkbox" ${
+          checked ? "checked" : ""
+        } />` +
+        `<span class="md-list-content">${renderInline(content)}</span>` +
+      `</span>`
+    );
+    return {
+      html,
+      classes: ["md-line", "md-list-item", "md-task"],
+    };
+  }
+
+  const orderedMatch = text.match(/^\s*(\d+)\.\s+(.*)$/);
+  if (orderedMatch) {
+    const marker = `${orderedMatch[1]}.`;
+    const content = orderedMatch[2];
+    const html = sanitize(
+      `<span class="md-list-marker">${escapeHtml(marker)}</span>` +
+        `<span class="md-list-content">${renderInline(content)}</span>`
+    );
+    return {
+      html,
+      classes: ["md-line", "md-list-item", "md-list-ordered"],
+    };
+  }
+
+  const unorderedMatch = text.match(/^\s*[-*+]\s+(.*)$/);
+  if (unorderedMatch) {
+    const content = unorderedMatch[1];
+    const html = sanitize(
+      `<span class="md-list-marker">•</span>` +
+        `<span class="md-list-content">${renderInline(content)}</span>`
+    );
+    return {
+      html,
+      classes: ["md-line", "md-list-item", "md-list-unordered"],
+    };
+  }
+
+  return {
+    html: renderInline(text),
+    classes: ["md-line", "md-paragraph"],
+  };
+}
+
+/**
  * Render a single line of markdown to HTML with caching.
  */
 export function renderInlineLine(text: string): string {
@@ -338,7 +439,7 @@ export function renderInlineLine(text: string): string {
     return cached;
   }
 
-  const html = renderInline(text);
+  const html = renderLineWithBlockSyntax(text).html;
   setCachedRender(cacheKey, html);
   return html;
 }
