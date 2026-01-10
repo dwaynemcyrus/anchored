@@ -25,9 +25,16 @@ export type FrontmatterState = {
 type FrontmatterPanelProps = {
   value: FrontmatterState;
   onChange: (next: FrontmatterState) => void;
+  showMetadata?: boolean;
+  showTitle?: boolean;
 };
 
-export function FrontmatterPanel({ value, onChange }: FrontmatterPanelProps) {
+export function FrontmatterPanel({
+  value,
+  onChange,
+  showMetadata = true,
+  showTitle = true,
+}: FrontmatterPanelProps) {
   const update = (patch: Partial<FrontmatterState>) => {
     onChange({ ...value, ...patch });
   };
@@ -38,7 +45,7 @@ export function FrontmatterPanel({ value, onChange }: FrontmatterPanelProps) {
 
   return (
     <section className={styles.panel}>
-      <h2 className={styles.title}>Frontmatter</h2>
+      {showTitle && <h2 className={styles.title}>Frontmatter</h2>}
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="doc-title">
@@ -167,7 +174,7 @@ export function FrontmatterPanel({ value, onChange }: FrontmatterPanelProps) {
         />
       </div>
 
-      {value.collection === "notes" && (
+      {showMetadata && value.collection === "notes" && (
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Notes</div>
           <div className={styles.field}>
@@ -199,7 +206,7 @@ export function FrontmatterPanel({ value, onChange }: FrontmatterPanelProps) {
         </div>
       )}
 
-      {value.collection === "essays" && (
+      {showMetadata && value.collection === "essays" && (
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Essays</div>
           <div className={styles.field}>
@@ -229,7 +236,7 @@ export function FrontmatterPanel({ value, onChange }: FrontmatterPanelProps) {
         </div>
       )}
 
-      {value.collection === "linked" && (
+      {showMetadata && value.collection === "linked" && (
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Linked</div>
           <div className={styles.field}>

@@ -272,6 +272,7 @@ export default function WritingV2EditorPage() {
                   <FrontmatterPanel
                     value={frontmatter}
                     onChange={setFrontmatter}
+                    showTitle={false}
                   />
                 </div>
               </Dialog.Content>

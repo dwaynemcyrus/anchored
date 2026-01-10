@@ -9,6 +9,13 @@ import { InlineError } from "@/components/error-boundary";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
 import styles from "./page.module.css";
 
+const collectionOrder = ["notes", "essays", "linked"] as const;
+const collectionLabels: Record<(typeof collectionOrder)[number], string> = {
+  notes: "Notes",
+  essays: "Essays",
+  linked: "Linked",
+};
+
 function buildSnippet(summary: string | null, body: string | null): string {
   const source = summary?.trim() || body?.trim() || "";
   if (!source) return "";
@@ -24,14 +31,31 @@ export default function WritingV2Page() {
   const [collectionsOpen, setCollectionsOpen] = useState(false);
 
   const collections = useMemo(() => {
-    const values = documents.map((doc) => doc.collection).filter(Boolean);
-    return Array.from(new Set(values)).sort();
+    const counts = documents.reduce<Record<string, number>>((acc, doc) => {
+      if (!doc.collection) return acc;
+      acc[doc.collection] = (acc[doc.collection] ?? 0) + 1;
+      return acc;
+    }, {});
+    return collectionOrder
+      .filter((collection) => counts[collection])
+      .map((collection) => ({
+        id: collection,
+        label: collectionLabels[collection],
+      }));
   }, [documents]);
 
   useEffect(() => {
-    if (activeCollection) return;
     if (collections.length === 0) return;
-    setActiveCollection(collections[0]);
+    if (!activeCollection) {
+      setActiveCollection(collections[0].id);
+      return;
+    }
+    const isStillAvailable = collections.some(
+      (collection) => collection.id === activeCollection
+    );
+    if (!isStillAvailable) {
+      setActiveCollection(collections[0].id);
+    }
   }, [collections, activeCollection]);
 
   const filteredDocs = useMemo(() => {
@@ -95,19 +119,19 @@ export default function WritingV2Page() {
                   )}
                   {collections.map((collection) => (
                     <button
-                      key={collection}
+                      key={collection.id}
                       type="button"
                       className={`${styles.drawerItem} ${
-                        collection === activeCollection
+                        collection.id === activeCollection
                           ? styles.drawerItemActive
                           : ""
                       }`}
                       onClick={() => {
-                        setActiveCollection(collection);
+                        setActiveCollection(collection.id);
                         setCollectionsOpen(false);
                       }}
                     >
-                      {collection}
+                      {collection.label}
                     </button>
                   ))}
                 </div>
@@ -144,11 +168,11 @@ export default function WritingV2Page() {
                 href={`/writing-v2/${doc.id}`}
                 className={styles.card}
               >
-                <div className={styles.cardHeader}>
+                <div className={styles.cardMain}>
                   <h2 className={styles.cardTitle}>{doc.title}</h2>
+                  {snippet && <p className={styles.cardSnippet}>{snippet}</p>}
                   <span className={styles.cardMeta}>{updatedAt}</span>
                 </div>
-                {snippet && <p className={styles.cardSnippet}>{snippet}</p>}
               </Link>
             );
           })}
