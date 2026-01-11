@@ -290,7 +290,6 @@ export default function WritingV2EditorPage() {
             value={bodyMd}
             onChange={setBodyMd}
             placeholder="Start writing..."
-            renderMode={false}
           />
         </div>
         <div className={styles.footerActions}>

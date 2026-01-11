@@ -37,8 +37,6 @@
 
   .editorContainer :global(.cm-line) {
     min-height: 44px;
-    display: flex;
-    align-items: center;
   }
 }
 

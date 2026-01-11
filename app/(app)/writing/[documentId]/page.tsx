@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   useCreateSnapshot,
   useDocument,
@@ -15,13 +16,6 @@ import {
   FrontmatterPanel,
   FrontmatterState,
 } from "@/components/editor/frontmatter-panel";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import styles from "./page.module.css";
 
 const emptyFrontmatter: FrontmatterState = {
@@ -57,6 +51,7 @@ function inputToTags(input: string) {
 }
 
 export default function WritingEditorPage() {
+  const router = useRouter();
   const params = useParams<{ documentId: string }>();
   const rawId = params?.documentId;
   const documentId = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
@@ -69,6 +64,7 @@ export default function WritingEditorPage() {
   const [frontmatter, setFrontmatter] =
     useState<FrontmatterState>(emptyFrontmatter);
   const [bodyMd, setBodyMd] = useState("");
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -241,28 +237,62 @@ export default function WritingEditorPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.headerMeta}>
-          <p className={styles.kicker}>Writing</p>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => router.push("/writing")}
+          >
+            Back
+          </button>
+          <span className={styles.headerDivider}>|</span>
           <h1 className={styles.title}>{frontmatter.title || "Untitled"}</h1>
-          <p className={styles.subTitle}>
-            {frontmatter.collection} · {frontmatter.status} ·{" "}
-            {frontmatter.visibility}
-          </p>
         </div>
         <div className={styles.actions}>
-          <Sheet>
-            <SheetTrigger asChild>
-              <button type="button" className={styles.propsButton}>
-                Props
+          <Dialog.Root open={infoOpen} onOpenChange={setInfoOpen}>
+            <Dialog.Trigger asChild>
+              <button type="button" className={styles.textButton}>
+                Info
               </button>
-            </SheetTrigger>
-            <SheetContent side="right" className={styles.propsSheet}>
-              <SheetHeader>
-                <SheetTitle>Properties</SheetTitle>
-              </SheetHeader>
-              <FrontmatterPanel value={frontmatter} onChange={setFrontmatter} />
-            </SheetContent>
-          </Sheet>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className={styles.sheetOverlay} />
+              <Dialog.Content className={styles.sheetContent}>
+                <div className={styles.sheetHeader}>
+                  <Dialog.Title className={styles.sheetTitle}>
+                    Info
+                  </Dialog.Title>
+                  <Dialog.Close asChild>
+                    <button type="button" className={styles.textButton}>
+                      Close
+                    </button>
+                  </Dialog.Close>
+                </div>
+                <div className={styles.sheetBody}>
+                  <FrontmatterPanel
+                    value={frontmatter}
+                    onChange={setFrontmatter}
+                    showTitle={false}
+                  />
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+          <button type="button" className={styles.textButton}>
+            More
+          </button>
+        </div>
+      </header>
+
+      <section className={styles.scroll}>
+        <div className={styles.editor}>
+          <CodeMirrorEditor
+            value={bodyMd}
+            onChange={setBodyMd}
+            placeholder="Start writing..."
+          />
+        </div>
+        <div className={styles.footerActions}>
           <button
             type="button"
             className={styles.secondaryButton}
@@ -279,22 +309,6 @@ export default function WritingEditorPage() {
           >
             Publish
           </button>
-        </div>
-      </header>
-
-      <section className={styles.scroll}>
-        <div className={styles.statusBar}>
-          {updateDocument.isPending ? "Saving..." : "Saved"}
-        </div>
-
-        <div className={styles.main}>
-          <div className={styles.workspace}>
-            <CodeMirrorEditor
-              value={bodyMd}
-              onChange={setBodyMd}
-              placeholder="Start writing..."
-            />
-          </div>
         </div>
       </section>
     </div>

@@ -4,51 +4,67 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import {
-  DocumentStatus,
-  DocumentVisibility,
-  useCreateDocument,
-  useDocuments,
-} from "@/lib/hooks/use-documents";
+import * as Dialog from "@radix-ui/react-dialog";
+import { InlineError } from "@/components/error-boundary";
+import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
 import styles from "./page.module.css";
 
-const STORAGE_KEY = "anchored.editor.collection";
+const collectionOrder = ["notes", "essays", "linked"] as const;
+const collectionLabels: Record<(typeof collectionOrder)[number], string> = {
+  notes: "Notes",
+  essays: "Essays",
+  linked: "Linked",
+};
+
+function buildSnippet(summary: string | null, body: string | null): string {
+  const source = summary?.trim() || body?.trim() || "";
+  if (!source) return "";
+  const line = source.split("\n").find((entry) => entry.trim().length > 0) ?? "";
+  return line.length > 160 ? `${line.slice(0, 157)}…` : line;
+}
 
 export default function WritingPage() {
   const router = useRouter();
-  const [collection, setCollection] = useState<"notes" | "essays" | "linked">(
-    "notes"
-  );
-  const [status, setStatus] = useState<"all" | DocumentStatus>("all");
-  const [visibility, setVisibility] = useState<"all" | DocumentVisibility>(
-    "all"
-  );
-  const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved === "notes" || saved === "essays" || saved === "linked") {
-      setCollection(saved);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, collection);
-  }, [collection]);
-
-  const filters = useMemo(() => {
-    return {
-      collection,
-      status: status === "all" ? undefined : status,
-      visibility: visibility === "all" ? undefined : visibility,
-      query: query.trim() ? query : undefined,
-    };
-  }, [collection, status, visibility, query]);
-
-  const { data: documents = [], isLoading } = useDocuments(filters);
+  const { data: documents = [], isLoading, error } = useDocuments();
   const createDocument = useCreateDocument();
+  const [activeCollection, setActiveCollection] = useState<string | null>(null);
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+
+  const collections = useMemo(() => {
+    const counts = documents.reduce<Record<string, number>>((acc, doc) => {
+      if (!doc.collection) return acc;
+      acc[doc.collection] = (acc[doc.collection] ?? 0) + 1;
+      return acc;
+    }, {});
+    return collectionOrder
+      .filter((collection) => counts[collection])
+      .map((collection) => ({
+        id: collection,
+        label: collectionLabels[collection],
+      }));
+  }, [documents]);
+
+  useEffect(() => {
+    if (collections.length === 0) return;
+    if (!activeCollection) {
+      setActiveCollection(collections[0].id);
+      return;
+    }
+    const isStillAvailable = collections.some(
+      (collection) => collection.id === activeCollection
+    );
+    if (!isStillAvailable) {
+      setActiveCollection(collections[0].id);
+    }
+  }, [collections, activeCollection]);
+
+  const filteredDocs = useMemo(() => {
+    if (!activeCollection) return documents;
+    return documents.filter((doc) => doc.collection === activeCollection);
+  }, [documents, activeCollection]);
 
   const handleCreate = async () => {
+    const collection = activeCollection ?? "notes";
     const doc = await createDocument.mutateAsync({
       title: "Untitled",
       collection,
@@ -60,12 +76,68 @@ export default function WritingPage() {
     router.push(`/writing/${doc.id}`);
   };
 
+  if (error) {
+    return <InlineError message={`Error loading documents: ${error.message}`} />;
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div>
-          <p className={styles.kicker}>Writing</p>
-          <h1 className={styles.title}>Documents</h1>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => router.push("/")}
+          >
+            Back
+          </button>
+          <span className={styles.headerDivider}>|</span>
+          <Dialog.Root open={collectionsOpen} onOpenChange={setCollectionsOpen}>
+            <Dialog.Trigger asChild>
+              <button type="button" className={styles.textButton}>
+                Collections
+              </button>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className={styles.drawerOverlay} />
+              <Dialog.Content className={styles.drawerContent}>
+                <div className={styles.drawerHeader}>
+                  <Dialog.Title className={styles.drawerTitle}>
+                    Collections
+                  </Dialog.Title>
+                  <Dialog.Close asChild>
+                    <button type="button" className={styles.textButton}>
+                      Close
+                    </button>
+                  </Dialog.Close>
+                </div>
+                <div className={styles.drawerList}>
+                  {collections.length === 0 && (
+                    <div className={styles.drawerEmpty}>
+                      No collections yet.
+                    </div>
+                  )}
+                  {collections.map((collection) => (
+                    <button
+                      key={collection.id}
+                      type="button"
+                      className={`${styles.drawerItem} ${
+                        collection.id === activeCollection
+                          ? styles.drawerItemActive
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setActiveCollection(collection.id);
+                        setCollectionsOpen(false);
+                      }}
+                    >
+                      {collection.label}
+                    </button>
+                  ))}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
         </div>
         <div className={styles.actions}>
           <button
@@ -74,116 +146,37 @@ export default function WritingPage() {
             onClick={handleCreate}
             disabled={createDocument.isPending}
           >
-            New document
+            New
           </button>
         </div>
       </header>
 
-      <section className={styles.filters}>
-        <div className={styles.filterGroup}>
-          <label className={styles.label} htmlFor="filter-collection">
-            Collection
-          </label>
-          <select
-            id="filter-collection"
-            className={styles.select}
-            value={collection}
-            onChange={(event) =>
-              setCollection(event.target.value as "notes" | "essays" | "linked")
-            }
-          >
-            <option value="notes">Notes</option>
-            <option value="essays">Essays</option>
-            <option value="linked">Linked</option>
-          </select>
-        </div>
-        <div className={styles.filterGroup}>
-          <label className={styles.label} htmlFor="filter-status">
-            Status
-          </label>
-          <select
-            id="filter-status"
-            className={styles.select}
-            value={status}
-            onChange={(event) =>
-              setStatus(event.target.value as "all" | DocumentStatus)
-            }
-          >
-            <option value="all">All</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-        <div className={styles.filterGroup}>
-          <label className={styles.label} htmlFor="filter-visibility">
-            Visibility
-          </label>
-          <select
-            id="filter-visibility"
-            className={styles.select}
-            value={visibility}
-            onChange={(event) =>
-              setVisibility(event.target.value as "all" | DocumentVisibility)
-            }
-          >
-            <option value="all">All</option>
-            <option value="private">Private</option>
-            <option value="personal">Personal</option>
-            <option value="public">Public</option>
-          </select>
-        </div>
-        <div className={styles.searchGroup}>
-          <label className={styles.label} htmlFor="filter-search">
-            Search
-          </label>
-          <input
-            id="filter-search"
-            className={styles.input}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Title or slug"
-          />
-        </div>
-      </section>
-
-      <section className={styles.scroll}>
-        <div className={styles.list}>
-          {isLoading && <div className={styles.empty}>Loading documents…</div>}
-          {!isLoading && documents.length === 0 && (
-            <div className={styles.empty}>No documents yet.</div>
-          )}
-          {!isLoading &&
-            documents.map((doc) => {
-              const updatedAt = doc.updated_at
-                ? format(new Date(doc.updated_at), "MMM d, yyyy")
-                : "—";
-              return (
-                <Link
-                  key={doc.id}
-                  href={`/writing/${doc.id}`}
-                  className={styles.card}
-                >
-                  <div className={styles.cardHeader}>
-                    <h2 className={styles.cardTitle}>{doc.title}</h2>
-                    <div className={styles.badges}>
-                      <span className={styles.badge}>{doc.status}</span>
-                      <span className={styles.badgeSecondary}>
-                        {doc.visibility}
-                      </span>
-                    </div>
-                  </div>
-                  <p className={styles.cardMeta}>
-                    {doc.collection} · Updated {updatedAt}
-                  </p>
-                  {doc.summary && (
-                    <p className={styles.cardSummary}>{doc.summary}</p>
-                  )}
-                </Link>
-              );
-            })}
-        </div>
-      </section>
+      <div className={styles.scroll}>
+        {isLoading && <div className={styles.empty}>Loading documents…</div>}
+        {!isLoading && filteredDocs.length === 0 && (
+          <div className={styles.empty}>No documents yet.</div>
+        )}
+        {!isLoading &&
+          filteredDocs.map((doc) => {
+            const updatedAt = doc.updated_at
+              ? format(new Date(doc.updated_at), "MMM d, yyyy")
+              : "—";
+            const snippet = buildSnippet(doc.summary, doc.body_md ?? null);
+            return (
+              <Link
+                key={doc.id}
+                href={`/writing/${doc.id}`}
+                className={styles.card}
+              >
+                <div className={styles.cardMain}>
+                  <h2 className={styles.cardTitle}>{doc.title}</h2>
+                  {snippet && <p className={styles.cardSnippet}>{snippet}</p>}
+                  <span className={styles.cardMeta}>{updatedAt}</span>
+                </div>
+              </Link>
+            );
+          })}
+      </div>
     </div>
   );
 }

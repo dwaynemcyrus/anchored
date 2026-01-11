@@ -159,6 +159,9 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#039;");
 }
 
+// Phase 6: do not render images, keep alt text only.
+md.renderer.rules.image = (tokens, idx) => escapeHtml(tokens[idx].content || "");
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Render Cache
 // ─────────────────────────────────────────────────────────────────────────────
