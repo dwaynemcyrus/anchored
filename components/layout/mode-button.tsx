@@ -23,7 +23,7 @@ const MODE_ROUTES = [
   "/inbox",
   "/projects",
   "/habits",
-  "/writing-v3",
+  "/writing",
   "/review",
   "/logbook",
   "/end-day",
@@ -666,7 +666,7 @@ export function ModeButton() {
               <button
                 type="button"
                 className={styles.sheetItem}
-                onClick={() => handleModeSelect("/writing-v3")}
+                onClick={() => handleModeSelect("/writing")}
               >
                 Knowledge
               </button>

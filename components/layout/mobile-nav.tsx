@@ -23,7 +23,7 @@ const navigation = [
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Habits", href: "/habits", icon: Target },
   { name: "Review", href: "/review", icon: ClipboardCheck },
-  { name: "Writing", href: "/writing-v3", icon: FileText },
+  { name: "Writing", href: "/writing", icon: FileText },
 ];
 
 export function MobileNav() {

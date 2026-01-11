@@ -11,7 +11,7 @@ import {
 } from "@/lib/hooks/use-documents";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
-import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { CodeMirrorPlainEditor } from "@/components/editor/codemirror-editor-plain";
 import {
   FrontmatterPanel,
   FrontmatterState,
@@ -50,7 +50,7 @@ function inputToTags(input: string) {
   return tags.length > 0 ? tags : null;
 }
 
-export default function WritingEditorPage() {
+export default function WriterV3EditorPage() {
   const router = useRouter();
   const params = useParams<{ documentId: string }>();
   const rawId = params?.documentId;
@@ -286,10 +286,9 @@ export default function WritingEditorPage() {
 
       <section className={styles.scroll}>
         <div className={styles.editor}>
-          <MilkdownEditor
+          <CodeMirrorPlainEditor
             value={bodyMd}
             onChange={setBodyMd}
-            placeholder="Start writing..."
           />
         </div>
         <div className={styles.footerActions}>

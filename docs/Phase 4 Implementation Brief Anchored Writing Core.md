@@ -35,7 +35,7 @@ Expanding Anchored with:
 
 | Layer | Choice | Notes |
 |-------|--------|-------|
-| Editor | CodeMirror 6 or Milkdown | Rich markdown editing |
+| Editor | CodeMirror 6 | Rich markdown editing |
 | Preview | react-markdown + remark/rehype | Live preview rendering |
 | Wiki-links | Custom remark plugin | Reuse from Phase 2 |
 | Shortcuts | Hotkeys (⌘S, ⌘K, etc.) | Native-feeling UX |
@@ -47,12 +47,7 @@ Expanding Anchored with:
 - Cons: More complex setup, steeper learning curve
 - Best for: Power users, complex editing needs
 
-**Option B: Milkdown**
-- Pros: Built for markdown, plugin system, WYSIWYG-ish
-- Cons: Younger project, fewer resources
-- Best for: Clean writing experience
-
-**Recommendation:** Start with CodeMirror 6 for flexibility. You can always wrap it in a simpler interface later.
+**Recommendation:** CodeMirror 6 for flexibility and a stable markdown-first editor.
 
 ---
 

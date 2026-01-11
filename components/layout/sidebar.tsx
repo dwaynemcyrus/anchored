@@ -30,7 +30,7 @@ const navigation = [
   { name: "Habits", href: "/habits", icon: Target },
   { name: "Review", href: "/review", icon: ClipboardCheck },
   { name: "Logbook", href: "/logbook", icon: Archive },
-  { name: "Writing", href: "/writing-v3", icon: FileText },
+  { name: "Writing", href: "/writing", icon: FileText },
 ];
 
 interface SidebarProps {

@@ -16,13 +16,8 @@ export default function SettingsPage() {
             </a>
           </div>
           <div>
-            <a href="/writing-v2" className="text-sm underline">
-              Writing V2
-            </a>
-          </div>
-          <div>
-            <a href="/writing-v3" className="text-sm underline">
-              Writing V3
+            <a href="/writing" className="text-sm underline">
+              Writing
             </a>
           </div>
           <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">

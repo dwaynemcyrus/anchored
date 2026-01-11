@@ -23,7 +23,7 @@ function buildSnippet(summary: string | null, body: string | null): string {
   return line.length > 160 ? `${line.slice(0, 157)}…` : line;
 }
 
-export default function WritingPage() {
+export default function WriterV3Page() {
   const router = useRouter();
   const { data: documents = [], isLoading, error } = useDocuments();
   const createDocument = useCreateDocument();
