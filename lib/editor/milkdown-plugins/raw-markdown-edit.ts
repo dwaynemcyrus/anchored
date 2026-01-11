@@ -69,7 +69,7 @@ function getActiveMarkRange(
     if (hasMark) {
       if (rangeStart === null) rangeStart = childStart;
       rangeEnd = childEnd;
-    } else if (rangeStart !== null) {
+    } else if (rangeStart !== null && rangeEnd !== null) {
       if ($pos.pos >= rangeStart && $pos.pos <= rangeEnd) {
         return { from: rangeStart, to: rangeEnd };
       }
