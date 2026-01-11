@@ -11,7 +11,7 @@ import {
 } from "@/lib/hooks/use-documents";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
-import { CodeMirrorEditor } from "@/components/editor/codemirror-editor";
+import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import {
   FrontmatterPanel,
   FrontmatterState,
@@ -286,7 +286,7 @@ export default function WritingEditorPage() {
 
       <section className={styles.scroll}>
         <div className={styles.editor}>
-          <CodeMirrorEditor
+          <MilkdownEditor
             value={bodyMd}
             onChange={setBodyMd}
             placeholder="Start writing..."
