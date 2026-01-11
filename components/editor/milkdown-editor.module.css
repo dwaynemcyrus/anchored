@@ -1,0 +1,264 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Milkdown Editor Styles
+   Mobile-first, typography-focused, minimal visual noise
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorContainer {
+  position: relative;
+  width: 100%;
+  min-height: 60vh;
+}
+
+.editorWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ProseMirror Core Styles
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown) {
+  position: relative;
+  width: 100%;
+  outline: none;
+}
+
+.editorWrapper :global(.milkdown .editor) {
+  padding: 1.25rem;
+  min-height: 60vh;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  caret-color: var(--foreground);
+}
+
+.editorWrapper :global(.milkdown .editor:focus) {
+  outline: none;
+}
+
+/* Placeholder */
+.editorWrapper :global(.milkdown .editor.ProseMirror-empty::before) {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  position: absolute;
+  pointer-events: none;
+}
+
+.editorWrapper[data-placeholder] :global(.milkdown .editor.ProseMirror-empty::before) {
+  content: attr(data-placeholder);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Typography
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Paragraphs */
+.editorWrapper :global(.milkdown p) {
+  margin: 0 0 1rem 0;
+}
+
+.editorWrapper :global(.milkdown p:last-child) {
+  margin-bottom: 0;
+}
+
+/* Headings - restrained sizing */
+.editorWrapper :global(.milkdown h1) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.editorWrapper :global(.milkdown h2) {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.6rem 0;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.editorWrapper :global(.milkdown h3) {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.editorWrapper :global(.milkdown h4),
+.editorWrapper :global(.milkdown h5),
+.editorWrapper :global(.milkdown h6) {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.875rem 0 0.4rem 0;
+  line-height: 1.5;
+}
+
+.editorWrapper :global(.milkdown h1:first-child),
+.editorWrapper :global(.milkdown h2:first-child),
+.editorWrapper :global(.milkdown h3:first-child),
+.editorWrapper :global(.milkdown h4:first-child),
+.editorWrapper :global(.milkdown h5:first-child),
+.editorWrapper :global(.milkdown h6:first-child) {
+  margin-top: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Inline Formatting
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Bold */
+.editorWrapper :global(.milkdown strong) {
+  font-weight: 600;
+}
+
+/* Italic */
+.editorWrapper :global(.milkdown em) {
+  font-style: italic;
+}
+
+/* Inline code - soft background, no boxes */
+.editorWrapper :global(.milkdown code) {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  background-color: var(--muted);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+/* Links */
+.editorWrapper :global(.milkdown a) {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Lists
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown ul),
+.editorWrapper :global(.milkdown ol) {
+  margin: 0.5rem 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.editorWrapper :global(.milkdown li) {
+  margin: 0.25rem 0;
+}
+
+.editorWrapper :global(.milkdown li p) {
+  margin: 0;
+}
+
+/* Nested lists */
+.editorWrapper :global(.milkdown li ul),
+.editorWrapper :global(.milkdown li ol) {
+  margin: 0.25rem 0 0.25rem 0;
+}
+
+/* Task lists */
+.editorWrapper :global(.milkdown li[data-task-list-item]) {
+  list-style: none;
+  margin-left: -1.5rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.editorWrapper :global(.milkdown li[data-task-list-item] input[type="checkbox"]) {
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Blockquotes
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown blockquote) {
+  margin: 0.5rem 0 1rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.editorWrapper :global(.milkdown blockquote p) {
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Code Blocks
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown pre) {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: var(--muted);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0.5rem 0 1rem 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editorWrapper :global(.milkdown pre code) {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Horizontal Rules
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown hr) {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Selection
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown .ProseMirror-selectednode) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.editorWrapper :global(.milkdown ::selection) {
+  background-color: var(--ring);
+  opacity: 0.3;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile Optimizations
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .editorWrapper :global(.milkdown .editor) {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  .editorWrapper :global(.milkdown h1) {
+    font-size: 1.35rem;
+  }
+
+  .editorWrapper :global(.milkdown h2) {
+    font-size: 1.2rem;
+  }
+
+  .editorWrapper :global(.milkdown h3) {
+    font-size: 1.1rem;
+  }
+}
