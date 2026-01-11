@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { EditorSelection, EditorState, Transaction } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import styles from "./codemirror-editor-plain.module.css";
 
 export type CodeMirrorPlainEditorProps = {
@@ -40,7 +41,12 @@ export function CodeMirrorPlainEditor({
 
     const state = EditorState.create({
       doc: value,
-      extensions: [createUpdateListener()],
+      extensions: [
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        EditorView.lineWrapping,
+        createUpdateListener(),
+      ],
     });
 
     const view = new EditorView({
