@@ -11,6 +11,7 @@ import { parserCtx } from "@milkdown/core";
 import {
   Plugin,
   PluginKey,
+  NodeSelection,
   TextSelection,
   type EditorState,
   type Selection,
@@ -100,7 +101,7 @@ function findInlineRange(state: EditorState) {
     if (range) return range;
   }
 
-  if (selection.node && selection.node.type.name === "image") {
+  if (selection instanceof NodeSelection && selection.node.type.name === "image") {
     return { from: selection.from, to: selection.to };
   }
 
@@ -109,7 +110,7 @@ function findInlineRange(state: EditorState) {
 
 function findBlockRange(state: EditorState) {
   const { selection } = state;
-  if (selection.node && BLOCK_TYPES.has(selection.node.type.name)) {
+  if (selection instanceof NodeSelection && BLOCK_TYPES.has(selection.node.type.name)) {
     return { from: selection.from, to: selection.to };
   }
 
