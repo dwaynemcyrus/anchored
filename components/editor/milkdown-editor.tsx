@@ -10,6 +10,7 @@ import { history } from "@milkdown/plugin-history";
 import { getMarkdown } from "@milkdown/utils";
 import { blockTransformsPlugin } from "@/lib/editor/milkdown-plugins/block-transforms";
 import { backspaceHandlerPlugin } from "@/lib/editor/milkdown-plugins/backspace-handler";
+import { inlineTransformsPlugin } from "@/lib/editor/milkdown-plugins/inline-transforms";
 import styles from "./milkdown-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,7 +70,8 @@ function MilkdownEditorInner({
       .use(listener)
       .use(history)
       .use(blockTransformsPlugin)
-      .use(backspaceHandlerPlugin);
+      .use(backspaceHandlerPlugin)
+      .use(inlineTransformsPlugin);
   }, []);
 
   // Store editor reference
