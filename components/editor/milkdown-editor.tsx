@@ -9,6 +9,7 @@ import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { history } from "@milkdown/plugin-history";
 import { getMarkdown } from "@milkdown/utils";
 import { blockTransformsPlugin } from "@/lib/editor/milkdown-plugins/block-transforms";
+import { backspaceHandlerPlugin } from "@/lib/editor/milkdown-plugins/backspace-handler";
 import styles from "./milkdown-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,7 +68,8 @@ function MilkdownEditorInner({
       .use(gfm)
       .use(listener)
       .use(history)
-      .use(blockTransformsPlugin);
+      .use(blockTransformsPlugin)
+      .use(backspaceHandlerPlugin);
   }, []);
 
   // Store editor reference
