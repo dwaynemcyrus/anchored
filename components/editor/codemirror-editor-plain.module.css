@@ -1,0 +1,26 @@
+.editorContainer {
+  position: relative;
+  min-height: 60vh;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  overflow: hidden;
+}
+
+.editorContainer:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.editorContainer :global(.cm-editor) {
+  min-height: 60vh;
+}
+
+.editorContainer :global(.cm-content) {
+  padding: 1.25rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+}

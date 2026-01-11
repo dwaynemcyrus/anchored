@@ -89,7 +89,7 @@ export function QuickCaptureSheet({ isOpen, onClose }: QuickCaptureSheetProps) {
         metadata: {},
       });
       onClose();
-      router.push(`/writing-v2/${doc.id}`);
+      router.push(`/writing-v3/${doc.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create document.");
     }

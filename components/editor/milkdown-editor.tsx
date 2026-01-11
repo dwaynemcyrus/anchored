@@ -12,6 +12,7 @@ import { blockTransformsPlugin } from "@/lib/editor/milkdown-plugins/block-trans
 import { backspaceHandlerPlugin } from "@/lib/editor/milkdown-plugins/backspace-handler";
 import { inlineTransformsPlugin } from "@/lib/editor/milkdown-plugins/inline-transforms";
 import { pasteHandlerPlugin } from "@/lib/editor/milkdown-plugins/paste-handler";
+import { rawMarkdownEditPlugin } from "@/lib/editor/milkdown-plugins/raw-markdown-edit";
 import styles from "./milkdown-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,7 +76,8 @@ function MilkdownEditorInner({
       .use(blockTransformsPlugin)
       .use(backspaceHandlerPlugin)
       .use(inlineTransformsPlugin)
-      .use(pasteHandlerPlugin);
+      .use(pasteHandlerPlugin)
+      .use(rawMarkdownEditPlugin);
   }, []);
 
   // Store editor reference and handle auto-focus

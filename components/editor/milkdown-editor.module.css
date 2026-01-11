@@ -136,6 +136,11 @@
   text-underline-offset: 2px;
 }
 
+/* Raw markdown markers (Bear-style edit mode) */
+.editorWrapper :global(.milkdown .raw-markdown-marker) {
+  color: var(--muted-foreground);
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Lists
    ───────────────────────────────────────────────────────────────────────────── */
