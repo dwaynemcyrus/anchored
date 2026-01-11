@@ -306,6 +306,33 @@
   }
 }
 
+/* Focus Mode */
+.hasFocus {
+  opacity: 1 !important;
+}
+
+/* When focus mode is enabled, dim all blocks */
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > * {
+  opacity: 0.3;
+  transition: opacity 200ms ease;
+}
+
+/* Active block stays fully visible */
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > .hasFocus {
+  opacity: 1;
+}
+
+/* Also handle nested content in lists */
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > ul,
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > ol {
+  opacity: 0.3;
+}
+
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > ul.hasFocus,
+.editorContainer[data-focus-mode="true"] :global(.ProseMirror) > ol.hasFocus {
+  opacity: 1;
+}
+
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .editorContainer :global(.ProseMirror) {
