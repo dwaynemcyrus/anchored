@@ -62,6 +62,33 @@
 - Render inactive text with markdown markers hidden.
 - Keep editing reliable on iOS.
 
+**Phase 6 Behavior Spec (Bear-like live markdown):**
+- Live rendering scope: full document rendered at all times.
+- Active edit rules:
+  - Caret line is raw (markers visible).
+  - All selected lines are raw (markers visible).
+  - All other lines rendered with markers hidden.
+- Inline formatting:
+  - Bold/italic/strikethrough render with markers hidden.
+  - Markers appear only when caret touches/adjacent to markers.
+  - Underscore emphasis inside words stays literal (no rendering).
+- Links:
+  - Clickable when not editing.
+  - When editing inside, show full `[text](url)` and disable click.
+  - If caret is inside label or URL, show both marker sets.
+- Code:
+  - Inline code renders; backticks visible only when caret touches/adjacent.
+  - Code blocks render as plain monospace; fences visible while editing.
+- Headings/lists/quotes/HR:
+  - Rendered with markers hidden unless caret touches/adjacent.
+  - HR shows raw when caret is on the line.
+- Task lists:
+  - Render checkboxes; clickable when not editing.
+  - Raw markers show when editing the line.
+- Escapes: hidden in rendered mode.
+- No images/embeds in Phase 6.
+- Stability priority: consistency over iOS glitch workarounds (no fallback).
+
 **Exit conditions:**
 - Rendered view matches expected “Bear-like” behavior.
 - No editor errors or selection issues.
