@@ -11,7 +11,7 @@ import {
 } from "@/lib/hooks/use-documents";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
-import { CodeMirrorPlainEditor } from "@/components/editor/codemirror-editor-plain";
+import { TiptapEditor } from "@/components/writer/editor/TiptapEditor";
 import {
   FrontmatterPanel,
   FrontmatterState,
@@ -286,9 +286,10 @@ export default function WriterV3EditorPage() {
 
       <section className={styles.scroll}>
         <div className={styles.editor}>
-          <CodeMirrorPlainEditor
+          <TiptapEditor
             value={bodyMd}
             onChange={setBodyMd}
+            placeholder="Start writing..."
           />
         </div>
         <div className={styles.footerActions}>
