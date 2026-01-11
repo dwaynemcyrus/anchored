@@ -4,9 +4,11 @@ import { useEffect, useRef } from "react";
 import { Editor, rootCtx, defaultValueCtx } from "@milkdown/core";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
 import { commonmark } from "@milkdown/preset-commonmark";
+import { gfm } from "@milkdown/preset-gfm";
 import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { history } from "@milkdown/plugin-history";
 import { getMarkdown } from "@milkdown/utils";
+import { blockTransformsPlugin } from "@/lib/editor/milkdown-plugins/block-transforms";
 import styles from "./milkdown-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,8 +64,10 @@ function MilkdownEditorInner({
         });
       })
       .use(commonmark)
+      .use(gfm)
       .use(listener)
-      .use(history);
+      .use(history)
+      .use(blockTransformsPlugin);
   }, []);
 
   // Store editor reference
