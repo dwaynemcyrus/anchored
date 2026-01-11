@@ -244,10 +244,60 @@
    Mobile Optimizations
    ───────────────────────────────────────────────────────────────────────────── */
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Strikethrough (GFM)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown del),
+.editorWrapper :global(.milkdown s) {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Images
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Tables (basic styling - manual creation only)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 1rem 0;
+  font-size: 0.9rem;
+}
+
+.editorWrapper :global(.milkdown th),
+.editorWrapper :global(.milkdown td) {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.editorWrapper :global(.milkdown th) {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile Optimizations
+   ───────────────────────────────────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
   .editorWrapper :global(.milkdown .editor) {
     padding: 1rem;
     font-size: 1rem;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   .editorWrapper :global(.milkdown h1) {
@@ -261,4 +311,50 @@
   .editorWrapper :global(.milkdown h3) {
     font-size: 1.1rem;
   }
+
+  .editorWrapper :global(.milkdown li[data-task-list-item] input[type="checkbox"]) {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .editorWrapper :global(.milkdown pre) {
+    max-width: 100%;
+  }
+
+  .editorWrapper :global(.milkdown table) {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Touch and Scroll Behavior
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorContainer {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.editorWrapper :global(.milkdown .editor) {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Focus States (Accessibility)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.editorWrapper :global(.milkdown .editor:focus-visible) {
+  outline: none;
+}
+
+.editorWrapper :global(.milkdown a:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.editorWrapper :global(.milkdown li[data-task-list-item] input[type="checkbox"]:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

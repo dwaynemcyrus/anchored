@@ -7,10 +7,11 @@ import { commonmark } from "@milkdown/preset-commonmark";
 import { gfm } from "@milkdown/preset-gfm";
 import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import { history } from "@milkdown/plugin-history";
-import { getMarkdown } from "@milkdown/utils";
+import { replaceAll } from "@milkdown/utils";
 import { blockTransformsPlugin } from "@/lib/editor/milkdown-plugins/block-transforms";
 import { backspaceHandlerPlugin } from "@/lib/editor/milkdown-plugins/backspace-handler";
 import { inlineTransformsPlugin } from "@/lib/editor/milkdown-plugins/inline-transforms";
+import { pasteHandlerPlugin } from "@/lib/editor/milkdown-plugins/paste-handler";
 import styles from "./milkdown-editor.module.css";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,23 +44,25 @@ function MilkdownEditorInner({
   autoFocus,
 }: MilkdownEditorInnerProps) {
   const onChangeRef = useRef(onChange);
-  const initialValueRef = useRef(value);
   const editorRef = useRef<Editor | null>(null);
   const isExternalUpdate = useRef(false);
+  const lastMarkdownRef = useRef<string>("");
 
   // Keep onChange ref current
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const { get } = useEditor((root) => {
+  const { get, loading } = useEditor((root) => {
     return Editor.make()
       .config((ctx) => {
         ctx.set(rootCtx, root);
-        ctx.set(defaultValueCtx, initialValueRef.current);
+        // Start empty - we'll hydrate after editor is ready
+        ctx.set(defaultValueCtx, "");
 
         // Set up listener for content changes
         ctx.get(listenerCtx).markdownUpdated((_, markdown) => {
+          lastMarkdownRef.current = markdown;
           if (!isExternalUpdate.current) {
             onChangeRef.current(markdown);
           }
@@ -71,11 +74,14 @@ function MilkdownEditorInner({
       .use(history)
       .use(blockTransformsPlugin)
       .use(backspaceHandlerPlugin)
-      .use(inlineTransformsPlugin);
+      .use(inlineTransformsPlugin)
+      .use(pasteHandlerPlugin);
   }, []);
 
-  // Store editor reference
+  // Store editor reference and handle auto-focus
   useEffect(() => {
+    if (loading) return;
+
     const editor = get();
     if (editor) {
       editorRef.current = editor;
@@ -88,27 +94,26 @@ function MilkdownEditorInner({
         }
       }
     }
-  }, [get, autoFocus]);
+  }, [get, loading, autoFocus]);
 
-  // Handle external value updates
+  // Sync external value changes without clobbering local input.
   useEffect(() => {
+    if (loading) return;
     const editor = editorRef.current;
     if (!editor) return;
+    if (value === lastMarkdownRef.current) return;
 
-    // Get current markdown from editor
-    const currentMarkdown = editor.action(getMarkdown());
-    if (currentMarkdown === value) return;
-
-    // Mark as external update to prevent onChange loop
     isExternalUpdate.current = true;
 
-    // Replace content by resetting the editor
-    // Milkdown doesn't have a direct "replace content" API,
-    // so we need to reset if external value differs significantly
-    // For now, we only sync on initial load; autosave handles the rest
+    try {
+      editor.action(replaceAll(value));
+      lastMarkdownRef.current = value;
+    } catch (e) {
+      console.error("Failed to hydrate editor content:", e);
+    }
 
     isExternalUpdate.current = false;
-  }, [value]);
+  }, [value, loading]);
 
   return (
     <div className={styles.editorWrapper} data-placeholder={placeholder}>
