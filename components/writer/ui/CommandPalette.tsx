@@ -7,6 +7,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { format } from "date-fns";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
+import { useDailyNote } from "@/lib/hooks/use-daily-note";
 import { useFullTextSearch } from "@/lib/hooks/use-search";
 import styles from "./CommandPalette.module.css";
 
@@ -35,6 +36,9 @@ export function CommandPalette({
   const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const createDocument = useCreateDocument();
+  const dailyNote = useDailyNote({
+    onBeforeNavigate: () => setOpen(false),
+  });
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -84,34 +88,9 @@ export function CommandPalette({
     router.push(`/writing/${doc.id}`);
   }, [createDocument, router, setOpen]);
 
-  const handleTodaysNote = useCallback(async () => {
-    setOpen(false);
-    const today = new Date();
-    const dateSlug = format(today, "yyyy-MM-dd");
-    const dateTitle = format(today, "MMMM d, yyyy");
-
-    // Check if today's note exists
-    const existingDoc = recentDocs.find(
-      (doc) => doc.slug?.startsWith(`daily-${dateSlug}`)
-    );
-
-    if (existingDoc) {
-      router.push(`/writing/${existingDoc.id}`);
-    } else {
-      const doc = await createDocument.mutateAsync({
-        title: dateTitle,
-        collection: "notes",
-        visibility: "private",
-        status: "draft",
-        body_md: "",
-        slug: `daily-${dateSlug}`,
-        tags: ["daily"],
-        date: today.toISOString().split("T")[0],
-        metadata: {},
-      });
-      router.push(`/writing/${doc.id}`);
-    }
-  }, [createDocument, recentDocs, router, setOpen]);
+  const handleTodaysNote = useCallback(() => {
+    dailyNote.goToToday();
+  }, [dailyNote]);
 
   const handleToggleFocusMode = useCallback(() => {
     onToggleFocusMode?.();
@@ -123,18 +102,26 @@ export function CommandPalette({
     setOpen(false);
   }, [onToggleTypewriterMode, setOpen]);
 
-  // Global keyboard shortcut: Cmd+K
+  // Global keyboard shortcuts: Cmd+K (palette), Cmd+D (daily note)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+K: Toggle command palette
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen(!open);
+        return;
+      }
+
+      // Cmd+D: Today's note (only when palette is closed)
+      if (e.key === "d" && (e.metaKey || e.ctrlKey) && !open) {
+        e.preventDefault();
+        dailyNote.goToToday();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, setOpen]);
+  }, [open, setOpen, dailyNote]);
 
   // Reset search when closing
   useEffect(() => {
