@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
 import { HybridMarks } from "@/lib/writer/tiptap/extensions/HybridMarks";
+import { KeyboardShortcuts } from "@/lib/writer/tiptap/extensions/KeyboardShortcuts";
 import { EditorToolbar } from "./EditorToolbar";
 import {
   WikiLink,
@@ -56,6 +57,7 @@ export type TiptapEditorProps = {
   getWikiLinkSuggestions?: (
     query: string
   ) => Promise<WikiLinkSuggestionItem[]>;
+  onSave?: () => void;
 };
 
 export function TiptapEditor({
@@ -71,6 +73,7 @@ export function TiptapEditor({
   onWikiLinkClick,
   validateWikiLink,
   getWikiLinkSuggestions,
+  onSave,
 }: TiptapEditorProps) {
   const isExternalUpdate = useRef(false);
   const onChangeRef = useRef(onChange);
@@ -129,6 +132,9 @@ export function TiptapEditor({
       }),
       TypewriterMode,
       HybridMarks,
+      KeyboardShortcuts.configure({
+        onSave,
+      }),
       WikiLink.configure({
         onNavigate: onWikiLinkClick,
         validateLink: validateWikiLink,

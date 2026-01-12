@@ -227,6 +227,17 @@ export default function WriterV3EditorPage() {
     return () => window.clearTimeout(timeout);
   }, [payloadSignature, document, updateDocument]);
 
+  const handleSave = useCallback(() => {
+    if (!document || !hydratedRef.current) return;
+    const payload = buildUpdatePayload();
+    if (JSON.stringify(payload) === lastSavedRef.current) return;
+    updateDocument.mutate(payload, {
+      onSuccess: () => {
+        lastSavedRef.current = JSON.stringify(payload);
+      },
+    });
+  }, [document, updateDocument, buildUpdatePayload]);
+
   const handleSnapshot = async () => {
     if (!document) return;
     const payload = buildUpdatePayload();
@@ -353,6 +364,7 @@ export default function WriterV3EditorPage() {
               router.push(`/writing?search=${encodeURIComponent(slug)}`);
             }}
             getWikiLinkSuggestions={getWikiLinkSuggestions}
+            onSave={handleSave}
           />
         </div>
         <div className={styles.footerActions}>
