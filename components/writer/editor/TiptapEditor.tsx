@@ -10,7 +10,11 @@ import { Markdown } from "tiptap-markdown";
 import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
-import { WikiLink } from "@/lib/writer/tiptap/extensions/WikiLink";
+import {
+  WikiLink,
+  type WikiLinkSuggestionItem,
+} from "@/lib/writer/tiptap/extensions/WikiLink";
+import { createWikiLinkSuggestion } from "@/lib/writer/tiptap/suggestions/wikiLinkSuggestion";
 import styles from "./TiptapEditor.module.css";
 
 // Helper to get markdown from editor (tiptap-markdown extends storage)
@@ -47,6 +51,9 @@ export type TiptapEditorProps = {
   onTypewriterModeChange?: (enabled: boolean) => void;
   onWikiLinkClick?: (slug: string) => void;
   validateWikiLink?: (slug: string) => boolean;
+  getWikiLinkSuggestions?: (
+    query: string
+  ) => Promise<WikiLinkSuggestionItem[]>;
 };
 
 export function TiptapEditor({
@@ -61,6 +68,7 @@ export function TiptapEditor({
   onTypewriterModeChange,
   onWikiLinkClick,
   validateWikiLink,
+  getWikiLinkSuggestions,
 }: TiptapEditorProps) {
   const isExternalUpdate = useRef(false);
   const onChangeRef = useRef(onChange);
@@ -121,6 +129,11 @@ export function TiptapEditor({
       WikiLink.configure({
         onNavigate: onWikiLinkClick,
         validateLink: validateWikiLink,
+        suggestion: getWikiLinkSuggestions
+          ? createWikiLinkSuggestion({
+              getSuggestions: getWikiLinkSuggestions,
+            })
+          : undefined,
       }),
       Markdown.configure({
         html: false,

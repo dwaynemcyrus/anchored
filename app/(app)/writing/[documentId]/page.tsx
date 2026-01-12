@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -10,6 +10,7 @@ import {
   usePublishDocument,
   useUpdateDocument,
 } from "@/lib/hooks/use-documents";
+import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
 import { TiptapEditor } from "@/components/writer/editor/TiptapEditor";
@@ -72,6 +73,27 @@ export default function WriterV3EditorPage() {
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
   const baseMetadataRef = useRef<Record<string, Json | undefined>>({});
+
+  const getWikiLinkSuggestions = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+
+    const supabase = createClient();
+    const escaped = trimmed.replace(/,/g, "");
+    const { data, error } = await supabase
+      .from("documents")
+      .select("id, title, slug")
+      .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
+      .order("updated_at", { ascending: false })
+      .limit(8);
+
+    if (error) {
+      console.error("Error fetching wiki-link suggestions:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }, []);
 
   useEffect(() => {
     if (!document) return;
@@ -330,6 +352,7 @@ export default function WriterV3EditorPage() {
             onWikiLinkClick={(slug) => {
               router.push(`/writing?search=${encodeURIComponent(slug)}`);
             }}
+            getWikiLinkSuggestions={getWikiLinkSuggestions}
           />
         </div>
         <div className={styles.footerActions}>

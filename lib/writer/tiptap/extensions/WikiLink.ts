@@ -1,11 +1,19 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { InputRule } from "@tiptap/core";
+import Suggestion, { type SuggestionOptions } from "@tiptap/suggestion";
+
+export type WikiLinkSuggestionItem = {
+  id: string;
+  title: string;
+  slug: string;
+};
 
 export interface WikiLinkOptions {
   HTMLAttributes: Record<string, unknown>;
   onNavigate?: (slug: string) => void;
   validateLink?: (slug: string) => boolean;
+  suggestion?: Omit<SuggestionOptions<WikiLinkSuggestionItem>, "editor">;
 }
 
 declare module "@tiptap/core" {
@@ -32,6 +40,7 @@ export const WikiLink = Node.create<WikiLinkOptions>({
       HTMLAttributes: {},
       onNavigate: undefined,
       validateLink: undefined,
+      suggestion: undefined,
     };
   },
 
@@ -130,8 +139,10 @@ export const WikiLink = Node.create<WikiLinkOptions>({
 
   addProseMirrorPlugins() {
     const extension = this;
+    const plugins: Plugin[] = [];
 
-    return [
+    // Click handler plugin
+    plugins.push(
       new Plugin({
         key: WikiLinkPluginKey,
         props: {
@@ -151,8 +162,36 @@ export const WikiLink = Node.create<WikiLinkOptions>({
             return false;
           },
         },
-      }),
-    ];
+      })
+    );
+
+    // Suggestion plugin (if configured)
+    if (this.options.suggestion) {
+      plugins.push(
+        Suggestion({
+          editor: this.editor,
+          ...this.options.suggestion,
+          command: ({ editor, range, props }) => {
+            // Delete the trigger text and insert the wiki-link
+            editor
+              .chain()
+              .focus()
+              .deleteRange(range)
+              .insertContent({
+                type: this.name,
+                attrs: {
+                  slug: props.slug,
+                  label: props.title,
+                  exists: true,
+                },
+              })
+              .run();
+          },
+        })
+      );
+    }
+
+    return plugins;
   },
 });
 

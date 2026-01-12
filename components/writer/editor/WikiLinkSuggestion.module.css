@@ -1,0 +1,58 @@
+.suggestionList {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  min-width: 240px;
+}
+
+.suggestionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 100ms ease;
+}
+
+.suggestionItem:hover {
+  background: var(--muted);
+}
+
+.suggestionItem.selected {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.suggestionItem.selected .slug {
+  color: var(--primary-foreground);
+  opacity: 0.7;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.slug {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.2;
+}
+
+.noResults {
+  padding: 12px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
