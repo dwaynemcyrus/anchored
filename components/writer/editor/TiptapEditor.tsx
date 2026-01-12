@@ -12,6 +12,7 @@ import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
 import { HybridMarks } from "@/lib/writer/tiptap/extensions/HybridMarks";
 import { KeyboardShortcuts } from "@/lib/writer/tiptap/extensions/KeyboardShortcuts";
+import { Callout } from "@/lib/writer/tiptap/extensions/Callout";
 import { EditorToolbar } from "./EditorToolbar";
 import {
   WikiLink,
@@ -135,6 +136,7 @@ export function TiptapEditor({
       KeyboardShortcuts.configure({
         onSave,
       }),
+      Callout,
       WikiLink.configure({
         onNavigate: onWikiLinkClick,
         validateLink: validateWikiLink,

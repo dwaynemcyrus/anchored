@@ -411,3 +411,123 @@
 .editorContainer :global(.hybrid-mark--code)::after {
   font-family: var(--font-geist-mono);
 }
+
+/* Callout Blocks - Obsidian style */
+.editorContainer :global(.callout) {
+  margin: 1rem 0;
+  padding: 0;
+  border-radius: 8px;
+  border-left: 4px solid;
+  overflow: hidden;
+}
+
+.editorContainer :global(.callout-header) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.editorContainer :global(.callout-icon) {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.editorContainer :global(.callout-icon)::before {
+  display: block;
+  width: 18px;
+  height: 18px;
+  content: "";
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.editorContainer :global(.callout-title) {
+  flex: 1;
+}
+
+.editorContainer :global(.callout-content) {
+  padding: 0 16px 12px 16px;
+}
+
+.editorContainer :global(.callout-content) > *:first-child {
+  margin-top: 0;
+}
+
+.editorContainer :global(.callout-content) > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Note callout - blue */
+.editorContainer :global(.callout--note) {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: rgb(59, 130, 246);
+}
+
+.editorContainer :global(.callout--note) :global(.callout-header) {
+  color: rgb(59, 130, 246);
+}
+
+.editorContainer :global(.callout--note) :global(.callout-icon)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(59, 130, 246)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
+}
+
+/* Info callout - blue (alias for note) */
+.editorContainer :global(.callout--info) {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: rgb(59, 130, 246);
+}
+
+.editorContainer :global(.callout--info) :global(.callout-header) {
+  color: rgb(59, 130, 246);
+}
+
+.editorContainer :global(.callout--info) :global(.callout-icon)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(59, 130, 246)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
+}
+
+/* Tip callout - green */
+.editorContainer :global(.callout--tip) {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: rgb(34, 197, 94);
+}
+
+.editorContainer :global(.callout--tip) :global(.callout-header) {
+  color: rgb(34, 197, 94);
+}
+
+.editorContainer :global(.callout--tip) :global(.callout-icon)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(34, 197, 94)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z'/%3E%3C/svg%3E");
+}
+
+/* Warning callout - amber/yellow */
+.editorContainer :global(.callout--warning) {
+  background: rgba(245, 158, 11, 0.1);
+  border-left-color: rgb(245, 158, 11);
+}
+
+.editorContainer :global(.callout--warning) :global(.callout-header) {
+  color: rgb(180, 116, 8);
+}
+
+.editorContainer :global(.callout--warning) :global(.callout-icon)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(245, 158, 11)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+}
+
+/* Danger callout - red */
+.editorContainer :global(.callout--danger) {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: rgb(239, 68, 68);
+}
+
+.editorContainer :global(.callout--danger) :global(.callout-header) {
+  color: rgb(239, 68, 68);
+}
+
+.editorContainer :global(.callout--danger) :global(.callout-icon)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(239, 68, 68)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
+}
