@@ -7,6 +7,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { format } from "date-fns";
 import { useDocuments } from "@/lib/hooks/use-documents";
+import { useFullTextSearch } from "@/lib/hooks/use-search";
 import styles from "./CommandPalette.module.css";
 
 export type CommandPaletteProps = {
@@ -25,16 +26,18 @@ export function CommandPalette({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
-  // Fetch recent documents (limit to 10 for command palette)
-  const { data: documents = [] } = useDocuments({ limit: 10 });
+  // Fetch recent documents (limit to 5 for command palette)
+  const { data: recentDocs = [] } = useDocuments({ limit: 5 });
 
-  // Filter documents based on search (cmdk also filters, but we want to prioritize recent)
-  const recentDocuments = useMemo(() => {
-    if (!search.trim()) {
-      return documents.slice(0, 5);
-    }
-    return documents;
-  }, [documents, search]);
+  // Full-text search when query has 2+ characters
+  const { data: searchResults = [], isLoading: isSearching } = useFullTextSearch(
+    search,
+    { limit: 15 }
+  );
+
+  // Use search results when searching, otherwise show recent
+  const isSearchMode = search.trim().length >= 2;
+  const displayDocuments = isSearchMode ? searchResults : recentDocs;
 
   const setOpen = useCallback(
     (value: boolean) => {
@@ -85,7 +88,7 @@ export function CommandPalette({
           </VisuallyHidden.Root>
           <Command
             className={styles.command}
-            shouldFilter={true}
+            shouldFilter={!isSearchMode}
             loop
           >
             <div className={styles.inputWrapper}>
@@ -112,28 +115,40 @@ export function CommandPalette({
                 No results found.
               </Command.Empty>
 
-              {recentDocuments.length > 0 && (
+              {isSearching && isSearchMode && (
+                <div className={styles.searching}>Searching...</div>
+              )}
+
+              {displayDocuments.length > 0 && (
                 <Command.Group
-                  heading={search.trim() ? "Documents" : "Recent Documents"}
+                  heading={isSearchMode ? "Search Results" : "Recent Documents"}
                   className={styles.group}
                 >
-                  {recentDocuments.map((doc) => {
+                  {displayDocuments.map((doc) => {
                     const dateStr = doc.updated_at
                       ? format(new Date(doc.updated_at), "MMM d")
                       : "";
+                    const snippet = "snippet" in doc && typeof doc.snippet === "string" ? doc.snippet : null;
                     return (
                       <Command.Item
                         key={doc.id}
-                        className={styles.item}
-                        value={`${doc.title} ${doc.slug}`}
+                        className={`${styles.item} ${snippet ? styles.itemWithSnippet : ""}`}
+                        value={`${doc.id} ${doc.title} ${doc.slug}`}
                         onSelect={() => handleSelectDocument(doc.id)}
                       >
                         <DocumentIcon />
-                        <span className={styles.itemTitle}>{doc.title}</span>
-                        <span className={styles.itemMeta}>{doc.collection}</span>
-                        {dateStr && (
-                          <span className={styles.itemDate}>{dateStr}</span>
-                        )}
+                        <div className={styles.itemContent}>
+                          <div className={styles.itemHeader}>
+                            <span className={styles.itemTitle}>{doc.title}</span>
+                            <span className={styles.itemMeta}>{doc.collection}</span>
+                            {dateStr && (
+                              <span className={styles.itemDate}>{dateStr}</span>
+                            )}
+                          </div>
+                          {snippet && (
+                            <p className={styles.itemSnippet}>{snippet}</p>
+                          )}
+                        </div>
                       </Command.Item>
                     );
                   })}
