@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import * as Dialog from "@radix-ui/react-dialog";
 import { InlineError } from "@/components/error-boundary";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
+import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import styles from "./page.module.css";
 
 const collectionOrder = ["notes", "essays", "linked"] as const;
@@ -29,6 +30,7 @@ export default function WriterV3Page() {
   const createDocument = useCreateDocument();
   const [activeCollection, setActiveCollection] = useState<string | null>(null);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const collections = useMemo(() => {
     const counts = documents.reduce<Record<string, number>>((acc, doc) => {
@@ -142,6 +144,13 @@ export default function WriterV3Page() {
         <div className={styles.actions}>
           <button
             type="button"
+            className={styles.textButton}
+            onClick={() => setCommandPaletteOpen(true)}
+          >
+            Search
+          </button>
+          <button
+            type="button"
             className={styles.primaryButton}
             onClick={handleCreate}
             disabled={createDocument.isPending}
@@ -177,6 +186,11 @@ export default function WriterV3Page() {
             );
           })}
       </div>
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
     </div>
   );
 }

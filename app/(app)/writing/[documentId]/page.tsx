@@ -18,6 +18,7 @@ import {
   FrontmatterPanel,
   FrontmatterState,
 } from "@/components/editor/frontmatter-panel";
+import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import styles from "./page.module.css";
 
 const emptyFrontmatter: FrontmatterState = {
@@ -69,6 +70,7 @@ export default function WriterV3EditorPage() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [typewriterMode, setTypewriterMode] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -285,6 +287,13 @@ export default function WriterV3EditorPage() {
           <h1 className={styles.title}>{frontmatter.title || "Untitled"}</h1>
         </div>
         <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => setCommandPaletteOpen(true)}
+          >
+            Search
+          </button>
           <Dialog.Root open={infoOpen} onOpenChange={setInfoOpen}>
             <Dialog.Trigger asChild>
               <button type="button" className={styles.textButton}>
@@ -386,6 +395,11 @@ export default function WriterV3EditorPage() {
           </button>
         </div>
       </section>
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
     </div>
   );
 }
