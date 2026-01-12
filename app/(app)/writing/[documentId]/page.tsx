@@ -327,6 +327,9 @@ export default function WriterV3EditorPage() {
             onFocusModeChange={setFocusMode}
             typewriterMode={typewriterMode}
             onTypewriterModeChange={setTypewriterMode}
+            onWikiLinkClick={(slug) => {
+              router.push(`/writing?search=${encodeURIComponent(slug)}`);
+            }}
           />
         </div>
         <div className={styles.footerActions}>

@@ -10,6 +10,7 @@ import { Markdown } from "tiptap-markdown";
 import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
+import { WikiLink } from "@/lib/writer/tiptap/extensions/WikiLink";
 import styles from "./TiptapEditor.module.css";
 
 // Helper to get markdown from editor (tiptap-markdown extends storage)
@@ -44,6 +45,8 @@ export type TiptapEditorProps = {
   onFocusModeChange?: (enabled: boolean) => void;
   typewriterMode?: boolean;
   onTypewriterModeChange?: (enabled: boolean) => void;
+  onWikiLinkClick?: (slug: string) => void;
+  validateWikiLink?: (slug: string) => boolean;
 };
 
 export function TiptapEditor({
@@ -56,6 +59,8 @@ export function TiptapEditor({
   onFocusModeChange,
   typewriterMode: controlledTypewriterMode,
   onTypewriterModeChange,
+  onWikiLinkClick,
+  validateWikiLink,
 }: TiptapEditorProps) {
   const isExternalUpdate = useRef(false);
   const onChangeRef = useRef(onChange);
@@ -113,6 +118,10 @@ export function TiptapEditor({
         className: "is-focus-active",
       }),
       TypewriterMode,
+      WikiLink.configure({
+        onNavigate: onWikiLinkClick,
+        validateLink: validateWikiLink,
+      }),
       Markdown.configure({
         html: false,
         transformPastedText: true,

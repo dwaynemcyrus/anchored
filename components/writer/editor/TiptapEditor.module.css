@@ -322,6 +322,35 @@
   padding-bottom: 50vh;
 }
 
+/* Wiki Links */
+.editorContainer :global(.wiki-link) {
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--primary);
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+  transition: all 150ms ease;
+}
+
+.editorContainer :global(.wiki-link:hover) {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-bottom-color: transparent;
+}
+
+/* Missing wiki links (target doesn't exist) */
+.editorContainer :global(.wiki-link--missing) {
+  color: var(--destructive);
+  border-bottom: 1px dashed var(--destructive);
+}
+
+.editorContainer :global(.wiki-link--missing:hover) {
+  background: var(--destructive);
+  color: white;
+  border-bottom-color: transparent;
+}
+
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .editorContainer :global(.ProseMirror) {
