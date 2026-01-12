@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useCreateSnapshot,
   useDocument,
@@ -65,6 +66,7 @@ export default function WriterV3EditorPage() {
     useState<FrontmatterState>(emptyFrontmatter);
   const [bodyMd, setBodyMd] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -278,9 +280,28 @@ export default function WriterV3EditorPage() {
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
-          <button type="button" className={styles.textButton}>
-            More
-          </button>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button type="button" className={styles.textButton}>
+                More
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content className={styles.dropdownContent} sideOffset={5}>
+                <DropdownMenu.CheckboxItem
+                  className={styles.dropdownItem}
+                  checked={focusMode}
+                  onCheckedChange={setFocusMode}
+                >
+                  <DropdownMenu.ItemIndicator className={styles.dropdownIndicator}>
+                    ✓
+                  </DropdownMenu.ItemIndicator>
+                  Focus Mode
+                  <span className={styles.dropdownShortcut}>⌘⇧F</span>
+                </DropdownMenu.CheckboxItem>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
       </header>
 
@@ -290,6 +311,8 @@ export default function WriterV3EditorPage() {
             value={bodyMd}
             onChange={setBodyMd}
             placeholder="Start writing..."
+            focusMode={focusMode}
+            onFocusModeChange={setFocusMode}
           />
         </div>
         <div className={styles.footerActions}>

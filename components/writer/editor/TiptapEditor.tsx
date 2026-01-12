@@ -62,6 +62,7 @@ export function TiptapEditor({
       : false;
 
   const editor = useEditor({
+    immediatelyRender: false, // Required for Next.js SSR
     extensions: [
       StarterKit.configure({
         heading: {
@@ -89,7 +90,7 @@ export function TiptapEditor({
         },
       }),
       FocusMode.configure({
-        className: styles.hasFocus,
+        className: "is-focus-active", // Global class name for focus mode
       }),
       Markdown.configure({
         html: false,

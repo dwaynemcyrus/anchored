@@ -4,7 +4,6 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 export interface FocusModeOptions {
   className: string;
-  mode: "paragraph" | "sentence";
 }
 
 export const FocusModePluginKey = new PluginKey("focusMode");
@@ -15,7 +14,6 @@ export const FocusMode = Extension.create<FocusModeOptions>({
   addOptions() {
     return {
       className: "has-focus",
-      mode: "paragraph",
     };
   },
 
@@ -31,13 +29,13 @@ export const FocusMode = Extension.create<FocusModeOptions>({
         (enabled: boolean) =>
         ({ editor }) => {
           this.storage.enabled = enabled;
-          // Force a state update to trigger decoration recalculation
-          editor.view.dispatch(editor.state.tr);
+          // Force view update to trigger decoration recalculation
+          editor.view.dispatch(editor.state.tr.setMeta("focusModeToggle", true));
           return true;
         },
       toggleFocusMode:
         () =>
-        ({ editor, commands }) => {
+        ({ commands }) => {
           return commands.setFocusMode(!this.storage.enabled);
         },
     };
@@ -65,47 +63,25 @@ export const FocusMode = Extension.create<FocusModeOptions>({
             const { from } = selection;
             const decorations: Decoration[] = [];
 
-            // Find the block node containing the cursor
-            const $pos = doc.resolve(from);
-            let activeBlockStart = 0;
-            let activeBlockEnd = doc.content.size;
+            // Find which top-level block contains the cursor
+            let currentPos = 0;
 
-            // Find the nearest block-level ancestor
-            for (let depth = $pos.depth; depth > 0; depth--) {
-              const node = $pos.node(depth);
-              if (node.isBlock && !node.isTextblock) {
-                continue;
+            doc.forEach((node, offset) => {
+              const nodeStart = offset;
+              const nodeEnd = offset + node.nodeSize;
+              const isActive = from >= nodeStart && from <= nodeEnd;
+
+              if (isActive) {
+                // Add class to mark this block as active/focused
+                decorations.push(
+                  Decoration.node(nodeStart, nodeEnd, {
+                    class: extension.options.className,
+                  })
+                );
               }
-              if (node.isBlock) {
-                activeBlockStart = $pos.start(depth);
-                activeBlockEnd = $pos.end(depth);
-                break;
-              }
-            }
 
-            // If we're at the top level, use the direct child block
-            if (activeBlockStart === 0 && $pos.depth === 0) {
-              // Find the block at cursor position
-              let pos = 0;
-              doc.forEach((node, offset) => {
-                const nodeStart = offset;
-                const nodeEnd = offset + node.nodeSize;
-                if (from >= nodeStart && from <= nodeEnd) {
-                  activeBlockStart = nodeStart;
-                  activeBlockEnd = nodeEnd;
-                }
-                pos = nodeEnd;
-              });
-            }
-
-            // Add decoration to mark the active block
-            if (activeBlockEnd > activeBlockStart) {
-              decorations.push(
-                Decoration.node(activeBlockStart, activeBlockEnd, {
-                  class: extension.options.className,
-                })
-              );
-            }
+              currentPos = nodeEnd;
+            });
 
             return DecorationSet.create(doc, decorations);
           },
