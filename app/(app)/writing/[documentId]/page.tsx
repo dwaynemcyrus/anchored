@@ -7,6 +7,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useCreateSnapshot,
   useDocument,
+  useDocuments,
   usePublishDocument,
   useUpdateDocument,
 } from "@/lib/hooks/use-documents";
@@ -61,9 +62,23 @@ export default function WriterV3EditorPage() {
   const documentId = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
   const { data: document, isLoading } = useDocument(documentId);
+  const { data: allDocuments = [] } = useDocuments();
   const updateDocument = useUpdateDocument();
   const publishDocument = usePublishDocument();
   const createSnapshot = useCreateSnapshot();
+
+  // Get all unique tags for autocomplete
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const doc of allDocuments) {
+      if (doc.tags) {
+        for (const tag of doc.tags) {
+          tagSet.add(tag);
+        }
+      }
+    }
+    return Array.from(tagSet).sort();
+  }, [allDocuments]);
 
   const [frontmatter, setFrontmatter] =
     useState<FrontmatterState>(emptyFrontmatter);
@@ -369,6 +384,7 @@ export default function WriterV3EditorPage() {
                     value={frontmatter}
                     onChange={setFrontmatter}
                     showTitle={false}
+                    tagSuggestions={allTags}
                   />
                 </div>
               </Dialog.Content>

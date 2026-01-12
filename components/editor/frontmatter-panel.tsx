@@ -1,5 +1,6 @@
 "use client";
 
+import { TagInput } from "@/components/writer/documents/TagInput";
 import styles from "./frontmatter-panel.module.css";
 
 export type FrontmatterState = {
@@ -27,6 +28,8 @@ type FrontmatterPanelProps = {
   onChange: (next: FrontmatterState) => void;
   showMetadata?: boolean;
   showTitle?: boolean;
+  /** Available tags for autocomplete suggestions */
+  tagSuggestions?: string[];
 };
 
 export function FrontmatterPanel({
@@ -34,6 +37,7 @@ export function FrontmatterPanel({
   onChange,
   showMetadata = true,
   showTitle = true,
+  tagSuggestions = [],
 }: FrontmatterPanelProps) {
   const update = (patch: Partial<FrontmatterState>) => {
     onChange({ ...value, ...patch });
@@ -152,12 +156,12 @@ export function FrontmatterPanel({
         <label className={styles.label} htmlFor="doc-tags">
           Tags
         </label>
-        <input
+        <TagInput
           id="doc-tags"
-          className={styles.input}
           value={value.tags}
-          onChange={(event) => update({ tags: event.target.value })}
-          placeholder="focus, leadership, systems"
+          onChange={(tags) => update({ tags })}
+          suggestions={tagSuggestions}
+          placeholder="Add tag..."
         />
       </div>
 
