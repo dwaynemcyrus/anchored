@@ -317,6 +317,11 @@
   opacity: 1;
 }
 
+/* Typewriter Mode - add bottom padding so cursor can stay centered at end of doc */
+.editorContainer[data-typewriter-mode="true"] :global(.ProseMirror) {
+  padding-bottom: 50vh;
+}
+
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .editorContainer :global(.ProseMirror) {

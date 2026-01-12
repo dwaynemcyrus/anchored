@@ -67,6 +67,7 @@ export default function WriterV3EditorPage() {
   const [bodyMd, setBodyMd] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [typewriterMode, setTypewriterMode] = useState(false);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -299,6 +300,17 @@ export default function WriterV3EditorPage() {
                   Focus Mode
                   <span className={styles.dropdownShortcut}>⌘⇧F</span>
                 </DropdownMenu.CheckboxItem>
+                <DropdownMenu.CheckboxItem
+                  className={styles.dropdownItem}
+                  checked={typewriterMode}
+                  onCheckedChange={setTypewriterMode}
+                >
+                  <DropdownMenu.ItemIndicator className={styles.dropdownIndicator}>
+                    ✓
+                  </DropdownMenu.ItemIndicator>
+                  Typewriter Mode
+                  <span className={styles.dropdownShortcut}>⌘⇧T</span>
+                </DropdownMenu.CheckboxItem>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
@@ -313,6 +325,8 @@ export default function WriterV3EditorPage() {
             placeholder="Start writing..."
             focusMode={focusMode}
             onFocusModeChange={setFocusMode}
+            typewriterMode={typewriterMode}
+            onTypewriterModeChange={setTypewriterMode}
           />
         </div>
         <div className={styles.footerActions}>
