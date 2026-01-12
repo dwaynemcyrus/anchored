@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
 import { HybridMarks } from "@/lib/writer/tiptap/extensions/HybridMarks";
+import { EditorToolbar } from "./EditorToolbar";
 import {
   WikiLink,
   type WikiLinkSuggestionItem,
@@ -250,6 +251,7 @@ export function TiptapEditor({
       data-typewriter-mode={isTypewriterModeEnabled ? "true" : undefined}
       data-typewriter-scroll
     >
+      {editor && <EditorToolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );
