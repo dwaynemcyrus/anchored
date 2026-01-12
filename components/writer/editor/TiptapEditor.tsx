@@ -10,6 +10,7 @@ import { Markdown } from "tiptap-markdown";
 import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
+import { HybridMarks } from "@/lib/writer/tiptap/extensions/HybridMarks";
 import {
   WikiLink,
   type WikiLinkSuggestionItem,
@@ -126,6 +127,7 @@ export function TiptapEditor({
         className: "is-focus-active",
       }),
       TypewriterMode,
+      HybridMarks,
       WikiLink.configure({
         onNavigate: onWikiLinkClick,
         validateLink: validateWikiLink,

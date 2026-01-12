@@ -373,3 +373,41 @@
     font-size: 1.125rem;
   }
 }
+
+/* Hybrid Markdown Rendering - Bear-style */
+/* Base styles for hybrid marks */
+.editorContainer :global(.hybrid-mark) {
+  position: relative;
+}
+
+/* Syntax characters - hidden by default */
+.editorContainer :global(.hybrid-mark)::before,
+.editorContainer :global(.hybrid-mark)::after {
+  opacity: 0;
+  transition: opacity 150ms ease;
+  color: var(--muted-foreground);
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: none;
+  pointer-events: none;
+}
+
+.editorContainer :global(.hybrid-mark)::before {
+  content: attr(data-syntax-before);
+}
+
+.editorContainer :global(.hybrid-mark)::after {
+  content: attr(data-syntax-after);
+}
+
+/* Show syntax when cursor is inside the mark */
+.editorContainer :global(.hybrid-mark--active)::before,
+.editorContainer :global(.hybrid-mark--active)::after {
+  opacity: 1;
+}
+
+/* Code mark specifics - use monospace for syntax */
+.editorContainer :global(.hybrid-mark--code)::before,
+.editorContainer :global(.hybrid-mark--code)::after {
+  font-family: var(--font-geist-mono);
+}
