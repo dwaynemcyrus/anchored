@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import * as Dialog from "@radix-ui/react-dialog";
 import { InlineError } from "@/components/error-boundary";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
+import { CollectionFilter } from "@/components/writer/documents/CollectionFilter";
 import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import styles from "./page.module.css";
 
@@ -29,7 +29,6 @@ export default function WriterV3Page() {
   const { data: documents = [], isLoading, error } = useDocuments();
   const createDocument = useCreateDocument();
   const [activeCollection, setActiveCollection] = useState<string | null>(null);
-  const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const collections = useMemo(() => {
@@ -43,22 +42,9 @@ export default function WriterV3Page() {
       .map((collection) => ({
         id: collection,
         label: collectionLabels[collection],
+        count: counts[collection],
       }));
   }, [documents]);
-
-  useEffect(() => {
-    if (collections.length === 0) return;
-    if (!activeCollection) {
-      setActiveCollection(collections[0].id);
-      return;
-    }
-    const isStillAvailable = collections.some(
-      (collection) => collection.id === activeCollection
-    );
-    if (!isStillAvailable) {
-      setActiveCollection(collections[0].id);
-    }
-  }, [collections, activeCollection]);
 
   const filteredDocs = useMemo(() => {
     if (!activeCollection) return documents;
@@ -93,53 +79,6 @@ export default function WriterV3Page() {
           >
             Back
           </button>
-          <span className={styles.headerDivider}>|</span>
-          <Dialog.Root open={collectionsOpen} onOpenChange={setCollectionsOpen}>
-            <Dialog.Trigger asChild>
-              <button type="button" className={styles.textButton}>
-                Collections
-              </button>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Overlay className={styles.drawerOverlay} />
-              <Dialog.Content className={styles.drawerContent}>
-                <div className={styles.drawerHeader}>
-                  <Dialog.Title className={styles.drawerTitle}>
-                    Collections
-                  </Dialog.Title>
-                  <Dialog.Close asChild>
-                    <button type="button" className={styles.textButton}>
-                      Close
-                    </button>
-                  </Dialog.Close>
-                </div>
-                <div className={styles.drawerList}>
-                  {collections.length === 0 && (
-                    <div className={styles.drawerEmpty}>
-                      No collections yet.
-                    </div>
-                  )}
-                  {collections.map((collection) => (
-                    <button
-                      key={collection.id}
-                      type="button"
-                      className={`${styles.drawerItem} ${
-                        collection.id === activeCollection
-                          ? styles.drawerItemActive
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setActiveCollection(collection.id);
-                        setCollectionsOpen(false);
-                      }}
-                    >
-                      {collection.label}
-                    </button>
-                  ))}
-                </div>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
         </div>
         <div className={styles.actions}>
           <button
@@ -159,6 +98,14 @@ export default function WriterV3Page() {
           </button>
         </div>
       </header>
+
+      <CollectionFilter
+        collections={collections}
+        activeCollection={activeCollection}
+        onCollectionChange={setActiveCollection}
+        showAll={true}
+        totalCount={documents.length}
+      />
 
       <div className={styles.scroll}>
         {isLoading && <div className={styles.empty}>Loading documents…</div>}
