@@ -6,22 +6,35 @@ import { Command } from "cmdk";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { format } from "date-fns";
-import { useDocuments } from "@/lib/hooks/use-documents";
+import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
 import { useFullTextSearch } from "@/lib/hooks/use-search";
 import styles from "./CommandPalette.module.css";
 
 export type CommandPaletteProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Current focus mode state (only provided on editor page) */
+  focusMode?: boolean;
+  /** Toggle focus mode callback (only provided on editor page) */
+  onToggleFocusMode?: () => void;
+  /** Current typewriter mode state (only provided on editor page) */
+  typewriterMode?: boolean;
+  /** Toggle typewriter mode callback (only provided on editor page) */
+  onToggleTypewriterMode?: () => void;
 };
 
 export function CommandPalette({
   open: controlledOpen,
   onOpenChange,
+  focusMode,
+  onToggleFocusMode,
+  typewriterMode,
+  onToggleTypewriterMode,
 }: CommandPaletteProps) {
   const router = useRouter();
   const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const createDocument = useCreateDocument();
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -57,6 +70,58 @@ export function CommandPalette({
     },
     [router, setOpen]
   );
+
+  const handleNewDocument = useCallback(async () => {
+    setOpen(false);
+    const doc = await createDocument.mutateAsync({
+      title: "Untitled",
+      collection: "notes",
+      visibility: "private",
+      status: "draft",
+      body_md: "",
+      metadata: {},
+    });
+    router.push(`/writing/${doc.id}`);
+  }, [createDocument, router, setOpen]);
+
+  const handleTodaysNote = useCallback(async () => {
+    setOpen(false);
+    const today = new Date();
+    const dateSlug = format(today, "yyyy-MM-dd");
+    const dateTitle = format(today, "MMMM d, yyyy");
+
+    // Check if today's note exists
+    const existingDoc = recentDocs.find(
+      (doc) => doc.slug?.startsWith(`daily-${dateSlug}`)
+    );
+
+    if (existingDoc) {
+      router.push(`/writing/${existingDoc.id}`);
+    } else {
+      const doc = await createDocument.mutateAsync({
+        title: dateTitle,
+        collection: "notes",
+        visibility: "private",
+        status: "draft",
+        body_md: "",
+        slug: `daily-${dateSlug}`,
+        tags: ["daily"],
+        date: today.toISOString().split("T")[0],
+        metadata: {},
+      });
+      router.push(`/writing/${doc.id}`);
+    }
+  }, [createDocument, recentDocs, router, setOpen]);
+
+  const handleToggleFocusMode = useCallback(() => {
+    onToggleFocusMode?.();
+    setOpen(false);
+  }, [onToggleFocusMode, setOpen]);
+
+  const handleToggleTypewriterMode = useCallback(() => {
+    onToggleTypewriterMode?.();
+    setOpen(false);
+  }, [onToggleTypewriterMode, setOpen]);
 
   // Global keyboard shortcut: Cmd+K
   useEffect(() => {
@@ -158,30 +223,56 @@ export function CommandPalette({
               <Command.Group heading="Actions" className={styles.group}>
                 <Command.Item
                   className={styles.item}
-                  value="new-document"
-                  onSelect={() => {
-                    setOpen(false);
-                  }}
+                  value="new-document create"
+                  onSelect={handleNewDocument}
                 >
                   <PlusIcon />
                   <span className={styles.itemTitle}>New Document</span>
-                  <kbd className={styles.shortcut}>
-                    <span>⌘</span>N
-                  </kbd>
+                  <span className={styles.shortcut}>
+                    <kbd>⌘</kbd><kbd>N</kbd>
+                  </span>
                 </Command.Item>
                 <Command.Item
                   className={styles.item}
-                  value="todays-note"
-                  onSelect={() => {
-                    setOpen(false);
-                  }}
+                  value="todays-note daily journal"
+                  onSelect={handleTodaysNote}
                 >
                   <CalendarIcon />
                   <span className={styles.itemTitle}>Today's Note</span>
-                  <kbd className={styles.shortcut}>
-                    <span>⌘</span>D
-                  </kbd>
+                  <span className={styles.shortcut}>
+                    <kbd>⌘</kbd><kbd>D</kbd>
+                  </span>
                 </Command.Item>
+                {onToggleFocusMode && (
+                  <Command.Item
+                    className={styles.item}
+                    value="toggle focus mode distraction"
+                    onSelect={handleToggleFocusMode}
+                  >
+                    <FocusIcon />
+                    <span className={styles.itemTitle}>
+                      {focusMode ? "Disable Focus Mode" : "Enable Focus Mode"}
+                    </span>
+                    <span className={styles.shortcut}>
+                      <kbd>⌘</kbd><kbd>⇧</kbd><kbd>F</kbd>
+                    </span>
+                  </Command.Item>
+                )}
+                {onToggleTypewriterMode && (
+                  <Command.Item
+                    className={styles.item}
+                    value="toggle typewriter mode scroll"
+                    onSelect={handleToggleTypewriterMode}
+                  >
+                    <TypewriterIcon />
+                    <span className={styles.itemTitle}>
+                      {typewriterMode ? "Disable Typewriter Mode" : "Enable Typewriter Mode"}
+                    </span>
+                    <span className={styles.shortcut}>
+                      <kbd>⌘</kbd><kbd>⇧</kbd><kbd>T</kbd>
+                    </span>
+                  </Command.Item>
+                )}
               </Command.Group>
             </Command.List>
 
@@ -299,6 +390,49 @@ function CalendarIcon() {
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
+function FocusIcon() {
+  return (
+    <svg
+      className={styles.itemIcon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
+function TypewriterIcon() {
+  return (
+    <svg
+      className={styles.itemIcon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <line x1="6" y1="10" x2="6" y2="10" />
+      <line x1="10" y1="10" x2="10" y2="10" />
+      <line x1="14" y1="10" x2="14" y2="10" />
+      <line x1="18" y1="10" x2="18" y2="10" />
+      <line x1="8" y1="14" x2="16" y2="14" />
     </svg>
   );
 }

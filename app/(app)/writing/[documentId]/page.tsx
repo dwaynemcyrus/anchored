@@ -399,6 +399,10 @@ export default function WriterV3EditorPage() {
       <CommandPalette
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
+        focusMode={focusMode}
+        onToggleFocusMode={() => setFocusMode((prev) => !prev)}
+        typewriterMode={typewriterMode}
+        onToggleTypewriterMode={() => setTypewriterMode((prev) => !prev)}
       />
     </div>
   );
