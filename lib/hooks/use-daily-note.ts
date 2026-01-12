@@ -2,13 +2,36 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
+
+const DAILY_SLUG_PATTERN = /^daily-(\d{4}-\d{2}-\d{2})$/;
 
 type UseDailyNoteOptions = {
   /** Called before navigation (e.g., to close a modal) */
   onBeforeNavigate?: () => void;
 };
+
+/**
+ * Check if a slug is a daily note slug and extract the date
+ */
+export function parseDailyNoteSlug(slug: string | null | undefined): Date | null {
+  if (!slug) return null;
+  const match = slug.match(DAILY_SLUG_PATTERN);
+  if (!match) return null;
+  try {
+    return parse(match[1], "yyyy-MM-dd", new Date());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a slug is a daily note
+ */
+export function isDailyNote(slug: string | null | undefined): boolean {
+  return parseDailyNoteSlug(slug) !== null;
+}
 
 export function useDailyNote(options: UseDailyNoteOptions = {}) {
   const router = useRouter();

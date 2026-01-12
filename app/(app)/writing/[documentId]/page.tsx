@@ -10,6 +10,7 @@ import {
   usePublishDocument,
   useUpdateDocument,
 } from "@/lib/hooks/use-documents";
+import { parseDailyNoteSlug, useDailyNote } from "@/lib/hooks/use-daily-note";
 import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/types/database";
 import { slugify } from "@/lib/utils/slugify";
@@ -71,6 +72,13 @@ export default function WriterV3EditorPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [typewriterMode, setTypewriterMode] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  const dailyNote = useDailyNote();
+
+  // Check if current document is a daily note
+  const dailyNoteDate = useMemo(() => {
+    return parseDailyNoteSlug(document?.slug);
+  }, [document?.slug]);
 
   const lastSavedRef = useRef<string>("");
   const hydratedRef = useRef(false);
@@ -264,6 +272,27 @@ export default function WriterV3EditorPage() {
     });
   };
 
+  // Daily note navigation shortcuts: Cmd+Shift+[ and Cmd+Shift+]
+  useEffect(() => {
+    if (!dailyNoteDate) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) return;
+      if (!e.shiftKey) return;
+
+      if (e.key === "[") {
+        e.preventDefault();
+        dailyNote.goToPreviousDay(dailyNoteDate);
+      } else if (e.key === "]") {
+        e.preventDefault();
+        dailyNote.goToNextDay(dailyNoteDate);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [dailyNoteDate, dailyNote]);
+
   if (isLoading) {
     return <div className={styles.empty}>Loading document…</div>;
   }
@@ -284,7 +313,29 @@ export default function WriterV3EditorPage() {
             Back
           </button>
           <span className={styles.headerDivider}>|</span>
-          <h1 className={styles.title}>{frontmatter.title || "Untitled"}</h1>
+          {dailyNoteDate ? (
+            <div className={styles.dailyNav}>
+              <button
+                type="button"
+                className={styles.dailyNavButton}
+                onClick={() => dailyNote.goToPreviousDay(dailyNoteDate)}
+                title="Previous day (⌘⇧[)"
+              >
+                ←
+              </button>
+              <h1 className={styles.title}>{frontmatter.title || "Untitled"}</h1>
+              <button
+                type="button"
+                className={styles.dailyNavButton}
+                onClick={() => dailyNote.goToNextDay(dailyNoteDate)}
+                title="Next day (⌘⇧])"
+              >
+                →
+              </button>
+            </div>
+          ) : (
+            <h1 className={styles.title}>{frontmatter.title || "Untitled"}</h1>
+          )}
         </div>
         <div className={styles.actions}>
           <button

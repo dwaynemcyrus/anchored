@@ -32,6 +32,32 @@
   font-weight: 600;
 }
 
+.dailyNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dailyNavButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: var(--muted);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 100ms ease;
+}
+
+.dailyNavButton:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
 .actions {
   display: flex;
   align-items: center;
