@@ -1,0 +1,52 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.small {
+  padding: 2px 6px;
+  font-size: 0.6875rem;
+}
+
+.medium {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.clickable:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.active:hover {
+  background: var(--primary);
+  opacity: 0.9;
+}
+
+.more {
+  background: transparent;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}

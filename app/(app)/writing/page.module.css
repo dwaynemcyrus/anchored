@@ -56,6 +56,12 @@
   cursor: default;
 }
 
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .scroll {
   flex: 1;
   overflow-y: auto;
@@ -89,6 +95,13 @@
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cardMeta {

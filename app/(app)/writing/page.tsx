@@ -7,6 +7,8 @@ import { format } from "date-fns";
 import { InlineError } from "@/components/error-boundary";
 import { useCreateDocument, useDocuments } from "@/lib/hooks/use-documents";
 import { CollectionFilter } from "@/components/writer/documents/CollectionFilter";
+import { TagList } from "@/components/writer/documents/TagBadge";
+import { TagFilter } from "@/components/writer/documents/TagFilter";
 import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import styles from "./page.module.css";
 
@@ -29,6 +31,7 @@ export default function WriterV3Page() {
   const { data: documents = [], isLoading, error } = useDocuments();
   const createDocument = useCreateDocument();
   const [activeCollection, setActiveCollection] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const collections = useMemo(() => {
@@ -46,10 +49,44 @@ export default function WriterV3Page() {
       }));
   }, [documents]);
 
+  // Compute all unique tags with counts
+  const allTags = useMemo(() => {
+    const counts = documents.reduce<Record<string, number>>((acc, doc) => {
+      if (!doc.tags) return acc;
+      for (const tag of doc.tags) {
+        acc[tag] = (acc[tag] ?? 0) + 1;
+      }
+      return acc;
+    }, {});
+    return Object.entries(counts).map(([tag, count]) => ({ tag, count }));
+  }, [documents]);
+
+  // Filter documents by collection and tags (AND logic)
   const filteredDocs = useMemo(() => {
-    if (!activeCollection) return documents;
-    return documents.filter((doc) => doc.collection === activeCollection);
-  }, [documents, activeCollection]);
+    let result = documents;
+
+    if (activeCollection) {
+      result = result.filter((doc) => doc.collection === activeCollection);
+    }
+
+    if (activeTags.length > 0) {
+      result = result.filter((doc) =>
+        activeTags.every((tag) => doc.tags?.includes(tag))
+      );
+    }
+
+    return result;
+  }, [documents, activeCollection, activeTags]);
+
+  const handleTagToggle = (tag: string) => {
+    setActiveTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleClearTags = () => {
+    setActiveTags([]);
+  };
 
   const handleCreate = async () => {
     const collection = activeCollection ?? "notes";
@@ -99,13 +136,23 @@ export default function WriterV3Page() {
         </div>
       </header>
 
-      <CollectionFilter
-        collections={collections}
-        activeCollection={activeCollection}
-        onCollectionChange={setActiveCollection}
-        showAll={true}
-        totalCount={documents.length}
-      />
+      <div className={styles.filters}>
+        <CollectionFilter
+          collections={collections}
+          activeCollection={activeCollection}
+          onCollectionChange={setActiveCollection}
+          showAll={true}
+          totalCount={documents.length}
+        />
+        {allTags.length > 0 && (
+          <TagFilter
+            tags={allTags}
+            activeTags={activeTags}
+            onTagToggle={handleTagToggle}
+            onClearAll={handleClearTags}
+          />
+        )}
+      </div>
 
       <div className={styles.scroll}>
         {isLoading && <div className={styles.empty}>Loading documents…</div>}
@@ -127,7 +174,16 @@ export default function WriterV3Page() {
                 <div className={styles.cardMain}>
                   <h2 className={styles.cardTitle}>{doc.title}</h2>
                   {snippet && <p className={styles.cardSnippet}>{snippet}</p>}
-                  <span className={styles.cardMeta}>{updatedAt}</span>
+                  <div className={styles.cardFooter}>
+                    <span className={styles.cardMeta}>{updatedAt}</span>
+                    {doc.tags && doc.tags.length > 0 && (
+                      <TagList
+                        tags={doc.tags}
+                        activeTags={activeTags}
+                        limit={3}
+                      />
+                    )}
+                  </div>
                 </div>
               </Link>
             );
