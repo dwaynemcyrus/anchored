@@ -21,6 +21,8 @@ import {
   FrontmatterState,
 } from "@/components/editor/frontmatter-panel";
 import { CommandPalette } from "@/components/writer/ui/CommandPalette";
+import { VersionHistoryDialog } from "@/components/writer/documents/VersionHistory";
+import type { DocumentVersion } from "@/types/database";
 import styles from "./page.module.css";
 
 const emptyFrontmatter: FrontmatterState = {
@@ -84,6 +86,7 @@ export default function WriterV3EditorPage() {
     useState<FrontmatterState>(emptyFrontmatter);
   const [bodyMd, setBodyMd] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [typewriterMode, setTypewriterMode] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -287,6 +290,38 @@ export default function WriterV3EditorPage() {
     });
   };
 
+  const handleRestoreVersion = useCallback(
+    (version: DocumentVersion) => {
+      const metadata = (version.metadata ?? {}) as Record<string, Json | undefined>;
+
+      setFrontmatter({
+        title: version.title ?? "",
+        summary: version.summary ?? "",
+        slug: version.slug ?? "",
+        collection: version.collection ?? "notes",
+        status: version.status ?? "draft",
+        visibility: version.visibility ?? "private",
+        canonical: version.canonical ?? "",
+        tags: tagsToInput(version.tags ?? null),
+        date: version.date ?? "",
+        metadata: {
+          source: typeof metadata.source === "string" ? metadata.source : "",
+          chains: typeof metadata.chains === "string" ? metadata.chains : "",
+          resources: Array.isArray(metadata.resources)
+            ? metadata.resources.join(", ")
+            : "",
+          visual: Boolean(metadata.visual),
+          sourceUrl:
+            typeof metadata.source_url === "string" ? metadata.source_url : "",
+          sourceTitle:
+            typeof metadata.source_title === "string" ? metadata.source_title : "",
+        },
+      });
+      setBodyMd(version.body_md ?? "");
+    },
+    []
+  );
+
   // Daily note navigation shortcuts: Cmd+Shift+[ and Cmd+Shift+]
   useEffect(() => {
     if (!dailyNoteDate) return;
@@ -359,6 +394,13 @@ export default function WriterV3EditorPage() {
             onClick={() => setCommandPaletteOpen(true)}
           >
             Search
+          </button>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => setHistoryOpen(true)}
+          >
+            History
           </button>
           <Dialog.Root open={infoOpen} onOpenChange={setInfoOpen}>
             <Dialog.Trigger asChild>
@@ -470,6 +512,14 @@ export default function WriterV3EditorPage() {
         onToggleFocusMode={() => setFocusMode((prev) => !prev)}
         typewriterMode={typewriterMode}
         onToggleTypewriterMode={() => setTypewriterMode((prev) => !prev)}
+      />
+
+      <VersionHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        documentId={documentId}
+        currentBodyMd={bodyMd}
+        onRestore={handleRestoreVersion}
       />
     </div>
   );
