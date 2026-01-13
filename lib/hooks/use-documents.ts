@@ -435,3 +435,107 @@ export function useCreateSnapshot() {
     },
   });
 }
+
+async function deleteDocument(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("documents").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+async function duplicateDocument(document: Document): Promise<Document> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
+  const id = createUlid();
+  const slugSuffix = id.slice(-6).toLowerCase();
+  const newTitle = `${document.title} (Copy)`;
+  const slug = buildSlug(newTitle, slugSuffix);
+
+  const payload: DocumentInsert = {
+    id,
+    user_id: user.id,
+    title: newTitle,
+    slug,
+    collection: document.collection,
+    visibility: document.visibility ?? "private",
+    status: "draft",
+    body_md: document.body_md ?? "",
+    summary: document.summary ?? null,
+    metadata: document.metadata ?? {},
+    canonical: null,
+    tags: document.tags ?? null,
+    date: null,
+    published_at: null,
+  };
+
+  const { data, error } = await supabase
+    .from("documents")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+async function archiveDocument(id: string): Promise<Document> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("documents")
+    .update({ status: "archived" })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+export function useDeleteDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: documentKeys.latest() });
+    },
+  });
+}
+
+export function useDuplicateDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: duplicateDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: documentKeys.latest() });
+    },
+  });
+}
+
+export function useArchiveDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: archiveDocument,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: documentKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
+    },
+  });
+}

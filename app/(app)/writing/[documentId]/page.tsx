@@ -24,6 +24,7 @@ import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import { VersionHistoryDialog } from "@/components/writer/documents/VersionHistory";
 import { BacklinksDialog } from "@/components/writer/documents/BacklinksPanel";
 import { DocumentStats } from "@/components/writer/documents/DocumentStats";
+import { DocumentActions } from "@/components/writer/documents/DocumentActions";
 import { useBacklinks } from "@/lib/hooks/use-backlinks";
 import type { DocumentVersion } from "@/types/database";
 import styles from "./page.module.css";
@@ -480,6 +481,14 @@ export default function WriterV3EditorPage() {
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
+          {document && (
+            <DocumentActions
+              document={document}
+              onStatusChange={(status) =>
+                setFrontmatter((prev) => ({ ...prev, status: status as typeof prev.status }))
+              }
+            />
+          )}
         </div>
       </header>
 
