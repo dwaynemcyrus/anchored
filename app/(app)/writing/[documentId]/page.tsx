@@ -22,6 +22,8 @@ import {
 } from "@/components/editor/frontmatter-panel";
 import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import { VersionHistoryDialog } from "@/components/writer/documents/VersionHistory";
+import { BacklinksDialog } from "@/components/writer/documents/BacklinksPanel";
+import { useBacklinks } from "@/lib/hooks/use-backlinks";
 import type { DocumentVersion } from "@/types/database";
 import styles from "./page.module.css";
 
@@ -87,11 +89,16 @@ export default function WriterV3EditorPage() {
   const [bodyMd, setBodyMd] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [backlinksOpen, setBacklinksOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [typewriterMode, setTypewriterMode] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const dailyNote = useDailyNote();
+  const { data: backlinks = [] } = useBacklinks(
+    document?.slug ?? "",
+    documentId
+  );
 
   // Check if current document is a daily note
   const dailyNoteDate = useMemo(() => {
@@ -402,6 +409,13 @@ export default function WriterV3EditorPage() {
           >
             History
           </button>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={() => setBacklinksOpen(true)}
+          >
+            Backlinks{backlinks.length > 0 && ` (${backlinks.length})`}
+          </button>
           <Dialog.Root open={infoOpen} onOpenChange={setInfoOpen}>
             <Dialog.Trigger asChild>
               <button type="button" className={styles.textButton}>
@@ -520,6 +534,13 @@ export default function WriterV3EditorPage() {
         documentId={documentId}
         currentBodyMd={bodyMd}
         onRestore={handleRestoreVersion}
+      />
+
+      <BacklinksDialog
+        open={backlinksOpen}
+        onOpenChange={setBacklinksOpen}
+        slug={frontmatter.slug}
+        documentId={documentId}
       />
     </div>
   );
