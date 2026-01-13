@@ -532,7 +532,12 @@ export default function WriterV3EditorPage() {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         documentId={documentId}
-        currentBodyMd={bodyMd}
+        current={{
+          bodyMd,
+          title: frontmatter.title,
+          status: frontmatter.status,
+          tags: inputToTags(frontmatter.tags),
+        }}
         onRestore={handleRestoreVersion}
       />
 

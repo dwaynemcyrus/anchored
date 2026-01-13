@@ -5,23 +5,35 @@ import { format } from "date-fns";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useDocumentVersions } from "@/lib/hooks/use-documents";
+import { VersionDiff } from "./VersionDiff";
 import type { DocumentVersion } from "@/types/database";
 import styles from "./VersionHistory.module.css";
 
+type CurrentDocumentState = {
+  bodyMd: string;
+  title: string;
+  status: string;
+  tags: string[] | null;
+};
+
 type VersionHistoryProps = {
   documentId: string;
-  currentBodyMd: string;
+  current: CurrentDocumentState;
   onRestore: (version: DocumentVersion) => void;
 };
 
 type VersionDetailProps = {
   version: DocumentVersion;
+  current: CurrentDocumentState;
   onRestore: () => void;
   onClose: () => void;
 };
 
-function VersionDetail({ version, onRestore, onClose }: VersionDetailProps) {
+type ViewMode = "preview" | "diff";
+
+function VersionDetail({ version, current, onRestore, onClose }: VersionDetailProps) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("diff");
 
   const handleRestore = () => {
     onRestore();
@@ -50,29 +62,58 @@ function VersionDetail({ version, onRestore, onClose }: VersionDetailProps) {
         </button>
       </div>
 
-      <div className={styles.detailInfo}>
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Title</span>
-          <span className={styles.infoValue}>{version.title}</span>
-        </div>
-        <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Status</span>
-          <span className={styles.infoValue}>{version.status}</span>
-        </div>
-        {version.tags && version.tags.length > 0 && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Tags</span>
-            <span className={styles.infoValue}>{version.tags.join(", ")}</span>
-          </div>
-        )}
+      <div className={styles.viewToggle}>
+        <button
+          type="button"
+          className={`${styles.viewToggleButton} ${viewMode === "diff" ? styles.viewToggleActive : ""}`}
+          onClick={() => setViewMode("diff")}
+        >
+          Changes
+        </button>
+        <button
+          type="button"
+          className={`${styles.viewToggleButton} ${viewMode === "preview" ? styles.viewToggleActive : ""}`}
+          onClick={() => setViewMode("preview")}
+        >
+          Preview
+        </button>
       </div>
 
-      <div className={styles.detailPreview}>
-        <div className={styles.previewLabel}>Content preview</div>
-        <pre className={styles.previewContent}>
-          {version.body_md || "(empty)"}
-        </pre>
-      </div>
+      {viewMode === "diff" ? (
+        <VersionDiff
+          version={version}
+          currentBodyMd={current.bodyMd}
+          currentTitle={current.title}
+          currentStatus={current.status}
+          currentTags={current.tags}
+        />
+      ) : (
+        <>
+          <div className={styles.detailInfo}>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Title</span>
+              <span className={styles.infoValue}>{version.title}</span>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Status</span>
+              <span className={styles.infoValue}>{version.status}</span>
+            </div>
+            {version.tags && version.tags.length > 0 && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Tags</span>
+                <span className={styles.infoValue}>{version.tags.join(", ")}</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.detailPreview}>
+            <div className={styles.previewLabel}>Content preview</div>
+            <pre className={styles.previewContent}>
+              {version.body_md || "(empty)"}
+            </pre>
+          </div>
+        </>
+      )}
 
       <div className={styles.detailActions}>
         {showConfirm ? (
@@ -113,7 +154,7 @@ function VersionDetail({ version, onRestore, onClose }: VersionDetailProps) {
 
 export function VersionHistory({
   documentId,
-  currentBodyMd,
+  current,
   onRestore,
 }: VersionHistoryProps) {
   const { data: versions = [], isLoading } = useDocumentVersions(documentId);
@@ -125,6 +166,7 @@ export function VersionHistory({
     return (
       <VersionDetail
         version={selectedVersion}
+        current={current}
         onRestore={() => onRestore(selectedVersion)}
         onClose={() => setSelectedVersion(null)}
       />
@@ -195,7 +237,7 @@ type VersionHistoryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   documentId: string;
-  currentBodyMd: string;
+  current: CurrentDocumentState;
   onRestore: (version: DocumentVersion) => void;
 };
 
@@ -203,7 +245,7 @@ export function VersionHistoryDialog({
   open,
   onOpenChange,
   documentId,
-  currentBodyMd,
+  current,
   onRestore,
 }: VersionHistoryDialogProps) {
   return (
@@ -225,7 +267,7 @@ export function VersionHistoryDialog({
           <div className={styles.dialogBody}>
             <VersionHistory
               documentId={documentId}
-              currentBodyMd={currentBodyMd}
+              current={current}
               onRestore={(version) => {
                 onRestore(version);
                 onOpenChange(false);

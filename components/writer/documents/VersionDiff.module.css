@@ -1,0 +1,143 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.noChanges {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.summary {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.summaryAdded {
+  color: rgb(22, 163, 74);
+}
+
+.summaryRemoved {
+  color: rgb(220, 38, 38);
+}
+
+/* Metadata section */
+.metadataSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.metadataList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--muted);
+  border-radius: 8px;
+}
+
+.metadataChange {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  flex-wrap: wrap;
+}
+
+.metadataField {
+  font-weight: 500;
+  color: var(--foreground);
+  text-transform: capitalize;
+}
+
+.metadataOld {
+  color: rgb(220, 38, 38);
+  text-decoration: line-through;
+}
+
+.metadataNew {
+  color: rgb(22, 163, 74);
+}
+
+.metadataArrow {
+  color: var(--muted-foreground);
+}
+
+.metadataAdded,
+.metadataRemoved {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Content diff section */
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diffContent {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  background: var(--muted);
+  border-radius: 8px;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.diffLine {
+  display: flex;
+  padding: 0 12px;
+  min-height: 1.6em;
+}
+
+.linePrefix {
+  width: 16px;
+  flex-shrink: 0;
+  user-select: none;
+  color: var(--muted-foreground);
+}
+
+.lineContent {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.lineUnchanged {
+  background: transparent;
+}
+
+.lineAdded {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.lineAdded .linePrefix,
+.lineAdded .lineContent {
+  color: rgb(22, 163, 74);
+}
+
+.lineRemoved {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.lineRemoved .linePrefix,
+.lineRemoved .lineContent {
+  color: rgb(220, 38, 38);
+}
