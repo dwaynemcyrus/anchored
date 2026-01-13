@@ -23,6 +23,7 @@ import {
 import { CommandPalette } from "@/components/writer/ui/CommandPalette";
 import { VersionHistoryDialog } from "@/components/writer/documents/VersionHistory";
 import { BacklinksDialog } from "@/components/writer/documents/BacklinksPanel";
+import { DocumentStats } from "@/components/writer/documents/DocumentStats";
 import { useBacklinks } from "@/lib/hooks/use-backlinks";
 import type { DocumentVersion } from "@/types/database";
 import styles from "./page.module.css";
@@ -499,23 +500,26 @@ export default function WriterV3EditorPage() {
             onSave={handleSave}
           />
         </div>
-        <div className={styles.footerActions}>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={handleSnapshot}
-            disabled={createSnapshot.isPending || updateDocument.isPending}
-          >
-            Save snapshot
-          </button>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={handlePublish}
-            disabled={publishDocument.isPending || updateDocument.isPending}
-          >
-            Publish
-          </button>
+        <div className={styles.footer}>
+          <DocumentStats text={bodyMd} />
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleSnapshot}
+              disabled={createSnapshot.isPending || updateDocument.isPending}
+            >
+              Save snapshot
+            </button>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={handlePublish}
+              disabled={publishDocument.isPending || updateDocument.isPending}
+            >
+              Publish
+            </button>
+          </div>
         </div>
       </section>
 

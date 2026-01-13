@@ -88,6 +88,14 @@
   flex: 1;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .footerActions {
   display: flex;
   flex-wrap: wrap;
