@@ -77,6 +77,7 @@ export function TiptapEditor({
   onSave,
 }: TiptapEditorProps) {
   const isExternalUpdate = useRef(false);
+  const lastInternalValue = useRef(value);
   const onChangeRef = useRef(onChange);
 
   // Keep onChange ref up to date
@@ -162,6 +163,7 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => {
       if (isExternalUpdate.current) return;
       const markdown = getMarkdown(editor);
+      lastInternalValue.current = markdown;
       onChangeRef.current(markdown);
     },
   });
@@ -217,14 +219,19 @@ export function TiptapEditor({
     };
   }, [editor, isFocusControlled, isTypewriterControlled, onFocusModeChange, onTypewriterModeChange]);
 
-  // Handle external value updates
+  // Handle external value updates (e.g., loading document, restoring version)
+  // Skip if value matches what we last set internally (from typing)
   useEffect(() => {
     if (!editor) return;
+
+    // If this value came from our own onChange, skip the sync
+    if (value === lastInternalValue.current) return;
 
     const currentMarkdown = getMarkdown(editor);
     if (currentMarkdown === value) return;
 
     isExternalUpdate.current = true;
+    lastInternalValue.current = value;
 
     const { from, to } = editor.state.selection;
 
