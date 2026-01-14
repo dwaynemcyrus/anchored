@@ -9,6 +9,11 @@ import {
   useDuplicateDocument,
   useArchiveDocument,
 } from "@/lib/hooks/use-documents";
+import {
+  copyMarkdownBody,
+  copyMarkdownWithFrontmatter,
+  copyAsHtml,
+} from "@/lib/utils/export-markdown";
 import type { Document } from "@/types/database";
 import styles from "./DocumentActions.module.css";
 
@@ -21,10 +26,31 @@ export function DocumentActions({ document, onStatusChange }: DocumentActionsPro
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   const deleteDocument = useDeleteDocument();
   const duplicateDocument = useDuplicateDocument();
   const archiveDocument = useArchiveDocument();
+
+  const showCopyFeedback = (message: string) => {
+    setCopyFeedback(message);
+    setTimeout(() => setCopyFeedback(null), 2000);
+  };
+
+  const handleCopyMarkdown = async () => {
+    const success = await copyMarkdownBody(document);
+    showCopyFeedback(success ? "Copied markdown" : "Failed to copy");
+  };
+
+  const handleCopyWithFrontmatter = async () => {
+    const success = await copyMarkdownWithFrontmatter(document);
+    showCopyFeedback(success ? "Copied with frontmatter" : "Failed to copy");
+  };
+
+  const handleCopyHtml = async () => {
+    const success = await copyAsHtml(document);
+    showCopyFeedback(success ? "Copied as HTML" : "Failed to copy");
+  };
 
   const handleDuplicate = async () => {
     const newDoc = await duplicateDocument.mutateAsync(document);
@@ -53,6 +79,26 @@ export function DocumentActions({ document, onStatusChange }: DocumentActionsPro
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content className={styles.content} sideOffset={5} align="end">
+            <DropdownMenu.Sub>
+              <DropdownMenu.SubTrigger className={styles.item}>
+                Copy
+                <span className={styles.submenuArrow}>→</span>
+              </DropdownMenu.SubTrigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.SubContent className={styles.subContent} sideOffset={4}>
+                  <DropdownMenu.Item className={styles.item} onSelect={handleCopyMarkdown}>
+                    Markdown
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className={styles.item} onSelect={handleCopyWithFrontmatter}>
+                    With frontmatter
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className={styles.item} onSelect={handleCopyHtml}>
+                    As HTML
+                  </DropdownMenu.Item>
+                </DropdownMenu.SubContent>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Sub>
+
             <DropdownMenu.Item
               className={styles.item}
               onSelect={handleDuplicate}
@@ -118,6 +164,10 @@ export function DocumentActions({ document, onStatusChange }: DocumentActionsPro
           </AlertDialog.Content>
         </AlertDialog.Portal>
       </AlertDialog.Root>
+
+      {copyFeedback && (
+        <div className={styles.toast}>{copyFeedback}</div>
+      )}
     </>
   );
 }
