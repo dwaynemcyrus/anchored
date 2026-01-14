@@ -116,6 +116,14 @@
   opacity: 0.7;
 }
 
+/* Highlight */
+.highlight,
+.prose mark {
+  background: rgba(255, 235, 59, 0.4);
+  border-radius: 2px;
+  padding: 0.1em 0.2em;
+}
+
 /* Lists */
 .prose ul,
 .prose ol {
@@ -404,6 +412,13 @@
 .editorContainer :global(.hybrid-mark--code)::before,
 .editorContainer :global(.hybrid-mark--code)::after {
   font-family: var(--font-geist-mono);
+}
+
+/* Highlight mark specifics */
+.editorContainer :global(.hybrid-mark--highlight) {
+  background: rgba(255, 235, 59, 0.4);
+  border-radius: 2px;
+  padding: 0.1em 0;
 }
 
 /* Callout Blocks - Obsidian style */

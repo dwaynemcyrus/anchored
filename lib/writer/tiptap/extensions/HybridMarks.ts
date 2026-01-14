@@ -8,6 +8,7 @@ export interface HybridMarksOptions {
     italic?: boolean;
     code?: boolean;
     strike?: boolean;
+    highlight?: boolean;
   };
 }
 
@@ -19,6 +20,7 @@ const MARK_SYNTAX: Record<string, { before: string; after: string }> = {
   italic: { before: "*", after: "*" },
   code: { before: "`", after: "`" },
   strike: { before: "~~", after: "~~" },
+  highlight: { before: "==", after: "==" },
 };
 
 // Get the syntax length for a mark
@@ -51,6 +53,7 @@ export const HybridMarks = Extension.create<HybridMarksOptions>({
         italic: true,
         code: true,
         strike: true,
+        highlight: true,
       },
     };
   },
@@ -65,7 +68,8 @@ export const HybridMarks = Extension.create<HybridMarksOptions>({
         (markName === "bold" && enabledMarks.bold === true) ||
         (markName === "italic" && enabledMarks.italic === true) ||
         (markName === "code" && enabledMarks.code === true) ||
-        (markName === "strike" && enabledMarks.strike === true)
+        (markName === "strike" && enabledMarks.strike === true) ||
+        (markName === "highlight" && enabledMarks.highlight === true)
       );
     };
 

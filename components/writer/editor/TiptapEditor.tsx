@@ -6,6 +6,11 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import Highlight from "@tiptap/extension-highlight";
 import { Markdown } from "tiptap-markdown";
 import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
@@ -140,6 +145,20 @@ export function TiptapEditor({
         onSave,
       }),
       Callout,
+      Highlight.configure({
+        HTMLAttributes: {
+          class: styles.highlight,
+        },
+      }),
+      Table.configure({
+        resizable: false,
+        HTMLAttributes: {
+          class: styles.table,
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       WikiLink.configure({
         onNavigate: onWikiLinkClick,
         validateLink: validateWikiLink,

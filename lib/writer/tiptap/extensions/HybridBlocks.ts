@@ -10,6 +10,7 @@ export interface HybridBlocksOptions {
     blockquote?: boolean;
     taskList?: boolean;
     codeBlock?: boolean;
+    table?: boolean;
   };
 }
 
@@ -50,6 +51,7 @@ export const HybridBlocks = Extension.create<HybridBlocksOptions>({
         blockquote: true,
         taskList: true,
         codeBlock: true,
+        table: true,
       },
     };
   },
@@ -163,6 +165,21 @@ export const HybridBlocks = Extension.create<HybridBlocksOptions>({
           // Check for code block
           if (blockType === "codeBlock" && options.blocks.codeBlock) {
             return expandCodeBlock(newState, $from, blockPos, blockNode);
+          }
+
+          // Check for table (cursor in paragraph inside tableCell/tableHeader)
+          if (blockType === "paragraph" && $from.depth >= 3 && options.blocks.table) {
+            const cellNode = $from.node($from.depth - 1);
+            if (cellNode.type.name === "tableCell" || cellNode.type.name === "tableHeader") {
+              // Find the table node
+              for (let d = $from.depth - 2; d >= 0; d--) {
+                const node = $from.node(d);
+                if (node.type.name === "table") {
+                  const tablePos = $from.before(d);
+                  return expandTable(newState, $from, tablePos, node);
+                }
+              }
+            }
           }
 
           return null;
@@ -449,6 +466,98 @@ function expandCodeBlock(
   return tr;
 }
 
+function expandTable(
+  state: any,
+  $from: any,
+  tablePos: number,
+  tableNode: ProseMirrorNode
+): any {
+  const tr = state.tr;
+
+  // Extract table data
+  const rows: string[][] = [];
+  let hasHeader = false;
+
+  tableNode.forEach((row: ProseMirrorNode) => {
+    if (row.type.name === "tableRow") {
+      const cells: string[] = [];
+      row.forEach((cell: ProseMirrorNode) => {
+        if (cell.type.name === "tableHeader") {
+          hasHeader = true;
+        }
+        // Get text content from the cell (usually has a paragraph inside)
+        cells.push(cell.textContent);
+      });
+      rows.push(cells);
+    }
+  });
+
+  if (rows.length === 0) return null;
+
+  // Build markdown table
+  const colCount = Math.max(...rows.map((r) => r.length));
+  const colWidths = Array(colCount).fill(3); // Minimum width of 3 for separator
+
+  // Calculate column widths
+  rows.forEach((row) => {
+    row.forEach((cell, i) => {
+      colWidths[i] = Math.max(colWidths[i], cell.length);
+    });
+  });
+
+  // Build table lines
+  const lines: string[] = [];
+
+  rows.forEach((row, rowIndex) => {
+    const cells = row.map((cell, i) => cell.padEnd(colWidths[i]));
+    // Pad with empty cells if needed
+    while (cells.length < colCount) {
+      cells.push(" ".repeat(colWidths[cells.length]));
+    }
+    lines.push("| " + cells.join(" | ") + " |");
+
+    // Add separator after first row if it's a header
+    if (rowIndex === 0 && hasHeader) {
+      const separator = colWidths.map((w) => "-".repeat(w));
+      lines.push("| " + separator.join(" | ") + " |");
+    }
+  });
+
+  // If no header row, add separator after first row anyway (markdown requires it)
+  if (!hasHeader && rows.length > 0) {
+    const separator = colWidths.map((w) => "-".repeat(w));
+    const headerLine = lines[0];
+    lines.splice(1, 0, "| " + separator.join(" | ") + " |");
+  }
+
+  const tableMarkdown = lines.join("\n");
+
+  // Replace table with a paragraph containing the markdown
+  const paragraph = state.schema.nodes.paragraph.create(
+    null,
+    tableMarkdown ? state.schema.text(tableMarkdown) : null
+  );
+
+  tr.replaceWith(tablePos, tablePos + tableNode.nodeSize, paragraph);
+
+  // Calculate cursor position
+  // Find which row/cell the cursor was in and map to the new position
+  const cursorOffset = $from.pos - tablePos;
+  // Simple approach: place cursor at start of content
+  const newCursorPos = tablePos + 3; // After "| "
+  tr.setSelection(TextSelection.create(tr.doc, newCursorPos));
+
+  tr.setMeta(HybridBlocksPluginKey, {
+    expanded: {
+      blockPos: tablePos,
+      blockType: "table",
+      meta: { colCount, rowCount: rows.length },
+    },
+  });
+
+  return tr;
+}
+
 function collapseBlock(
   state: any,
   expandedBlock: ExpandedBlock,
@@ -468,6 +577,16 @@ function collapseBlock(
   const tr = state.tr;
 
   // Try to parse the text back to the appropriate block type
+
+  // Check for markdown table syntax
+  if (text.includes("|") && options.blocks.table) {
+    const tableResult = parseMarkdownTable(text, state);
+    if (tableResult) {
+      tr.replaceWith(blockPos, blockPos + node.nodeSize, tableResult);
+      tr.setMeta(HybridBlocksPluginKey, { clear: true });
+      return tr;
+    }
+  }
 
   // Check for fenced code block syntax
   const codeBlockMatch = text.match(/^```(\w*)\n([\s\S]*?)\n?```$/);
@@ -571,4 +690,80 @@ function collapseBlock(
   // No syntax found, just clear the state (leave as paragraph)
   tr.setMeta(HybridBlocksPluginKey, { clear: true });
   return tr;
+}
+
+function parseMarkdownTable(text: string, state: any): ProseMirrorNode | null {
+  const lines = text.split("\n").filter((line) => line.trim());
+
+  if (lines.length < 2) return null;
+
+  // Check if lines look like table rows
+  const isTableRow = (line: string) => {
+    const trimmed = line.trim();
+    return trimmed.startsWith("|") && trimmed.endsWith("|");
+  };
+
+  const isSeparator = (line: string) => {
+    return /^\|[\s\-:|]+\|$/.test(line.trim());
+  };
+
+  if (!lines.every((line) => isTableRow(line) || isSeparator(line))) {
+    return null;
+  }
+
+  // Find separator line
+  const separatorIndex = lines.findIndex(isSeparator);
+  if (separatorIndex === -1) return null;
+
+  // Parse cells from a row
+  const parseCells = (line: string): string[] => {
+    return line
+      .trim()
+      .slice(1, -1) // Remove leading and trailing |
+      .split("|")
+      .map((cell) => cell.trim());
+  };
+
+  // Parse header row (before separator)
+  const headerRows = lines.slice(0, separatorIndex);
+  const dataRows = lines.slice(separatorIndex + 1);
+
+  if (headerRows.length === 0) return null;
+
+  const tableRows: ProseMirrorNode[] = [];
+
+  // Create header rows
+  headerRows.forEach((line) => {
+    const cells = parseCells(line);
+    const headerCells = cells.map((cellText) =>
+      state.schema.nodes.tableHeader.create(
+        null,
+        state.schema.nodes.paragraph.create(
+          null,
+          cellText ? state.schema.text(cellText) : null
+        )
+      )
+    );
+    tableRows.push(state.schema.nodes.tableRow.create(null, headerCells));
+  });
+
+  // Create data rows
+  dataRows.forEach((line) => {
+    if (isSeparator(line)) return; // Skip any extra separators
+    const cells = parseCells(line);
+    const tableCells = cells.map((cellText) =>
+      state.schema.nodes.tableCell.create(
+        null,
+        state.schema.nodes.paragraph.create(
+          null,
+          cellText ? state.schema.text(cellText) : null
+        )
+      )
+    );
+    tableRows.push(state.schema.nodes.tableRow.create(null, tableCells));
+  });
+
+  if (tableRows.length === 0) return null;
+
+  return state.schema.nodes.table.create(null, tableRows);
 }
