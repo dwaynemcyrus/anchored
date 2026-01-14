@@ -380,11 +380,10 @@
   position: relative;
 }
 
-/* Syntax characters - hidden by default */
+/* Syntax characters - hidden by default (no content = no space) */
 .editorContainer :global(.hybrid-mark)::before,
 .editorContainer :global(.hybrid-mark)::after {
-  opacity: 0;
-  transition: opacity 150ms ease;
+  content: "";
   color: var(--muted-foreground);
   font-weight: normal;
   font-style: normal;
@@ -392,18 +391,13 @@
   pointer-events: none;
 }
 
-.editorContainer :global(.hybrid-mark)::before {
+/* Show syntax when cursor is inside the mark */
+.editorContainer :global(.hybrid-mark--active)::before {
   content: attr(data-syntax-before);
 }
 
-.editorContainer :global(.hybrid-mark)::after {
-  content: attr(data-syntax-after);
-}
-
-/* Show syntax when cursor is inside the mark */
-.editorContainer :global(.hybrid-mark--active)::before,
 .editorContainer :global(.hybrid-mark--active)::after {
-  opacity: 1;
+  content: attr(data-syntax-after);
 }
 
 /* Code mark specifics - use monospace for syntax */
