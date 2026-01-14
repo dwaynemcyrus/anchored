@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { FocusMode } from "@/lib/writer/tiptap/extensions/FocusMode";
 import { TypewriterMode } from "@/lib/writer/tiptap/extensions/TypewriterMode";
 import { HybridMarks } from "@/lib/writer/tiptap/extensions/HybridMarks";
+import { HybridBlocks } from "@/lib/writer/tiptap/extensions/HybridBlocks";
 import { KeyboardShortcuts } from "@/lib/writer/tiptap/extensions/KeyboardShortcuts";
 import { Callout } from "@/lib/writer/tiptap/extensions/Callout";
 import { EditorToolbar } from "./EditorToolbar";
@@ -134,6 +135,7 @@ export function TiptapEditor({
       }),
       TypewriterMode,
       HybridMarks,
+      HybridBlocks,
       KeyboardShortcuts.configure({
         onSave,
       }),
